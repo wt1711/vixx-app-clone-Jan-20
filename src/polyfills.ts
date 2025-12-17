@@ -40,3 +40,11 @@ if (typeof global.process === 'undefined') {
   };
 }
 
+// 6. Polyfill import.meta for React Native (matrix-js-sdk uses it for WASM)
+// This prevents errors when matrix-js-sdk tries to use import.meta.url
+if (typeof global.importMeta === 'undefined') {
+  (global as any).importMeta = {
+    url: 'https://react-native',
+  };
+}
+

@@ -1,5 +1,7 @@
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
+const defaultConfig = getDefaultConfig(__dirname);
+
 /**
  * Metro configuration
  * https://reactnative.dev/docs/metro
@@ -15,8 +17,23 @@ const config = {
       buffer: require.resolve('buffer'),
       // Text encoding polyfills
       'text-encoding': require.resolve('text-encoding-polyfill'),
+      // Mock WASM module to prevent import.meta errors
+      '@matrix-org/matrix-sdk-crypto-wasm': require.resolve('./src/mocks/matrix-sdk-crypto-wasm.js'),
     },
+    // Exclude WASM files from source extensions - treat them as assets or ignore
+    sourceExts: defaultConfig.resolver.sourceExts.filter(ext => ext !== 'wasm'),
+    assetExts: [...defaultConfig.resolver.assetExts, 'wasm'],
+  },
+  transformer: {
+    getTransformOptions: async () => ({
+      transform: {
+        experimentalImportSupport: false,
+        inlineRequires: true,
+      },
+    }),
+    // Transform import.meta to work in React Native
+    babelTransformerPath: require.resolve('./metro-transformer.js'),
   },
 };
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = mergeConfig(defaultConfig, config);
