@@ -45,7 +45,16 @@ export default function LoginInstagramModal({ open, onClose, onSubmit, isInstagr
       };
       return {
         payload,
-        isValidCookies: payload.ds_user_id && payload.sessionid && payload.rur && payload.ps_n && payload.ps_l && payload.mid && payload.ig_did,
+        isValidCookies: (
+          payload.ds_user_id &&
+          payload.sessionid &&
+          payload.rur &&
+          payload.mid &&
+          payload.ig_did &&
+          payload.csrftoken &&
+          payload.wd &&
+          payload.datr
+        ),
       };
   }
 
@@ -174,6 +183,8 @@ export default function LoginInstagramModal({ open, onClose, onSubmit, isInstagr
               domStorageEnabled={true}
               startInLoadingState={true}
               scalesPageToFit={true}
+              sharedCookiesEnabled={true}
+              thirdPartyCookiesEnabled={true}
               userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
             />
           </SafeAreaView>
