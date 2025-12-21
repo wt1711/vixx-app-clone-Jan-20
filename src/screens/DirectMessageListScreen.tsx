@@ -9,7 +9,12 @@ import {
   RefreshControl,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import { BlurView } from '@react-native-community/blur';
+import { Settings } from 'lucide-react-native';
+
+const Gradient = LinearGradient as any;
 import { Room } from 'matrix-js-sdk';
 import { useDirectRooms } from '../hooks/useDirectRooms';
 import { getMatrixClient } from '../matrixClient';
@@ -42,6 +47,7 @@ export function DirectMessageListScreen({
   const [loading, setLoading] = useState(false);
   const mx = getMatrixClient();
   const { logout } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -54,7 +60,6 @@ export function DirectMessageListScreen({
     if (!mx) return [];
 
     return directRooms.map((room: Room) => {
-
       // Use room.name directly - Matrix SDK handles the display name correctly
       // This matches the NextJS implementation
       const name = room.name || 'Unknown';
@@ -99,21 +104,36 @@ export function DirectMessageListScreen({
   }, [directRooms, mx]);
 
   const renderRoomItem = ({ item }: { item: RoomItem }) => {
-    const formatTime = (timestamp?: number) => {
-      if (!timestamp) return '';
+    const formatTime = (
+      timestamp?: number,
+    ): { text: string; isRecent: boolean } => {
+      if (!timestamp) return { text: '', isRecent: false };
       const date = new Date(timestamp);
       const now = new Date();
       const diff = now.getTime() - date.getTime();
+      const minutes = Math.floor(diff / (1000 * 60));
+      const hours = Math.floor(diff / (1000 * 60 * 60));
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-      if (days === 0) {
-        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      if (minutes < 60) {
+        return { text: `${minutes}m ago`, isRecent: true };
+      } else if (hours < 24) {
+        return { text: `${hours}h ago`, isRecent: true };
       } else if (days === 1) {
-        return 'Yesterday';
+        return { text: 'Yesterday', isRecent: false };
       } else if (days < 7) {
-        return date.toLocaleDateString('en-US', { weekday: 'short' });
+        return {
+          text: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          isRecent: false,
+        };
       } else {
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return {
+          text: date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+          }),
+          isRecent: false,
+        };
       }
     };
 
@@ -130,40 +150,63 @@ export function DirectMessageListScreen({
 
     return (
       <TouchableOpacity
-        style={[styles.roomItem, isSelected && styles.roomItemSelected]}
         onPress={() => onSelectRoom(item.roomId)}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
+        style={styles.roomItemWrapper}
       >
-        <View style={styles.avatarContainer}>
-          {item.avatarUrl ? (
-            <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
+        <View style={[styles.roomItem, isSelected && styles.roomItemSelected]}>
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType="dark"
+            blurAmount={80}
+            reducedTransparencyFallbackColor="#1A1A2E"
+          />
+          <View style={styles.roomItemContent}>
+            <View style={styles.avatarContainer}>
+              {item.avatarUrl ? (
+                <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                  <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
+                </View>
+              )}
+              {item.unreadCount > 0 && <View style={styles.unreadDot} />}
             </View>
-          )}
-          {item.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>
-                {item.unreadCount > 99 ? '99+' : item.unreadCount}
-              </Text>
+            <View style={styles.roomContent}>
+              <View style={styles.roomHeader}>
+                <Text
+                  style={[
+                    styles.roomName,
+                    item.unreadCount > 0 && styles.roomNameUnread,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.name}
+                </Text>
+                {item.lastEventTime ? (
+                  <Text
+                    style={[
+                      styles.roomTime,
+                      item.unreadCount > 0 && styles.roomTimeUnread,
+                    ]}
+                  >
+                    {formatTime(item.lastEventTime).text}
+                  </Text>
+                ) : null}
+              </View>
+              {item.lastMessage ? (
+                <Text
+                  style={[
+                    styles.roomLastMessage,
+                    item.unreadCount > 0 && styles.roomLastMessageUnread,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.lastMessage}
+                </Text>
+              ) : null}
             </View>
-          )}
-        </View>
-        <View style={styles.roomContent}>
-          <View style={styles.roomHeader}>
-            <Text style={styles.roomName} numberOfLines={1}>
-              {item.name}
-            </Text>
-            {item.lastEventTime ? (
-              <Text style={styles.roomTime}>{formatTime(item.lastEventTime)}</Text>
-            ) : null}
           </View>
-          {item.lastMessage ? (
-            <Text style={styles.roomLastMessage} numberOfLines={1}>
-              {item.lastMessage}
-            </Text>
-          ) : null}
         </View>
       </TouchableOpacity>
     );
@@ -171,37 +214,57 @@ export function DirectMessageListScreen({
 
   if (isLoading || loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Direct Messages</Text>
+      <View style={styles.container}>
+        <Gradient
+          colors={['#0A0A0F', '#1A1A2E', '#16213E', '#0A0A0F']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType="dark"
+            blurAmount={80}
+            reducedTransparencyFallbackColor="#0A0A0F"
+          />
+          <TouchableOpacity style={styles.settingsButton}>
+            <Settings color="#FFFFFF" size={24} />
+          </TouchableOpacity>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E4405F" />
+          <ActivityIndicator size="large" color="#FF6B35" />
           <Text style={styles.loadingText}>Loading messages...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Direct Messages</Text>
-        <View style={styles.headerActions}>
-          {onCreateChat ? (
-            <TouchableOpacity onPress={onCreateChat} style={styles.createButton}>
-              <Text style={styles.createButtonText}>+</Text>
-            </TouchableOpacity>
-          ) : null}
-          <TouchableOpacity onPress={logout} style={styles.logoutButton}>
-            <Text style={styles.logoutButtonText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0A0A0F', '#1A1A2E', '#16213E', '#0A0A0F']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <BlurView
+          style={StyleSheet.absoluteFill}
+          blurType="dark"
+          blurAmount={80}
+          reducedTransparencyFallbackColor="#0A0A0F"
+        />
+        <TouchableOpacity onPress={logout} style={styles.settingsButton} activeOpacity={0.7}>
+          <Settings color="#FFFFFF" size={24} />
+        </TouchableOpacity>
       </View>
       {roomItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No direct messages yet</Text>
-          <Text style={styles.emptySubtext}>Start a conversation to see it here</Text>
+          <Text style={styles.emptySubtext}>
+            Start a conversation to see it here
+          </Text>
           {onCreateChat ? (
             <TouchableOpacity style={styles.emptyButton} onPress={onCreateChat}>
               <Text style={styles.emptyButtonText}>Create Chat</Text>
@@ -212,72 +275,38 @@ export function DirectMessageListScreen({
         <FlatList
           data={roomItems}
           renderItem={renderRoomItem}
-          keyExtractor={(item) => item.roomId}
+          keyExtractor={item => item.roomId}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E4405F" />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#FF6B35"
+            />
           }
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#0A0A0F',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  createButton: {
+  settingsButton: {
     padding: 8,
-    backgroundColor: '#E4405F',
-    borderRadius: 20,
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  createButtonText: {
-    fontSize: 20,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  logoutButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-  },
-  logoutButtonText: {
-    color: '#333',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  closeButton: {
-    padding: 8,
-  },
-  closeButtonText: {
-    fontSize: 24,
-    color: '#666',
   },
   loadingContainer: {
     flex: 1,
@@ -287,82 +316,111 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: '#9CA3AF',
   },
   listContent: {
-    paddingVertical: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  roomItemWrapper: {
+    marginBottom: 12,
+    borderRadius: 20,
+    overflow: 'hidden',
   },
   roomItem: {
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(10, 10, 15, 0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  roomItemContent: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
   },
   roomItemSelected: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'rgba(30, 30, 45, 0.5)',
   },
   avatarContainer: {
     position: 'relative',
-    marginRight: 12,
+    marginRight: 14,
   },
   avatar: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#e0e0e0',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   avatarPlaceholder: {
-    justifyContent: 'center',
+    backgroundColor: '#2A2A3E',
     alignItems: 'center',
-    backgroundColor: '#E4405F',
+    justifyContent: 'center',
   },
   avatarText: {
-    color: '#fff',
+    color: '#9CA3AF',
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
-  unreadBadge: {
+  unreadDot: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#E4405F',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-  },
-  unreadText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
+    top: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FF6B35',
+    borderWidth: 2,
+    borderColor: '#0A0A0F',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 4,
+    elevation: 4,
   },
   roomContent: {
     flex: 1,
-    justifyContent: 'center',
   },
   roomHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   roomName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: '700',
+    color: '#FFFFFF',
     flex: 1,
+  },
+  roomNameUnread: {
+    fontWeight: '800',
   },
   roomTime: {
     fontSize: 12,
-    color: '#999',
+    color: '#9CA3AF',
+    fontWeight: '500',
     marginLeft: 8,
+  },
+  roomTimeUnread: {
+    color: '#FF6B35',
+    fontWeight: '600',
   },
   roomLastMessage: {
     fontSize: 14,
-    color: '#666',
+    color: '#D1D5DB',
+    fontWeight: '600',
+  },
+  roomLastMessageUnread: {
+    color: '#F3F4F6',
+    fontWeight: '800',
   },
   emptyContainer: {
     flex: 1,
@@ -373,20 +431,20 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#666',
+    color: '#9CA3AF',
     textAlign: 'center',
     marginBottom: 24,
   },
   emptyButton: {
-    backgroundColor: '#E4405F',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 20,
   },
   emptyButtonText: {
     color: '#fff',
