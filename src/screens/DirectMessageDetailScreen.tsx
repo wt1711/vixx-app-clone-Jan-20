@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from '../matrixClient';
@@ -87,8 +88,8 @@ export function DirectMessageDetailScreen({
   }, [mx, roomId]);
 
   const handleAIAssistantClick = useCallback(() => {
-    // Ignore for now 
-      return;
+    // Ignore for now
+    return;
 
     console.log('🤖 AI Assistant clicked - Payment state:', {
       hasPaid: paymentState.hasPaid,
@@ -115,8 +116,14 @@ export function DirectMessageDetailScreen({
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
+        <LinearGradient
+          colors={['#0A0A0F', '#1A1A2E', '#16213E', '#0A0A0F']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E4405F" />
+          <ActivityIndicator size="large" color="#FF6B35" />
           <Text style={styles.loadingText}>Loading conversation...</Text>
         </View>
       </SafeAreaView>
@@ -126,6 +133,12 @@ export function DirectMessageDetailScreen({
   if (!room) {
     return (
       <SafeAreaView style={styles.container}>
+        <LinearGradient
+          colors={['#0A0A0F', '#1A1A2E', '#16213E', '#0A0A0F']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Room not found</Text>
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
@@ -138,6 +151,12 @@ export function DirectMessageDetailScreen({
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <LinearGradient
+        colors={['#0A0A0F', '#1A1A2E', '#16213E', '#0A0A0F']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <AIAssistantProvider room={room} isMobile={true}>
         <RoomViewHeader
           room={room}
@@ -181,7 +200,7 @@ export function DirectMessageDetailScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#0A0A0F',
   },
   loadingContainer: {
     flex: 1,
@@ -191,7 +210,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: '#9CA3AF',
   },
   errorContainer: {
     flex: 1,
@@ -201,14 +220,14 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#666',
+    color: '#9CA3AF',
     marginBottom: 20,
   },
   backButton: {
-    backgroundColor: '#E4405F',
+    backgroundColor: '#FF6B35',
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 20,
   },
   backButtonText: {
     color: '#fff',
@@ -222,9 +241,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inputContainer: {
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
   },
 });
-
