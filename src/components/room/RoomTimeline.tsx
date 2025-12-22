@@ -10,7 +10,16 @@ import {
   Pressable,
   Modal,
   Dimensions,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
+
+// Enable LayoutAnimation for Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import { BlurView } from '@react-native-community/blur';
 import { Room, MatrixEvent, RoomEvent, Direction } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
@@ -47,15 +56,40 @@ type RoomTimelineProps = {
 };
 
 // Memoized Message Item Component - moved outside to avoid recreation on every render
-const MessageItemComponent = React.memo<{ 
+const MessageItemComponent = React.memo<{
   item: MessageItem;
   onReactionPress?: (key: string) => void;
   onLongPress?: (getPosition: () => { x: number; y: number; width: number; height: number }) => void;
-}>(({ item, onReactionPress, onLongPress }) => {
+  onBubblePress?: () => void;
+  showTimestamp?: boolean;
+  isFirstOfHour?: boolean;
+}>(({ item, onReactionPress, onLongPress, onBubblePress, showTimestamp, isFirstOfHour }) => {
   const messageRef = useRef<View>(null);
-  const formatTime = (timestamp: number) => {
+  const shouldShowTimestamp = showTimestamp || isFirstOfHour;
+  const animatedOpacity = useRef(new Animated.Value(shouldShowTimestamp ? 1 : 0)).current;
+
+  useEffect(() => {
+    // Only animate for tap-triggered timestamps, not for first-of-hour
+    if (!isFirstOfHour) {
+      LayoutAnimation.configureNext(LayoutAnimation.create(
+        300,
+        LayoutAnimation.Types.easeInEaseOut,
+        LayoutAnimation.Properties.opacity
+      ));
+
+      Animated.timing(animatedOpacity, {
+        toValue: showTimestamp ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showTimestamp, animatedOpacity, isFirstOfHour]);
+
+  const formatTimeWithDay = (timestamp: number) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const day = date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+    const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return `${day} ${time}`;
   };
 
   const getInitials = (name: string) => {
@@ -67,7 +101,7 @@ const MessageItemComponent = React.memo<{
       .slice(0, 2);
   };
 
-  const timeString = formatTime(item.timestamp);
+  const timeString = formatTimeWithDay(item.timestamp);
   const initials = getInitials(item.senderName);
   const imageStyle = item.imageInfo?.w && item.imageInfo?.h
     ? [
@@ -88,107 +122,116 @@ const MessageItemComponent = React.memo<{
   };
 
   return (
-    <View
-      ref={messageRef}
-      style={[
-        styles.messageContainer,
-        item.isOwn ? styles.messageOwn : styles.messageOther,
-      ]}
-    >
-      {!item.isOwn && (
-        <View style={styles.avatarContainer}>
-          {item.avatarUrl ? (
-            <Image 
-              source={{ uri: item.avatarUrl }} 
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Text style={styles.avatarText}>{initials}</Text>
-            </View>
-          )}
-        </View>
+    <View>
+      {/* Timestamp shown above message when tapped or first of hour */}
+      {shouldShowTimestamp && (
+        <Animated.View
+          style={[styles.timestampRow, isFirstOfHour ? { opacity: 1 } : { opacity: animatedOpacity }]}
+        >
+          <Text style={styles.timestampText}>{timeString}</Text>
+        </Animated.View>
       )}
 
-      <Pressable
-        onLongPress={handleLongPress}
-        delayLongPress={500}
-        style={styles.messageBubbleWrapper}
+      <View
+        ref={messageRef}
+        style={[
+          styles.messageContainer,
+          item.isOwn ? styles.messageOwn : styles.messageOther,
+        ]}
       >
-        <View
-          style={[
-            styles.messageBubble,
-            item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
-          ]}
-        >
-          <BlurView
-            style={StyleSheet.absoluteFill}
-            blurType="dark"
-            blurAmount={80}
-            reducedTransparencyFallbackColor={item.isOwn ? '#123660' : '#1A1D24'}
-          />
-          <View style={styles.messageBubbleContent}>
-            {/* Render image if it's an image message */}
-            {item.msgtype === 'm.image' && item.imageUrl ? (
-              <View style={styles.imageContainer}>
-                <Image
-                  source={{ uri: item.imageUrl }}
-                  style={imageStyle}
-                  resizeMode="contain"
-                />
-                {item.content && item.content === '📷 Image' && (
-                  <Text
-                    style={[
-                      styles.messageText,
-                      item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
-                      styles.imageCaption,
-                    ]}
-                  >
-                    {item.content}
-                  </Text>
-                )}
-              </View>
+        {!item.isOwn && (
+          <View style={styles.avatarContainer}>
+            {item.avatarUrl ? (
+              <Image
+                source={{ uri: item.avatarUrl }}
+                style={styles.avatar}
+              />
             ) : (
-              <Text
-                style={[
-                  styles.messageText,
-                  item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
-                ]}
-              >
-                {item.content}
-              </Text>
-            )}
-            <View style={styles.timeContainer}>
-              <Text style={styles.messageTime}>{timeString}</Text>
-            </View>
-
-            {/* Reactions inside message bubble */}
-            {item.reactions && item.reactions.length > 0 && (
-              <View style={styles.reactionsInsideBubble} pointerEvents="box-none">
-                {item.reactions.map((reaction) => (
-                  <TouchableOpacity
-                    key={reaction.key}
-                    style={[
-                      item.isOwn ? styles.reactionButtonInsideOwn : styles.reactionButtonInsideOther,
-                      reaction.myReaction && (item.isOwn ? styles.reactionButtonActiveInsideOwn : styles.reactionButtonActiveInsideOther),
-                    ]}
-                    onPress={() => onReactionPress?.(reaction.key)}
-                    activeOpacity={0.6}
-                  >
-                    <Text style={styles.reactionEmojiInside}>{reaction.key}</Text>
-                    <Text style={[
-                      item.isOwn ? styles.reactionCountInsideOwn : styles.reactionCountInsideOther,
-                      reaction.myReaction && (item.isOwn ? styles.reactionCountActiveInsideOwn : styles.reactionCountActiveInsideOther),
-                    ]}>
-                      {reaction.count}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                <Text style={styles.avatarText}>{initials}</Text>
               </View>
             )}
           </View>
-        </View>
-      </Pressable>
+        )}
+
+        <Pressable
+          onPress={onBubblePress}
+          onLongPress={handleLongPress}
+          delayLongPress={500}
+          style={styles.messageBubbleWrapper}
+        >
+          <View
+            style={[
+              styles.messageBubble,
+              item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
+            ]}
+          >
+            <BlurView
+              style={StyleSheet.absoluteFill}
+              blurType="dark"
+              blurAmount={80}
+              reducedTransparencyFallbackColor={item.isOwn ? '#123660' : '#1A1D24'}
+            />
+            <View style={styles.messageBubbleContent}>
+              {/* Render image if it's an image message */}
+              {item.msgtype === 'm.image' && item.imageUrl ? (
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={{ uri: item.imageUrl }}
+                    style={imageStyle}
+                    resizeMode="contain"
+                  />
+                  {item.content && item.content === '📷 Image' && (
+                    <Text
+                      style={[
+                        styles.messageText,
+                        item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
+                        styles.imageCaption,
+                      ]}
+                    >
+                      {item.content}
+                    </Text>
+                  )}
+                </View>
+              ) : (
+                <Text
+                  style={[
+                    styles.messageText,
+                    item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
+                  ]}
+                >
+                  {item.content}
+                </Text>
+              )}
+
+              {/* Reactions inside message bubble */}
+              {item.reactions && item.reactions.length > 0 && (
+                <View style={styles.reactionsInsideBubble} pointerEvents="box-none">
+                  {item.reactions.map((reaction) => (
+                    <TouchableOpacity
+                      key={reaction.key}
+                      style={[
+                        item.isOwn ? styles.reactionButtonInsideOwn : styles.reactionButtonInsideOther,
+                        reaction.myReaction && (item.isOwn ? styles.reactionButtonActiveInsideOwn : styles.reactionButtonActiveInsideOther),
+                      ]}
+                      onPress={() => onReactionPress?.(reaction.key)}
+                      activeOpacity={0.6}
+                    >
+                      <Text style={styles.reactionEmojiInside}>{reaction.key}</Text>
+                      <Text style={[
+                        item.isOwn ? styles.reactionCountInsideOwn : styles.reactionCountInsideOther,
+                        reaction.myReaction && (item.isOwn ? styles.reactionCountActiveInsideOwn : styles.reactionCountActiveInsideOther),
+                      ]}>
+                        {reaction.count}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+        </Pressable>
+      </View>
     </View>
   );
 }, (prevProps, nextProps) => {
@@ -200,6 +243,8 @@ const MessageItemComponent = React.memo<{
     prevProps.item.timestamp === nextProps.item.timestamp &&
     prevProps.item.imageUrl === nextProps.item.imageUrl &&
     prevProps.item.avatarUrl === nextProps.item.avatarUrl &&
+    prevProps.showTimestamp === nextProps.showTimestamp &&
+    prevProps.isFirstOfHour === nextProps.isFirstOfHour &&
     reactionsEqual
   );
 });
@@ -501,6 +546,31 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const [quickReactionsEventId, setQuickReactionsEventId] = useState<string | null>(null);
   const [modalPosition, setModalPosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
+  // State for showing timestamp on message tap
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+
+  // Calculate which messages are first of their hour
+  const firstOfHourIds = React.useMemo(() => {
+    const ids = new Set<string>();
+    let lastHour: number | null = null;
+
+    for (const msg of messages) {
+      const msgDate = new Date(msg.timestamp);
+      const msgHour = msgDate.getFullYear() * 1000000 + (msgDate.getMonth() + 1) * 10000 + msgDate.getDate() * 100 + msgDate.getHours();
+
+      if (lastHour === null || msgHour !== lastHour) {
+        ids.add(msg.eventId);
+        lastHour = msgHour;
+      }
+    }
+
+    return ids;
+  }, [messages]);
+
+  const handleBubblePress = useCallback((eventId: string) => {
+    setSelectedMessageId(prev => prev === eventId ? null : eventId);
+  }, []);
+
   const handleMessageLongPress = useCallback((targetEventId: string, getPosition: () => { x: number; y: number; width: number; height: number }) => {
     const position = getPosition();
     setModalPosition(position);
@@ -524,13 +594,16 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       handleMessageLongPress(item.eventId, getPosition);
     };
     return (
-      <MessageItemComponent 
+      <MessageItemComponent
         item={item}
         onReactionPress={(key: string) => handleReactionToggle(item.eventId, key)}
         onLongPress={handleLongPress}
+        onBubblePress={() => handleBubblePress(item.eventId)}
+        showTimestamp={selectedMessageId === item.eventId}
+        isFirstOfHour={firstOfHourIds.has(item.eventId)}
       />
     );
-  }, [handleReactionToggle, handleMessageLongPress]);
+  }, [handleReactionToggle, handleMessageLongPress, handleBubblePress, selectedMessageId, firstOfHourIds]);
 
   if (loading) {
     return (
@@ -671,9 +744,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
-  timeContainer: {
-    alignItems: 'flex-end',
-    marginTop: 4,
+  timestampRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+  },
+  timestampText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.5)',
+    textAlign: 'center',
   },
   imageContainer: {
     marginBottom: 4,
@@ -715,11 +795,6 @@ const styles = StyleSheet.create({
   },
   messageTextOther: {
     color: '#F3F4F6',
-  },
-  messageTime: {
-    fontSize: 11,
-    fontWeight: '400',
-    color: 'rgba(255, 255, 255, 0.5)',
   },
   loadingMoreContainer: {
     padding: 16,
