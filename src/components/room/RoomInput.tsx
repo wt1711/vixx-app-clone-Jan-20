@@ -4,9 +4,10 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Text,
   ActivityIndicator,
 } from 'react-native';
+import { BlurView } from '@react-native-community/blur';
+import { Send } from 'lucide-react-native';
 import { EventType, MsgType, Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
 
@@ -42,11 +43,17 @@ export function RoomInput({ room }: RoomInputProps) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.inputContainer}>
+      <View style={styles.inputBar}>
+        <BlurView
+          style={StyleSheet.absoluteFill}
+          blurType="dark"
+          blurAmount={80}
+          reducedTransparencyFallbackColor="#0A0A0F"
+        />
         <TextInput
           style={styles.input}
-          placeholder="Type a message..."
-          placeholderTextColor="#999"
+          placeholder="flirt with her..."
+          placeholderTextColor="#9CA3AF"
           value={inputText}
           onChangeText={setInputText}
           multiline
@@ -55,17 +62,26 @@ export function RoomInput({ room }: RoomInputProps) {
           returnKeyType="send"
           editable={!sending}
         />
-        <TouchableOpacity
-          style={[styles.sendButton, (!inputText.trim() || sending) && styles.sendButtonDisabled]}
-          onPress={handleSend}
-          disabled={!inputText.trim() || sending}
-        >
-          {sending ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.sendButtonText}>Send</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.buttonRow}>
+          <View style={styles.buttonSpacer} />
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              (!inputText.trim() || sending) && styles.sendButtonDisabled,
+            ]}
+            onPress={handleSend}
+            disabled={!inputText.trim() || sending}
+          >
+            {sending ? (
+              <ActivityIndicator size="small" color="#FF6B35" />
+            ) : (
+              <Send
+                color={inputText.trim() ? '#FF6B35' : '#6B7280'}
+                size={24}
+              />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -73,46 +89,55 @@ export function RoomInput({ room }: RoomInputProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    paddingHorizontal: 0,
+    paddingTop: 12,
+    paddingBottom: 12,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
+  inputBar: {
+    backgroundColor: 'rgba(5, 6, 10, 0.92)',
+    borderRadius: 30,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 20,
+    width: '95%',
+    gap: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.6,
+    shadowRadius: 30,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    overflow: 'hidden',
   },
   input: {
+    backgroundColor: 'transparent',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    fontSize: 16,
+    color: '#E5E7EB',
+    minHeight: 24,
+    maxHeight: 60,
+    borderWidth: 0,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  buttonSpacer: {
     flex: 1,
-    minHeight: 40,
-    maxHeight: 100,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#333',
   },
   sendButton: {
-    backgroundColor: '#E4405F',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    justifyContent: 'center',
+    width: 24,
+    height: 24,
     alignItems: 'center',
-    minWidth: 60,
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   sendButtonDisabled: {
     opacity: 0.5,
   },
-  sendButtonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
-  },
 });
-
-

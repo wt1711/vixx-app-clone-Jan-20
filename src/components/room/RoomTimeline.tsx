@@ -11,6 +11,7 @@ import {
   Modal,
   Dimensions,
 } from 'react-native';
+import { BlurView } from '@react-native-community/blur';
 import { Room, MatrixEvent, RoomEvent, Direction } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
 import { getMemberAvatarMxc, getRoomAvatarUrl, messageEventOnly, getEventReactions, getReactionContent } from '../../utils/room';
@@ -120,74 +121,72 @@ const MessageItemComponent = React.memo<{
             item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
           ]}
         >
-          {!item.isOwn && (
-            <Text style={styles.senderName}>{item.senderName}</Text>
-          )}
-          
-          {/* Render image if it's an image message */}
-          {item.msgtype === 'm.image' && item.imageUrl ? (
-            <View style={styles.imageContainer}>
-              <Image
-                source={{ uri: item.imageUrl }}
-                style={imageStyle}
-                resizeMode="contain"
-              />
-              {item.content && item.content === '📷 Image' && (
-                <Text
-                  style={[
-                    styles.messageText,
-                    item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
-                    styles.imageCaption,
-                  ]}
-                >
-                  {item.content}
-                </Text>
-              )}
-            </View>
-          ) : (
-            <Text
-              style={[
-                styles.messageText,
-                item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
-              ]}
-            >
-              {item.content}
-            </Text>
-          )}
-          
-          {/* Reactions inside message bubble */}
-          {item.reactions && item.reactions.length > 0 && (
-            <View style={styles.reactionsInsideBubble} pointerEvents="box-none">
-              {item.reactions.map((reaction) => (
-                <TouchableOpacity
-                  key={reaction.key}
-                  style={[
-                    item.isOwn ? styles.reactionButtonInsideOwn : styles.reactionButtonInsideOther,
-                    reaction.myReaction && (item.isOwn ? styles.reactionButtonActiveInsideOwn : styles.reactionButtonActiveInsideOther),
-                  ]}
-                  onPress={() => onReactionPress?.(reaction.key)}
-                  activeOpacity={0.6}
-                >
-                  <Text style={styles.reactionEmojiInside}>{reaction.key}</Text>
-                  <Text style={[
-                    item.isOwn ? styles.reactionCountInsideOwn : styles.reactionCountInsideOther,
-                    reaction.myReaction && (item.isOwn ? styles.reactionCountActiveInsideOwn : styles.reactionCountActiveInsideOther),
-                  ]}>
-                    {reaction.count}
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType="dark"
+            blurAmount={80}
+            reducedTransparencyFallbackColor={item.isOwn ? '#123660' : '#1A1D24'}
+          />
+          <View style={styles.messageBubbleContent}>
+            {/* Render image if it's an image message */}
+            {item.msgtype === 'm.image' && item.imageUrl ? (
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={imageStyle}
+                  resizeMode="contain"
+                />
+                {item.content && item.content === '📷 Image' && (
+                  <Text
+                    style={[
+                      styles.messageText,
+                      item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
+                      styles.imageCaption,
+                    ]}
+                  >
+                    {item.content}
                   </Text>
-                </TouchableOpacity>
-              ))}
+                )}
+              </View>
+            ) : (
+              <Text
+                style={[
+                  styles.messageText,
+                  item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
+                ]}
+              >
+                {item.content}
+              </Text>
+            )}
+            <View style={styles.timeContainer}>
+              <Text style={styles.messageTime}>{timeString}</Text>
             </View>
-          )}
-          
-          <Text
-            style={[
-              styles.messageTime,
-              item.isOwn ? styles.messageTimeOwn : styles.messageTimeOther,
-            ]}
-          >
-            {timeString}
-          </Text>
+
+            {/* Reactions inside message bubble */}
+            {item.reactions && item.reactions.length > 0 && (
+              <View style={styles.reactionsInsideBubble} pointerEvents="box-none">
+                {item.reactions.map((reaction) => (
+                  <TouchableOpacity
+                    key={reaction.key}
+                    style={[
+                      item.isOwn ? styles.reactionButtonInsideOwn : styles.reactionButtonInsideOther,
+                      reaction.myReaction && (item.isOwn ? styles.reactionButtonActiveInsideOwn : styles.reactionButtonActiveInsideOther),
+                    ]}
+                    onPress={() => onReactionPress?.(reaction.key)}
+                    activeOpacity={0.6}
+                  >
+                    <Text style={styles.reactionEmojiInside}>{reaction.key}</Text>
+                    <Text style={[
+                      item.isOwn ? styles.reactionCountInsideOwn : styles.reactionCountInsideOther,
+                      reaction.myReaction && (item.isOwn ? styles.reactionCountActiveInsideOwn : styles.reactionCountActiveInsideOther),
+                    ]}>
+                      {reaction.count}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
       </Pressable>
     </View>
@@ -435,7 +434,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     if (!loadingMore) return null;
     return (
       <View style={styles.loadingMoreContainer}>
-        <ActivityIndicator size="small" color="#E4405F" />
+        <ActivityIndicator size="small" color="#FF6B35" />
         <Text style={styles.loadingMoreText}>Loading older messages...</Text>
       </View>
     );
@@ -536,7 +535,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#E4405F" />
+        <ActivityIndicator size="large" color="#FF6B35" />
       </View>
     );
   }
@@ -640,14 +639,16 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   avatarPlaceholder: {
-    backgroundColor: '#E4405F',
+    backgroundColor: '#2A2A3E',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#fff',
+    color: '#9CA3AF',
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -658,16 +659,28 @@ const styles = StyleSheet.create({
     opacity: 0.95,
   },
   messageBubble: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    elevation: 6,
+  },
+  messageBubbleContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  timeContainer: {
+    alignItems: 'flex-end',
+    marginTop: 4,
   },
   imageContainer: {
     marginBottom: 4,
   },
   messageImage: {
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   messageImageWithRatio: {
     maxWidth: 250,
@@ -682,38 +695,31 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   messageBubbleOwn: {
-    backgroundColor: '#E4405F',
-    borderBottomRightRadius: 4,
+    backgroundColor: '#123660',
   },
   messageBubbleOther: {
-    backgroundColor: '#f0f0f0',
-    borderBottomLeftRadius: 4,
-  },
-  senderName: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 4,
+    backgroundColor: '#1A1D24',
+    shadowColor: 'rgba(12, 20, 40, 0.6)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 18,
+    elevation: 4,
   },
   messageText: {
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 22,
+    fontWeight: '500',
   },
   messageTextOwn: {
-    color: '#fff',
+    color: '#E4E7EB',
   },
   messageTextOther: {
-    color: '#333',
+    color: '#F3F4F6',
   },
   messageTime: {
-    fontSize: 10,
-    marginTop: 4,
-  },
-  messageTimeOwn: {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  messageTimeOther: {
-    color: '#999',
+    fontSize: 11,
+    fontWeight: '400',
+    color: 'rgba(255, 255, 255, 0.5)',
   },
   loadingMoreContainer: {
     padding: 16,
@@ -723,7 +729,7 @@ const styles = StyleSheet.create({
   loadingMoreText: {
     marginTop: 8,
     fontSize: 12,
-    color: '#666',
+    color: '#9CA3AF',
   },
   reactionsInsideBubble: {
     flexDirection: 'row',
@@ -739,9 +745,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.35)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     minHeight: 24,
     marginRight: 2,
   },
@@ -751,20 +757,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     minHeight: 24,
     marginRight: 2,
   },
   reactionButtonActiveInsideOwn: {
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-    borderColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: 'rgba(255, 107, 53, 0.3)',
+    borderColor: '#FF6B35',
     borderWidth: 1.5,
   },
   reactionButtonActiveInsideOther: {
-    backgroundColor: 'rgba(228, 64, 95, 0.15)',
-    borderColor: '#E4405F',
+    backgroundColor: 'rgba(255, 107, 53, 0.2)',
+    borderColor: '#FF6B35',
     borderWidth: 1.5,
   },
   reactionEmojiInside: {
@@ -774,29 +780,29 @@ const styles = StyleSheet.create({
   },
   reactionCountInsideOwn: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.95)',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '600',
     minWidth: 14,
     textAlign: 'center',
   },
   reactionCountInsideOther: {
     fontSize: 11,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: '600',
     minWidth: 14,
     textAlign: 'center',
   },
   reactionCountActiveInsideOwn: {
-    color: '#FFFFFF',
+    color: '#FF6B35',
     fontWeight: '700',
   },
   reactionCountActiveInsideOther: {
-    color: '#E4405F',
+    color: '#FF6B35',
     fontWeight: '700',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -807,15 +813,15 @@ const styles = StyleSheet.create({
   },
   quickReactionsPicker: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1A1D24',
     borderRadius: 28,
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: '#E1E4E8',
-    shadowColor: '#000',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: '#FF6B35',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 10,
   },

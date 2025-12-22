@@ -1,5 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
+import { BlurView } from '@react-native-community/blur';
+import { ArrowLeft, User } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
 import { getRoomAvatarUrl } from '../../utils/room';
@@ -32,30 +34,26 @@ export function RoomViewHeader({
   // Get MXC URL and convert to HTTP with authentication token in URL
   const avatarUrl = mx ? getRoomAvatarUrl(mx, room, 96, true) : undefined;
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   return (
     <View style={styles.header}>
+      <BlurView
+        style={StyleSheet.absoluteFill}
+        blurType="dark"
+        blurAmount={80}
+        reducedTransparencyFallbackColor="#0A0A0F"
+      />
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={styles.backButtonText}>←</Text>
+        <ArrowLeft color="#FFFFFF" size={24} />
       </TouchableOpacity>
 
-      {avatarUrl ? (
-        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-      ) : (
-        <View style={[styles.avatar, styles.avatarPlaceholder]}>
-          <Text style={styles.avatarText}>{getInitials(roomName)}</Text>
-        </View>
-      )}
-
-      <View style={styles.headerContent}>
+      <View style={styles.headerCenter}>
+        {avatarUrl ? (
+          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, styles.avatarPlaceholder]}>
+            <User color="#9CA3AF" size={16} />
+          </View>
+        )}
         <Text style={styles.roomName} numberOfLines={1}>
           {roomName}
         </Text>
@@ -66,7 +64,7 @@ export function RoomViewHeader({
         style={styles.aiButton}
         disabled={paymentState.isLoading}
       >
-        <Text style={styles.aiButtonText}>🤖</Text>
+        <User color="#FFFFFF" size={24} />
       </TouchableOpacity>
     </View>
   );
@@ -76,50 +74,42 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    backgroundColor: '#fff',
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   backButton: {
     padding: 8,
-    marginRight: 8,
   },
-  backButtonText: {
-    fontSize: 24,
-    color: '#333',
+  headerCenter: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
   avatar: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    marginRight: 12,
+    borderRadius: '50%',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   avatarPlaceholder: {
-    backgroundColor: '#E4405F',
+    backgroundColor: '#2A2A3E',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  headerContent: {
-    flex: 1,
-  },
   roomName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   aiButton: {
     padding: 8,
-    marginLeft: 8,
-  },
-  aiButtonText: {
-    fontSize: 24,
   },
 });
-
