@@ -17,13 +17,22 @@ import {
 } from 'react-native';
 
 // Enable LayoutAnimation for Android
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 import { BlurView } from '@react-native-community/blur';
 import { Room, MatrixEvent, RoomEvent, Direction } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
-import { getMemberAvatarMxc, getRoomAvatarUrl, messageEventOnly, getEventReactions, getReactionContent } from '../../utils/room';
+import {
+  getMemberAvatarMxc,
+  getRoomAvatarUrl,
+  messageEventOnly,
+  getEventReactions,
+  getReactionContent,
+} from '../../utils/room';
 import { MessageEvent } from '../../types/matrix/room';
 
 type ReactionData = {
@@ -59,220 +68,288 @@ type RoomTimelineProps = {
 const MessageItemComponent = React.memo<{
   item: MessageItem;
   onReactionPress?: (key: string) => void;
-  onLongPress?: (getPosition: () => { x: number; y: number; width: number; height: number }) => void;
+  onLongPress?: (
+    getPosition: () => { x: number; y: number; width: number; height: number },
+  ) => void;
   onBubblePress?: () => void;
   showTimestamp?: boolean;
   isFirstOfHour?: boolean;
-}>(({ item, onReactionPress, onLongPress, onBubblePress, showTimestamp, isFirstOfHour }) => {
-  const messageRef = useRef<View>(null);
-  const shouldShowTimestamp = showTimestamp || isFirstOfHour;
-  const animatedOpacity = useRef(new Animated.Value(shouldShowTimestamp ? 1 : 0)).current;
+}>(
+  ({
+    item,
+    onReactionPress,
+    onLongPress,
+    onBubblePress,
+    showTimestamp,
+    isFirstOfHour,
+  }) => {
+    const messageRef = useRef<View>(null);
+    const shouldShowTimestamp = showTimestamp || isFirstOfHour;
+    const animatedOpacity = useRef(
+      new Animated.Value(shouldShowTimestamp ? 1 : 0),
+    ).current;
 
-  useEffect(() => {
-    // Only animate for tap-triggered timestamps, not for first-of-hour
-    if (!isFirstOfHour) {
-      LayoutAnimation.configureNext(LayoutAnimation.create(
-        300,
-        LayoutAnimation.Types.easeInEaseOut,
-        LayoutAnimation.Properties.opacity
-      ));
+    useEffect(() => {
+      // Only animate for tap-triggered timestamps, not for first-of-hour
+      if (!isFirstOfHour) {
+        LayoutAnimation.configureNext(
+          LayoutAnimation.create(
+            300,
+            LayoutAnimation.Types.easeInEaseOut,
+            LayoutAnimation.Properties.opacity,
+          ),
+        );
 
-      Animated.timing(animatedOpacity, {
-        toValue: showTimestamp ? 1 : 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [showTimestamp, animatedOpacity, isFirstOfHour]);
+        Animated.timing(animatedOpacity, {
+          toValue: showTimestamp ? 1 : 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      }
+    }, [showTimestamp, animatedOpacity, isFirstOfHour]);
 
-  const formatTimeWithDay = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const day = date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
-    const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-    return `${day} ${time}`;
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const timeString = formatTimeWithDay(item.timestamp);
-  const initials = getInitials(item.senderName);
-  const imageStyle = item.imageInfo?.w && item.imageInfo?.h
-    ? [
-        styles.messageImage,
-        styles.messageImageWithRatio,
-        { aspectRatio: item.imageInfo.w / item.imageInfo.h, maxWidth: 250 },
-      ]
-    : [styles.messageImage, styles.messageImageDefault];
-
-  const handleLongPress = () => {
-    if (onLongPress && messageRef.current) {
-      messageRef.current.measure((x, y, width, height, pageX, pageY) => {
-        onLongPress(() => ({ x: pageX, y: pageY, width, height }));
+    const formatTimeWithDay = (timestamp: number) => {
+      const date = new Date(timestamp);
+      const day = date
+        .toLocaleDateString('en-US', { weekday: 'short' })
+        .toUpperCase();
+      const time = date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
       });
-    } else {
-      console.warn('⚠️ Cannot measure: onLongPress=', !!onLongPress, 'messageRef.current=', !!messageRef.current);
-    }
-  };
+      return `${day} ${time}`;
+    };
 
-  return (
-    <View>
-      {/* Timestamp shown above message when tapped or first of hour */}
-      {shouldShowTimestamp && (
-        <Animated.View
-          style={[styles.timestampRow, isFirstOfHour ? { opacity: 1 } : { opacity: animatedOpacity }]}
-        >
-          <Text style={styles.timestampText}>{timeString}</Text>
-        </Animated.View>
-      )}
+    const getInitials = (name: string) => {
+      return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    };
 
-      <View
-        ref={messageRef}
-        style={[
-          styles.messageContainer,
-          item.isOwn ? styles.messageOwn : styles.messageOther,
-        ]}
-      >
-        {!item.isOwn && (
-          <View style={styles.avatarContainer}>
-            {item.avatarUrl ? (
-              <Image
-                source={{ uri: item.avatarUrl }}
-                style={styles.avatar}
-              />
-            ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                <Text style={styles.avatarText}>{initials}</Text>
-              </View>
-            )}
-          </View>
-        )}
+    const timeString = formatTimeWithDay(item.timestamp);
+    const initials = getInitials(item.senderName);
+    const imageStyle =
+      item.imageInfo?.w && item.imageInfo?.h
+        ? [
+            styles.messageImage,
+            styles.messageImageWithRatio,
+            { aspectRatio: item.imageInfo.w / item.imageInfo.h, maxWidth: 250 },
+          ]
+        : [styles.messageImage, styles.messageImageDefault];
 
-        <Pressable
-          onPress={onBubblePress}
-          onLongPress={handleLongPress}
-          delayLongPress={500}
-          style={styles.messageBubbleWrapper}
-        >
-          <View
+    const handleLongPress = () => {
+      if (onLongPress && messageRef.current) {
+        messageRef.current.measure((x, y, width, height, pageX, pageY) => {
+          onLongPress(() => ({ x: pageX, y: pageY, width, height }));
+        });
+      } else {
+        console.warn(
+          '⚠️ Cannot measure: onLongPress=',
+          !!onLongPress,
+          'messageRef.current=',
+          !!messageRef.current,
+        );
+      }
+    };
+
+    return (
+      <View>
+        {/* Timestamp shown above message when tapped or first of hour */}
+        {shouldShowTimestamp && (
+          <Animated.View
             style={[
-              styles.messageBubble,
-              item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
+              styles.timestampRow,
+              isFirstOfHour ? { opacity: 1 } : { opacity: animatedOpacity },
             ]}
           >
-            <BlurView
-              style={StyleSheet.absoluteFill}
-              blurType="dark"
-              blurAmount={80}
-              reducedTransparencyFallbackColor={item.isOwn ? '#123660' : '#1A1D24'}
-            />
-            <View style={styles.messageBubbleContent}>
-              {/* Render image if it's an image message */}
-              {item.msgtype === 'm.image' && item.imageUrl ? (
-                <View style={styles.imageContainer}>
-                  <Image
-                    source={{ uri: item.imageUrl }}
-                    style={imageStyle}
-                    resizeMode="contain"
-                  />
-                  {item.content && item.content === '📷 Image' && (
-                    <Text
-                      style={[
-                        styles.messageText,
-                        item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
-                        styles.imageCaption,
-                      ]}
-                    >
-                      {item.content}
-                    </Text>
-                  )}
-                </View>
-              ) : (
-                <Text
-                  style={[
-                    styles.messageText,
-                    item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
-                  ]}
-                >
-                  {item.content}
-                </Text>
-              )}
+            <Text style={styles.timestampText}>{timeString}</Text>
+          </Animated.View>
+        )}
 
-              {/* Reactions inside message bubble */}
-              {item.reactions && item.reactions.length > 0 && (
-                <View style={styles.reactionsInsideBubble} pointerEvents="box-none">
-                  {item.reactions.map((reaction) => (
-                    <TouchableOpacity
-                      key={reaction.key}
-                      style={[
-                        item.isOwn ? styles.reactionButtonInsideOwn : styles.reactionButtonInsideOther,
-                        reaction.myReaction && (item.isOwn ? styles.reactionButtonActiveInsideOwn : styles.reactionButtonActiveInsideOther),
-                      ]}
-                      onPress={() => onReactionPress?.(reaction.key)}
-                      activeOpacity={0.6}
-                    >
-                      <Text style={styles.reactionEmojiInside}>{reaction.key}</Text>
-                      <Text style={[
-                        item.isOwn ? styles.reactionCountInsideOwn : styles.reactionCountInsideOther,
-                        reaction.myReaction && (item.isOwn ? styles.reactionCountActiveInsideOwn : styles.reactionCountActiveInsideOther),
-                      ]}>
-                        {reaction.count}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+        <View
+          ref={messageRef}
+          style={[
+            styles.messageContainer,
+            item.isOwn ? styles.messageOwn : styles.messageOther,
+          ]}
+        >
+          {!item.isOwn && (
+            <View style={styles.avatarContainer}>
+              {item.avatarUrl ? (
+                <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                  <Text style={styles.avatarText}>{initials}</Text>
                 </View>
               )}
             </View>
-          </View>
-        </Pressable>
+          )}
+
+          <Pressable
+            onPress={onBubblePress}
+            onLongPress={handleLongPress}
+            delayLongPress={500}
+            style={styles.messageBubbleWrapper}
+          >
+            <View
+              style={[
+                styles.messageBubble,
+                item.isOwn
+                  ? styles.messageBubbleOwn
+                  : styles.messageBubbleOther,
+              ]}
+            >
+              <BlurView
+                style={StyleSheet.absoluteFill}
+                blurType="dark"
+                blurAmount={80}
+                reducedTransparencyFallbackColor={
+                  item.isOwn ? '#123660' : '#1A1D24'
+                }
+              />
+              <View style={styles.messageBubbleContent}>
+                {/* Render image if it's an image message */}
+                {item.msgtype === 'm.image' && item.imageUrl ? (
+                  <View style={styles.imageContainer}>
+                    <Image
+                      source={{ uri: item.imageUrl }}
+                      style={imageStyle}
+                      resizeMode="contain"
+                    />
+                    {item.content && item.content === '📷 Image' && (
+                      <Text
+                        style={[
+                          styles.messageText,
+                          item.isOwn
+                            ? styles.messageTextOwn
+                            : styles.messageTextOther,
+                          styles.imageCaption,
+                        ]}
+                      >
+                        {item.content}
+                      </Text>
+                    )}
+                  </View>
+                ) : (
+                  <Text
+                    style={[
+                      styles.messageText,
+                      item.isOwn
+                        ? styles.messageTextOwn
+                        : styles.messageTextOther,
+                    ]}
+                  >
+                    {item.content}
+                  </Text>
+                )}
+
+                {/* Reactions inside message bubble */}
+                {item.reactions && item.reactions.length > 0 && (
+                  <View
+                    style={styles.reactionsInsideBubble}
+                    pointerEvents="box-none"
+                  >
+                    {item.reactions.map(reaction => (
+                      <TouchableOpacity
+                        key={reaction.key}
+                        style={[
+                          item.isOwn
+                            ? styles.reactionButtonInsideOwn
+                            : styles.reactionButtonInsideOther,
+                          reaction.myReaction &&
+                            (item.isOwn
+                              ? styles.reactionButtonActiveInsideOwn
+                              : styles.reactionButtonActiveInsideOther),
+                        ]}
+                        onPress={() => onReactionPress?.(reaction.key)}
+                        activeOpacity={0.6}
+                      >
+                        <Text
+                          style={[
+                            styles.reactionEmojiInside,
+                            reaction.count === 1 &&
+                              styles.reactionEmojiInsideSingle,
+                          ]}
+                        >
+                          {reaction.key}
+                        </Text>
+                        {reaction.count > 1 && (
+                          <Text
+                            style={[
+                              item.isOwn
+                                ? styles.reactionCountInsideOwn
+                                : styles.reactionCountInsideOther,
+                              reaction.myReaction &&
+                                (item.isOwn
+                                  ? styles.reactionCountActiveInsideOwn
+                                  : styles.reactionCountActiveInsideOther),
+                            ]}
+                          >
+                            {reaction.count}
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+          </Pressable>
+        </View>
       </View>
-    </View>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison function for better performance
-  const reactionsEqual = JSON.stringify(prevProps.item.reactions) === JSON.stringify(nextProps.item.reactions);
-  return (
-    prevProps.item.eventId === nextProps.item.eventId &&
-    prevProps.item.content === nextProps.item.content &&
-    prevProps.item.timestamp === nextProps.item.timestamp &&
-    prevProps.item.imageUrl === nextProps.item.imageUrl &&
-    prevProps.item.avatarUrl === nextProps.item.avatarUrl &&
-    prevProps.showTimestamp === nextProps.showTimestamp &&
-    prevProps.isFirstOfHour === nextProps.isFirstOfHour &&
-    reactionsEqual
-  );
-});
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison function for better performance
+    const reactionsEqual =
+      JSON.stringify(prevProps.item.reactions) ===
+      JSON.stringify(nextProps.item.reactions);
+    return (
+      prevProps.item.eventId === nextProps.item.eventId &&
+      prevProps.item.content === nextProps.item.content &&
+      prevProps.item.timestamp === nextProps.item.timestamp &&
+      prevProps.item.imageUrl === nextProps.item.imageUrl &&
+      prevProps.item.avatarUrl === nextProps.item.avatarUrl &&
+      prevProps.showTimestamp === nextProps.showTimestamp &&
+      prevProps.isFirstOfHour === nextProps.isFirstOfHour &&
+      reactionsEqual
+    );
+  },
+);
 
 MessageItemComponent.displayName = 'MessageItem';
 
 // Helper function to get reactions for an event
-const getReactionsForEvent = (room: Room, targetEventId: string, myUserId: string): ReactionData[] => {
+const getReactionsForEvent = (
+  room: Room,
+  targetEventId: string,
+  myUserId: string,
+): ReactionData[] => {
   try {
     const relations = getEventReactions(room, targetEventId);
     if (!relations) return [];
 
     const sortedReactions = relations.getSortedAnnotationsByKey() || [];
-    return sortedReactions.map(([key, eventsSet]) => {
-      const events = Array.from(eventsSet);
-      const myReaction = events.find(e => e.getSender() === myUserId);
-      return {
-        key: key as string,
-        count: events.length,
-        myReaction: !!myReaction,
-      };
-    }).filter(r => r.count > 0);
+    return sortedReactions
+      .map(([key, eventsSet]) => {
+        const events = Array.from(eventsSet);
+        const myReaction = events.find(e => e.getSender() === myUserId);
+        return {
+          key: key as string,
+          count: events.length,
+          myReaction: !!myReaction,
+        };
+      })
+      .filter(r => r.count > 0);
   } catch (error) {
     console.info('Error getting reactions:', error);
     return [];
   }
 };
-
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const [messages, setMessages] = useState<MessageItem[]>([]);
@@ -283,76 +360,96 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const mx = getMatrixClient();
   const isInitialLoad = useRef(true);
 
-  const mapEventToMessage = useCallback((event: MatrixEvent): MessageItem | null => {
-    if (!mx || event.getType() !== 'm.room.message') return null;
+  const mapEventToMessage = useCallback(
+    (event: MatrixEvent): MessageItem | null => {
+      if (!mx || event.getType() !== 'm.room.message') return null;
 
-    const content = event.getContent();
-    const sender = event.getSender() || '';
-    const senderMember = room.getMember(sender);
-    const senderName = senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
-    const roomName = room.name || 'Unknown';
-    const isOwn = sender === mx.getUserId() || roomName !== senderName;
-    const avatarUrl = isOwn ? undefined: getMemberAvatarMxc(mx, room, sender) || getRoomAvatarUrl(mx, room, 96, true);
+      const content = event.getContent();
+      const sender = event.getSender() || '';
+      const senderMember = room.getMember(sender);
+      const senderName =
+        senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
+      const roomName = room.name || 'Unknown';
+      const isOwn = sender === mx.getUserId() || roomName !== senderName;
+      const avatarUrl = isOwn
+        ? undefined
+        : getMemberAvatarMxc(mx, room, sender) ||
+          getRoomAvatarUrl(mx, room, 96, true);
 
-    if (!messageEventOnly(event)) return null;
+      if (!messageEventOnly(event)) return null;
 
-    let contentText = '';
-    let imageUrl: string | undefined;
-    let imageInfo: { w?: number; h?: number; mimetype?: string } | undefined;
+      let contentText = '';
+      let imageUrl: string | undefined;
+      let imageInfo: { w?: number; h?: number; mimetype?: string } | undefined;
 
-    if (content.msgtype === 'm.text') {
-      contentText = content.body || '';
-    } else if (content.msgtype === 'm.image') {
-      // Extract image URL from content
-      const mxcUrl = content.file?.url || content.url;
-      if (mxcUrl && typeof mxcUrl === 'string') {
-        // Convert MXC URL to HTTP with authentication
-        imageUrl = mx.mxcUrlToHttp(mxcUrl, 400, 400, 'scale', undefined, false, true) || undefined;
-        imageUrl = `${imageUrl}&access_token=${mx.getAccessToken()}`;
-        imageInfo = content.info || content.file?.info;
+      if (content.msgtype === 'm.text') {
+        contentText = content.body || '';
+      } else if (content.msgtype === 'm.image') {
+        // Extract image URL from content
+        const mxcUrl = content.file?.url || content.url;
+        if (mxcUrl && typeof mxcUrl === 'string') {
+          // Convert MXC URL to HTTP with authentication
+          imageUrl =
+            mx.mxcUrlToHttp(
+              mxcUrl,
+              400,
+              400,
+              'scale',
+              undefined,
+              false,
+              true,
+            ) || undefined;
+          imageUrl = `${imageUrl}&access_token=${mx.getAccessToken()}`;
+          imageInfo = content.info || content.file?.info;
+        }
+        contentText = content.body || '📷 Image';
+      } else if (content.msgtype === 'm.video') {
+        contentText = '🎥 Video';
+      } else if (content.msgtype === 'm.file') {
+        contentText = '📎 File';
+      } else {
+        contentText = 'Message';
       }
-      contentText = content.body || '📷 Image';
-    } else if (content.msgtype === 'm.video') {
-      contentText = '🎥 Video';
-    } else if (content.msgtype === 'm.file') {
-      contentText = '📎 File';
-    } else {
-      contentText = 'Message';
-    }
 
-    // Get reactions for this event
-    const currentEventId = event.getId() || '';
-    const reactions = getReactionsForEvent(room, currentEventId, mx.getUserId() || '');
+      // Get reactions for this event
+      const currentEventId = event.getId() || '';
+      const reactions = getReactionsForEvent(
+        room,
+        currentEventId,
+        mx.getUserId() || '',
+      );
 
-    return {
-      eventId: currentEventId,
-      sender,
-      senderName,
-      content: contentText,
-      timestamp: event.getTs(),
-      msgtype: content.msgtype,
-      isOwn,
-      avatarUrl: avatarUrl || undefined,
-      imageUrl,
-      imageInfo,
-      reactions,
-    };
-  }, [mx, room]);
+      return {
+        eventId: currentEventId,
+        sender,
+        senderName,
+        content: contentText,
+        timestamp: event.getTs(),
+        msgtype: content.msgtype,
+        isOwn,
+        avatarUrl: avatarUrl || undefined,
+        imageUrl,
+        imageInfo,
+        reactions,
+      };
+    },
+    [mx, room],
+  );
 
   const getEventFromMessage = () => {
     const timeline = room.getLiveTimeline();
     const events = timeline.getEvents();
-    
+
     const messageItems: MessageItem[] = events
       .map(mapEventToMessage)
       .filter((item): item is MessageItem => item !== null);
-    return {messageItems, timeline};
-  }
+    return { messageItems, timeline };
+  };
 
   const loadMessages = useCallback(async () => {
     if (!mx || !room) return;
-    
-    let {messageItems, timeline} = getEventFromMessage();
+
+    let { messageItems, timeline } = getEventFromMessage();
 
     if (messageItems.length < 10 && isInitialLoad.current) {
       await mx.paginateEventTimeline(timeline, {
@@ -363,7 +460,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       messageItems = newData.messageItems;
       timeline = newData.timeline;
     }
-    
+
     setMessages(messageItems);
     setLoading(false);
 
@@ -389,7 +486,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     try {
       const timeline = room.getLiveTimeline();
       const paginationToken = timeline.getPaginationToken(Direction.Backward);
-      
+
       if (!paginationToken) {
         setCanLoadMore(false);
         setLoadingMore(false);
@@ -397,7 +494,8 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       }
 
       // Store current scroll position
-      const currentFirstMessageId = messages.length > 0 ? messages[0].eventId : null;
+      const currentFirstMessageId =
+        messages.length > 0 ? messages[0].eventId : null;
 
       // Paginate backwards to load older messages
       await mx.paginateEventTimeline(timeline, {
@@ -411,9 +509,14 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       // Try to maintain scroll position
       if (currentFirstMessageId) {
         setTimeout(() => {
-          const newIndex = messages.findIndex(m => m.eventId === currentFirstMessageId);
+          const newIndex = messages.findIndex(
+            m => m.eventId === currentFirstMessageId,
+          );
           if (newIndex >= 0) {
-            flatListRef.current?.scrollToIndex({ index: newIndex, animated: false });
+            flatListRef.current?.scrollToIndex({
+              index: newIndex,
+              animated: false,
+            });
           }
         }, 500);
       }
@@ -459,20 +562,26 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       const targetIndex = messages.findIndex(m => m.eventId === eventId);
       if (targetIndex >= 0) {
         setTimeout(() => {
-          flatListRef.current?.scrollToIndex({ index: targetIndex, animated: true });
+          flatListRef.current?.scrollToIndex({
+            index: targetIndex,
+            animated: true,
+          });
         }, 200);
       }
     }
   }, [eventId, messages]);
 
   // All hooks must be called before any conditional returns
-  const handleScroll = useCallback((event: any) => {
-    const { contentOffset } = event.nativeEvent;
-    // Check if user scrolled near the top (within 200px)
-    if (contentOffset.y < 200 && canLoadMore && !loadingMore) {
-      loadMoreMessages();
-    }
-  }, [canLoadMore, loadingMore, loadMoreMessages]);
+  const handleScroll = useCallback(
+    (event: any) => {
+      const { contentOffset } = event.nativeEvent;
+      // Check if user scrolled near the top (within 200px)
+      if (contentOffset.y < 200 && canLoadMore && !loadingMore) {
+        loadMoreMessages();
+      }
+    },
+    [canLoadMore, loadingMore, loadMoreMessages],
+  );
 
   // Memoized header component
   const renderHeader = useCallback(() => {
@@ -503,51 +612,69 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       offset: 80 * index,
       index,
     }),
-    []
+    [],
   );
 
   // Reaction toggle handler
-  const handleReactionToggle = useCallback(async (targetEventId: string, reactionKey: string) => {
-    if (!mx) return;
+  const handleReactionToggle = useCallback(
+    async (targetEventId: string, reactionKey: string) => {
+      if (!mx) return;
 
-    try {
-      const relations = getEventReactions(room, targetEventId);
-      const sortedReactions = relations?.getSortedAnnotationsByKey() || [];
-      const [, reactionsSet] = sortedReactions.find(([k]) => k === reactionKey) || [];
-      const reactions = reactionsSet ? Array.from(reactionsSet) : [];
-      const myReaction = reactions.find(e => e.getSender() === mx.getUserId());
-
-      if (myReaction && myReaction.isRelation()) {
-        // Remove reaction
-        await mx.redactEvent(room.roomId, myReaction.getId() || '');
-      } else {
-        // Add reaction
-        await mx.sendEvent(
-          room.roomId,
-          MessageEvent.Reaction as any,
-          getReactionContent(targetEventId, reactionKey)
+      try {
+        const relations = getEventReactions(room, targetEventId);
+        const sortedReactions = relations?.getSortedAnnotationsByKey() || [];
+        const [, reactionsSet] =
+          sortedReactions.find(([k]) => k === reactionKey) || [];
+        const reactions = reactionsSet ? Array.from(reactionsSet) : [];
+        const myReaction = reactions.find(
+          e => e.getSender() === mx.getUserId(),
         );
+
+        if (myReaction && myReaction.isRelation()) {
+          // Remove reaction
+          await mx.redactEvent(room.roomId, myReaction.getId() || '');
+        } else {
+          // Add reaction
+          await mx.sendEvent(
+            room.roomId,
+            MessageEvent.Reaction as any,
+            getReactionContent(targetEventId, reactionKey),
+          );
+        }
+        // Reload messages to update reactions
+        loadMessages();
+      } catch (error) {
+        console.info('Error toggling reaction:', error);
       }
-      // Reload messages to update reactions
-      loadMessages();
-    } catch (error) {
-      console.info('Error toggling reaction:', error);
-    }
-  }, [mx, room, loadMessages]);
+    },
+    [mx, room, loadMessages],
+  );
 
   // Add reaction handler - accepts optional emoji
-  const handleAddReaction = useCallback((targetEventId: string, emoji?: string) => {
-    // Use provided emoji or default to 👍
-    const reactionEmoji = emoji || '👍';
-    handleReactionToggle(targetEventId, reactionEmoji);
-  }, [handleReactionToggle]);
+  const handleAddReaction = useCallback(
+    (targetEventId: string, emoji?: string) => {
+      // Use provided emoji or default to 👍
+      const reactionEmoji = emoji || '👍';
+      handleReactionToggle(targetEventId, reactionEmoji);
+    },
+    [handleReactionToggle],
+  );
 
   // State for showing quick reactions modal
-  const [quickReactionsEventId, setQuickReactionsEventId] = useState<string | null>(null);
-  const [modalPosition, setModalPosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [quickReactionsEventId, setQuickReactionsEventId] = useState<
+    string | null
+  >(null);
+  const [modalPosition, setModalPosition] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
 
   // State for showing timestamp on message tap
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
+    null,
+  );
 
   // Calculate which messages are first of their hour
   const firstOfHourIds = React.useMemo(() => {
@@ -556,7 +683,11 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
 
     for (const msg of messages) {
       const msgDate = new Date(msg.timestamp);
-      const msgHour = msgDate.getFullYear() * 1000000 + (msgDate.getMonth() + 1) * 10000 + msgDate.getDate() * 100 + msgDate.getHours();
+      const msgHour =
+        msgDate.getFullYear() * 1000000 +
+        (msgDate.getMonth() + 1) * 10000 +
+        msgDate.getDate() * 100 +
+        msgDate.getHours();
 
       if (lastHour === null || msgHour !== lastHour) {
         ids.add(msg.eventId);
@@ -568,42 +699,74 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   }, [messages]);
 
   const handleBubblePress = useCallback((eventId: string) => {
-    setSelectedMessageId(prev => prev === eventId ? null : eventId);
+    setSelectedMessageId(prev => (prev === eventId ? null : eventId));
   }, []);
 
-  const handleMessageLongPress = useCallback((targetEventId: string, getPosition: () => { x: number; y: number; width: number; height: number }) => {
-    const position = getPosition();
-    setModalPosition(position);
-    setQuickReactionsEventId(targetEventId);
-  }, []);
+  const handleMessageLongPress = useCallback(
+    (
+      targetEventId: string,
+      getPosition: () => {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      },
+    ) => {
+      const position = getPosition();
+      setModalPosition(position);
+      setQuickReactionsEventId(targetEventId);
+    },
+    [],
+  );
 
   const handleCloseQuickReactions = useCallback(() => {
     setQuickReactionsEventId(null);
     setModalPosition(null);
   }, []);
 
-  const handleQuickReactionSelect = useCallback((emoji: string, targetEventId: string) => {
-    handleAddReaction(targetEventId, emoji);
-    setQuickReactionsEventId(null);
-    setModalPosition(null);
-  }, [handleAddReaction]);
+  const handleQuickReactionSelect = useCallback(
+    (emoji: string, targetEventId: string) => {
+      handleAddReaction(targetEventId, emoji);
+      setQuickReactionsEventId(null);
+      setModalPosition(null);
+    },
+    [handleAddReaction],
+  );
 
   // Memoized render function
-  const renderMessage = useCallback(({ item }: { item: MessageItem }) => {
-    const handleLongPress = (getPosition: () => { x: number; y: number; width: number; height: number }) => {
-      handleMessageLongPress(item.eventId, getPosition);
-    };
-    return (
-      <MessageItemComponent
-        item={item}
-        onReactionPress={(key: string) => handleReactionToggle(item.eventId, key)}
-        onLongPress={handleLongPress}
-        onBubblePress={() => handleBubblePress(item.eventId)}
-        showTimestamp={selectedMessageId === item.eventId}
-        isFirstOfHour={firstOfHourIds.has(item.eventId)}
-      />
-    );
-  }, [handleReactionToggle, handleMessageLongPress, handleBubblePress, selectedMessageId, firstOfHourIds]);
+  const renderMessage = useCallback(
+    ({ item }: { item: MessageItem }) => {
+      const handleLongPress = (
+        getPosition: () => {
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+        },
+      ) => {
+        handleMessageLongPress(item.eventId, getPosition);
+      };
+      return (
+        <MessageItemComponent
+          item={item}
+          onReactionPress={(key: string) =>
+            handleReactionToggle(item.eventId, key)
+          }
+          onLongPress={handleLongPress}
+          onBubblePress={() => handleBubblePress(item.eventId)}
+          showTimestamp={selectedMessageId === item.eventId}
+          isFirstOfHour={firstOfHourIds.has(item.eventId)}
+        />
+      );
+    },
+    [
+      handleReactionToggle,
+      handleMessageLongPress,
+      handleBubblePress,
+      selectedMessageId,
+      firstOfHourIds,
+    ],
+  );
 
   if (loading) {
     return (
@@ -636,7 +799,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         bounces={true}
         keyboardShouldPersistTaps="handled"
       />
-      
+
       {/* Quick Reactions Modal */}
       <Modal
         visible={quickReactionsEventId !== null}
@@ -649,21 +812,32 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
           activeOpacity={1}
           onPress={handleCloseQuickReactions}
         >
-          <View style={styles.quickReactionsModalContainer} pointerEvents="box-none">
+          <View
+            style={styles.quickReactionsModalContainer}
+            pointerEvents="box-none"
+          >
             {quickReactionsEventId && (
-              <View 
+              <View
                 style={[
                   styles.quickReactionsPicker,
                   // eslint-disable-next-line react-native/no-inline-styles
-                  modalPosition ? {
-                    position: 'absolute',
-                    top: Math.max(10, Math.min(modalPosition.y - 60, Dimensions.get('window').height - 100)),
-                    left: 10,
-                  } : styles.quickReactionsPickerCentered
-                ]} 
+                  modalPosition
+                    ? {
+                        position: 'absolute',
+                        top: Math.max(
+                          10,
+                          Math.min(
+                            modalPosition.y - 60,
+                            Dimensions.get('window').height - 100,
+                          ),
+                        ),
+                        left: 10,
+                      }
+                    : styles.quickReactionsPickerCentered,
+                ]}
                 pointerEvents="auto"
               >
-                {['👍', '❤️', '😂', '😮', '😢', '🙏'].map((emoji) => (
+                {['👍', '❤️', '😂', '😮', '😢', '🙏'].map(emoji => (
                   <TouchableOpacity
                     key={emoji}
                     style={styles.quickReactionButton}
@@ -817,7 +991,7 @@ const styles = StyleSheet.create({
   reactionButtonInsideOwn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
     paddingVertical: 4,
     borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -829,7 +1003,7 @@ const styles = StyleSheet.create({
   reactionButtonInsideOther: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
     paddingVertical: 4,
     borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -849,9 +1023,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   reactionEmojiInside: {
-    fontSize: 16,
+    fontSize: 12,
     marginRight: 4,
-    lineHeight: 18,
+    lineHeight: 14,
+  },
+  reactionEmojiInsideSingle: {
+    marginRight: 0,
   },
   reactionCountInsideOwn: {
     fontSize: 11,
@@ -917,4 +1094,3 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
 });
-
