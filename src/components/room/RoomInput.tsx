@@ -7,7 +7,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { Send } from 'lucide-react-native';
+import { Send, Sparkles } from 'lucide-react-native';
+import { useAIAssistant } from '../../context/AIAssistantContext';
 import { EventType, MsgType, Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
 
@@ -16,9 +17,13 @@ type RoomInputProps = {
 };
 
 export function RoomInput({ room }: RoomInputProps) {
-  const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const mx = getMatrixClient();
+  const { generateInitialResponse, isGeneratingResponse, inputValue, setInputValue } = useAIAssistant();
+
+  // Use context's inputValue as the text input
+  const inputText = inputValue;
+  const setInputText = setInputValue;
 
   const handleSend = useCallback(async () => {
     if (!inputText.trim() || !mx || sending) return;
@@ -39,7 +44,7 @@ export function RoomInput({ room }: RoomInputProps) {
     } finally {
       setSending(false);
     }
-  }, [inputText, mx, room, sending]);
+  }, [inputText, mx, room, sending, setInputText]);
 
   return (
     <View style={styles.container}>
@@ -64,6 +69,20 @@ export function RoomInput({ room }: RoomInputProps) {
         />
         <View style={styles.buttonRow}>
           <View style={styles.buttonSpacer} />
+          <TouchableOpacity
+            style={[
+              styles.aiButton,
+              isGeneratingResponse && styles.aiButtonDisabled,
+            ]}
+            onPress={generateInitialResponse}
+            disabled={isGeneratingResponse}
+          >
+            {isGeneratingResponse ? (
+              <ActivityIndicator size="small" color="#A855F7" />
+            ) : (
+              <Sparkles color="#A855F7" size={22} />
+            )}
+          </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.sendButton,
@@ -129,6 +148,17 @@ const styles = StyleSheet.create({
   },
   buttonSpacer: {
     flex: 1,
+  },
+  aiButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(168, 85, 247, 0.15)',
+    borderRadius: 18,
+  },
+  aiButtonDisabled: {
+    opacity: 0.5,
   },
   sendButton: {
     width: 24,
