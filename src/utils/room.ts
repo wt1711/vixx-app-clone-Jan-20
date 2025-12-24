@@ -110,3 +110,12 @@ export const getRoomAvatarUrl = (
       MessageEvent.Reaction
     );
   };
+
+  export const isMessageFromMe = (
+    sender: string,
+    myUserId: string | null | undefined,
+    roomName: string,
+    senderName: string
+  ): boolean => {
+    return sender === myUserId || roomName !== senderName;
+  };
