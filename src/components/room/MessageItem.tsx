@@ -38,7 +38,13 @@ export type MessageItemProps = {
 };
 
 // Sub-component for avatar display
-const Avatar = ({ avatarUrl, initials }: { avatarUrl?: string; initials: string }) => {
+const Avatar = ({
+  avatarUrl,
+  initials,
+}: {
+  avatarUrl?: string;
+  initials: string;
+}) => {
   if (avatarUrl) {
     return <Image source={{ uri: avatarUrl }} style={styles.avatar} />;
   }
@@ -91,20 +97,15 @@ const ReactionButton = ({
     return [baseStyle, activeStyle];
   }, [isOwn, reaction.myReaction]);
 
-  const emojiStyle = reaction.count === 1
-    ? [styles.reactionEmojiInside, styles.reactionEmojiInsideSingle]
-    : styles.reactionEmojiInside;
+  const emojiStyle =
+    reaction.count > 1
+      ? [styles.reactionEmojiInside, { marginRight: 2 }]
+      : styles.reactionEmojiInside;
 
   return (
-    <TouchableOpacity
-      style={buttonStyle}
-      onPress={onPress}
-      activeOpacity={0.6}
-    >
+    <TouchableOpacity style={buttonStyle} onPress={onPress} activeOpacity={0.6}>
       <Text style={emojiStyle}>{reaction.key}</Text>
-      {reaction.count > 1 && (
-        <Text style={countStyle}>{reaction.count}</Text>
-      )}
+      {reaction.count > 1 && <Text style={countStyle}>{reaction.count}</Text>}
     </TouchableOpacity>
   );
 };
@@ -123,8 +124,13 @@ const ReactionsList = ({
     return null;
   }
 
+  const containerStyle = [
+    styles.reactionsContainer,
+    isOwn ? styles.reactionsContainerOwn : styles.reactionsContainerOther,
+  ];
+
   return (
-    <View style={styles.reactionsInsideBubble} pointerEvents="box-none">
+    <View style={containerStyle} pointerEvents="box-none">
       {reactions.map(reaction => (
         <ReactionButton
           key={reaction.key}
@@ -281,13 +287,13 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
               />
               <View style={styles.messageBubbleContent}>
                 <MessageContent item={item} imageStyle={imageStyle} />
-                <ReactionsList
-                  reactions={item.reactions ?? []}
-                  isOwn={item.isOwn}
-                  onReactionPress={onReactionPress}
-                />
               </View>
             </View>
+            <ReactionsList
+              reactions={item.reactions ?? []}
+              isOwn={item.isOwn}
+              onReactionPress={onReactionPress}
+            />
           </Pressable>
         </View>
       </View>
@@ -316,7 +322,7 @@ MessageItemComponent.displayName = 'MessageItem';
 const styles = StyleSheet.create({
   messageContainer: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 18,
     alignItems: 'flex-end',
   },
   messageOwn: {
@@ -413,76 +419,74 @@ const styles = StyleSheet.create({
   messageTextOther: {
     color: '#F3F4F6',
   },
-  reactionsInsideBubble: {
+  reactionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 6,
-    marginBottom: 4,
-    gap: 4,
+    position: 'absolute',
+    bottom: -10,
+    gap: 2,
     alignItems: 'center',
+  },
+  reactionsContainerOwn: {
+    left: 8,
+  },
+  reactionsContainerOther: {
+    left: 8,
   },
   reactionButtonInsideOwn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    minHeight: 24,
-    marginRight: 2,
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    borderRadius: 10,
+    backgroundColor: 'rgba(60, 60, 70, 0.95)',
+    minHeight: 20,
+    minWidth: 20,
   },
   reactionButtonInsideOther: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    minHeight: 24,
-    marginRight: 2,
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    borderRadius: 10,
+    backgroundColor: 'rgba(60, 60, 70, 0.95)',
+    minHeight: 20,
+    minWidth: 20,
   },
   reactionButtonActiveInsideOwn: {
-    backgroundColor: 'rgba(255, 107, 53, 0.3)',
-    borderColor: '#FF6B35',
-    borderWidth: 1.5,
+    backgroundColor: 'rgba(80, 80, 90, 0.95)',
   },
   reactionButtonActiveInsideOther: {
-    backgroundColor: 'rgba(255, 107, 53, 0.2)',
-    borderColor: '#FF6B35',
-    borderWidth: 1.5,
+    backgroundColor: 'rgba(80, 80, 90, 0.95)',
   },
   reactionEmojiInside: {
-    fontSize: 12,
-    marginRight: 4,
+    fontSize: 10,
+    marginRight: 0,
     lineHeight: 14,
   },
   reactionEmojiInsideSingle: {
     marginRight: 0,
   },
   reactionCountInsideOwn: {
-    fontSize: 11,
+    fontSize: 10,
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '600',
-    minWidth: 14,
-    textAlign: 'center',
+    marginLeft: 2,
   },
   reactionCountInsideOther: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '600',
-    minWidth: 14,
-    textAlign: 'center',
+    marginLeft: 2,
   },
   reactionCountActiveInsideOwn: {
-    color: '#FF6B35',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   reactionCountActiveInsideOther: {
-    color: '#FF6B35',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
 });
