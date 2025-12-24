@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useCallback, use
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../matrixClient';
 import { getOpenAIConsultation, generateResponseFromMessage, gradeMessage } from '../services/aiService';
-import { isMessageFromMe } from '../utils/room';
+import { isMessageFromMe, getLastReceivedMessageBatch } from '../utils/room';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -117,8 +117,7 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
             };
           });
 
-        const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
-        const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
+        const message = getLastReceivedMessageBatch(roomContext, 'Nói gì cũng được');
 
         console.log('Calling generateResponseFromMessage API...');
         const response = await generateResponseFromMessage({ message, context: roomContext, spec });

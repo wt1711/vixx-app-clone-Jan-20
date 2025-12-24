@@ -119,3 +119,41 @@ export const getRoomAvatarUrl = (
   ): boolean => {
     return sender === myUserId || roomName !== senderName;
   };
+
+  type RoomContextMessage = {
+    sender: string;
+    text: string;
+    timestamp: string;
+    is_from_me: boolean;
+  };
+
+  /**
+   * Gets all consecutive messages from the other person at the end of the conversation.
+   * Useful when someone sends multiple messages in a row (a batch).
+   * Returns the joined text or a fallback message.
+   */
+  export const getLastReceivedMessageBatch = (
+    roomContext: RoomContextMessage[],
+    fallback: string = ''
+  ): string => {
+    const reversed = [...roomContext].reverse();
+    const batch: string[] = [];
+
+    // Find the first message that is NOT from me (start of received batch)
+    const startIndex = reversed.findIndex((msg) => !msg.is_from_me);
+
+    if (startIndex === -1) {
+      // No received messages at all
+      return fallback;
+    }
+
+    // Collect consecutive non-user messages starting from startIndex
+    for (let i = startIndex; i < reversed.length; i++) {
+      if (reversed[i].is_from_me) {
+        break;
+      }
+      batch.unshift(reversed[i].text);
+    }
+
+    return batch.length > 0 ? batch.join('\n') : fallback;
+  };
