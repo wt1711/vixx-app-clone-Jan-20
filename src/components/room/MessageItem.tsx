@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,9 +10,12 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  StyleProp,
+  ViewStyle,
+  ImageStyle,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { MessageItem } from './types';
+import { MessageItem, ReactionData } from './types';
 import { formatTimeWithDay, getInitials } from './utils';
 
 // Enable LayoutAnimation for Android
@@ -34,6 +37,139 @@ export type MessageItemProps = {
   isFirstOfHour?: boolean;
 };
 
+// Sub-component for avatar display
+const Avatar = ({ avatarUrl, initials }: { avatarUrl?: string; initials: string }) => {
+  if (avatarUrl) {
+    return <Image source={{ uri: avatarUrl }} style={styles.avatar} />;
+  }
+  return (
+    <View style={[styles.avatar, styles.avatarPlaceholder]}>
+      <Text style={styles.avatarText}>{initials}</Text>
+    </View>
+  );
+};
+
+// Sub-component for a single reaction button
+const ReactionButton = ({
+  reaction,
+  isOwn,
+  onPress,
+}: {
+  reaction: ReactionData;
+  isOwn: boolean;
+  onPress: () => void;
+}) => {
+  const buttonStyle = useMemo(() => {
+    const baseStyle = isOwn
+      ? styles.reactionButtonInsideOwn
+      : styles.reactionButtonInsideOther;
+
+    if (!reaction.myReaction) {
+      return baseStyle;
+    }
+
+    const activeStyle = isOwn
+      ? styles.reactionButtonActiveInsideOwn
+      : styles.reactionButtonActiveInsideOther;
+
+    return [baseStyle, activeStyle];
+  }, [isOwn, reaction.myReaction]);
+
+  const countStyle = useMemo(() => {
+    const baseStyle = isOwn
+      ? styles.reactionCountInsideOwn
+      : styles.reactionCountInsideOther;
+
+    if (!reaction.myReaction) {
+      return baseStyle;
+    }
+
+    const activeStyle = isOwn
+      ? styles.reactionCountActiveInsideOwn
+      : styles.reactionCountActiveInsideOther;
+
+    return [baseStyle, activeStyle];
+  }, [isOwn, reaction.myReaction]);
+
+  const emojiStyle = reaction.count === 1
+    ? [styles.reactionEmojiInside, styles.reactionEmojiInsideSingle]
+    : styles.reactionEmojiInside;
+
+  return (
+    <TouchableOpacity
+      style={buttonStyle}
+      onPress={onPress}
+      activeOpacity={0.6}
+    >
+      <Text style={emojiStyle}>{reaction.key}</Text>
+      {reaction.count > 1 && (
+        <Text style={countStyle}>{reaction.count}</Text>
+      )}
+    </TouchableOpacity>
+  );
+};
+
+// Sub-component for reactions list
+const ReactionsList = ({
+  reactions,
+  isOwn,
+  onReactionPress,
+}: {
+  reactions: ReactionData[];
+  isOwn: boolean;
+  onReactionPress?: (key: string) => void;
+}) => {
+  if (!reactions || reactions.length === 0) {
+    return null;
+  }
+
+  return (
+    <View style={styles.reactionsInsideBubble} pointerEvents="box-none">
+      {reactions.map(reaction => (
+        <ReactionButton
+          key={reaction.key}
+          reaction={reaction}
+          isOwn={isOwn}
+          onPress={() => onReactionPress?.(reaction.key)}
+        />
+      ))}
+    </View>
+  );
+};
+
+// Sub-component for message content (text or image)
+const MessageContent = ({
+  item,
+  imageStyle,
+}: {
+  item: MessageItem;
+  imageStyle: StyleProp<ImageStyle>;
+}) => {
+  const textStyle = [
+    styles.messageText,
+    item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
+  ];
+
+  const isImageMessage = item.msgtype === 'm.image' && item.imageUrl;
+
+  if (isImageMessage) {
+    return (
+      <View style={styles.imageContainer}>
+        <Image
+          source={{ uri: item.imageUrl }}
+          style={imageStyle}
+          resizeMode="contain"
+        />
+        {item.content === '📷 Image' && (
+          <Text style={[textStyle, styles.imageCaption]}>{item.content}</Text>
+        )}
+      </View>
+    );
+  }
+
+  return <Text style={textStyle}>{item.content}</Text>;
+};
+
 export const MessageItemComponent = React.memo<MessageItemProps>(
   ({
     item,
@@ -50,80 +186,83 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     ).current;
 
     useEffect(() => {
-      // Only animate for tap-triggered timestamps, not for first-of-hour
-      if (!isFirstOfHour) {
-        LayoutAnimation.configureNext(
-          LayoutAnimation.create(
-            300,
-            LayoutAnimation.Types.easeInEaseOut,
-            LayoutAnimation.Properties.opacity,
-          ),
-        );
+      if (isFirstOfHour) return;
 
-        Animated.timing(animatedOpacity, {
-          toValue: showTimestamp ? 1 : 0,
-          duration: 300,
-          useNativeDriver: true,
-        }).start();
-      }
+      LayoutAnimation.configureNext(
+        LayoutAnimation.create(
+          300,
+          LayoutAnimation.Types.easeInEaseOut,
+          LayoutAnimation.Properties.opacity,
+        ),
+      );
+
+      Animated.timing(animatedOpacity, {
+        toValue: showTimestamp ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
     }, [showTimestamp, animatedOpacity, isFirstOfHour]);
 
     const timeString = formatTimeWithDay(item.timestamp);
     const initials = getInitials(item.senderName);
-    const imageStyle =
-      item.imageInfo?.w && item.imageInfo?.h
-        ? [
-            styles.messageImage,
-            styles.messageImageWithRatio,
-            { aspectRatio: item.imageInfo.w / item.imageInfo.h, maxWidth: 250 },
-          ]
-        : [styles.messageImage, styles.messageImageDefault];
+
+    const imageStyle = useMemo<StyleProp<ImageStyle>>(() => {
+      const { w, h } = item.imageInfo ?? {};
+      if (w && h) {
+        return [
+          styles.messageImage,
+          styles.messageImageWithRatio,
+          { aspectRatio: w / h, maxWidth: 250 },
+        ];
+      }
+      return [styles.messageImage, styles.messageImageDefault];
+    }, [item.imageInfo]);
+
+    const containerStyle: StyleProp<ViewStyle> = [
+      styles.messageContainer,
+      item.isOwn ? styles.messageOwn : styles.messageOther,
+    ];
+
+    const bubbleStyle: StyleProp<ViewStyle> = [
+      styles.messageBubble,
+      item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
+    ];
+
+    const blurFallbackColor = item.isOwn ? '#123660' : '#1A1D24';
+
+    const timestampStyle: StyleProp<ViewStyle> = [
+      styles.timestampRow,
+      { opacity: isFirstOfHour ? 1 : animatedOpacity },
+    ];
 
     const handleLongPress = () => {
-      if (onLongPress && messageRef.current) {
-        messageRef.current.measure((x, y, width, height, pageX, pageY) => {
-          onLongPress(() => ({ x: pageX, y: pageY, width, height }));
-        });
-      } else {
+      if (!onLongPress || !messageRef.current) {
         console.warn(
           '⚠️ Cannot measure: onLongPress=',
           !!onLongPress,
           'messageRef.current=',
           !!messageRef.current,
         );
+        return;
       }
+
+      messageRef.current.measure((_x, _y, width, height, pageX, pageY) => {
+        onLongPress(() => ({ x: pageX, y: pageY, width, height }));
+      });
     };
 
     return (
       <View>
-        {/* Timestamp shown above message when tapped or first of hour */}
         {shouldShowTimestamp && (
-          <Animated.View
-            style={[
-              styles.timestampRow,
-              isFirstOfHour ? { opacity: 1 } : { opacity: animatedOpacity },
-            ]}
-          >
+          <Animated.View style={timestampStyle}>
             <Text style={styles.timestampText}>{timeString}</Text>
           </Animated.View>
         )}
 
-        <View
-          ref={messageRef}
-          style={[
-            styles.messageContainer,
-            item.isOwn ? styles.messageOwn : styles.messageOther,
-          ]}
-        >
+        <View ref={messageRef} style={containerStyle}>
           {!item.isOwn && (
             <View style={styles.avatarContainer}>
-              {item.avatarUrl ? (
-                <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
-              ) : (
-                <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                  <Text style={styles.avatarText}>{initials}</Text>
-                </View>
-              )}
+              <Avatar avatarUrl={item.avatarUrl} initials={initials} />
             </View>
           )}
 
@@ -133,107 +272,20 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
             delayLongPress={500}
             style={styles.messageBubbleWrapper}
           >
-            <View
-              style={[
-                styles.messageBubble,
-                item.isOwn
-                  ? styles.messageBubbleOwn
-                  : styles.messageBubbleOther,
-              ]}
-            >
+            <View style={bubbleStyle}>
               <BlurView
                 style={StyleSheet.absoluteFill}
                 blurType="dark"
                 blurAmount={80}
-                reducedTransparencyFallbackColor={
-                  item.isOwn ? '#123660' : '#1A1D24'
-                }
+                reducedTransparencyFallbackColor={blurFallbackColor}
               />
               <View style={styles.messageBubbleContent}>
-                {/* Render image if it's an image message */}
-                {item.msgtype === 'm.image' && item.imageUrl ? (
-                  <View style={styles.imageContainer}>
-                    <Image
-                      source={{ uri: item.imageUrl }}
-                      style={imageStyle}
-                      resizeMode="contain"
-                    />
-                    {item.content && item.content === '📷 Image' && (
-                      <Text
-                        style={[
-                          styles.messageText,
-                          item.isOwn
-                            ? styles.messageTextOwn
-                            : styles.messageTextOther,
-                          styles.imageCaption,
-                        ]}
-                      >
-                        {item.content}
-                      </Text>
-                    )}
-                  </View>
-                ) : (
-                  <Text
-                    style={[
-                      styles.messageText,
-                      item.isOwn
-                        ? styles.messageTextOwn
-                        : styles.messageTextOther,
-                    ]}
-                  >
-                    {item.content}
-                  </Text>
-                )}
-
-                {/* Reactions inside message bubble */}
-                {item.reactions && item.reactions.length > 0 && (
-                  <View
-                    style={styles.reactionsInsideBubble}
-                    pointerEvents="box-none"
-                  >
-                    {item.reactions.map(reaction => (
-                      <TouchableOpacity
-                        key={reaction.key}
-                        style={[
-                          item.isOwn
-                            ? styles.reactionButtonInsideOwn
-                            : styles.reactionButtonInsideOther,
-                          reaction.myReaction &&
-                            (item.isOwn
-                              ? styles.reactionButtonActiveInsideOwn
-                              : styles.reactionButtonActiveInsideOther),
-                        ]}
-                        onPress={() => onReactionPress?.(reaction.key)}
-                        activeOpacity={0.6}
-                      >
-                        <Text
-                          style={[
-                            styles.reactionEmojiInside,
-                            reaction.count === 1 &&
-                              styles.reactionEmojiInsideSingle,
-                          ]}
-                        >
-                          {reaction.key}
-                        </Text>
-                        {reaction.count > 1 && (
-                          <Text
-                            style={[
-                              item.isOwn
-                                ? styles.reactionCountInsideOwn
-                                : styles.reactionCountInsideOther,
-                              reaction.myReaction &&
-                                (item.isOwn
-                                  ? styles.reactionCountActiveInsideOwn
-                                  : styles.reactionCountActiveInsideOther),
-                            ]}
-                          >
-                            {reaction.count}
-                          </Text>
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                <MessageContent item={item} imageStyle={imageStyle} />
+                <ReactionsList
+                  reactions={item.reactions ?? []}
+                  isOwn={item.isOwn}
+                  onReactionPress={onReactionPress}
+                />
               </View>
             </View>
           </Pressable>
