@@ -14,6 +14,7 @@ import {
   messageEventOnly,
   getEventReactions,
   getReactionContent,
+  isMessageFromMe,
 } from '../../utils/room';
 import { MessageEvent } from '../../types/matrix/room';
 import { MessageItem, RoomTimelineProps } from './types';
@@ -40,7 +41,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       const senderName =
         senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
       const roomName = room.name || 'Unknown';
-      const isOwn = sender === mx.getUserId() || roomName !== senderName;
+      const isOwn = isMessageFromMe(sender, mx.getUserId(), roomName, senderName);
       const avatarUrl = isOwn
         ? undefined
         : getMemberAvatarMxc(mx, room, sender) ||

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useCallback, use
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../matrixClient';
 import { getOpenAIConsultation, generateResponseFromMessage, gradeMessage } from '../services/aiService';
+import { isMessageFromMe, getLastReceivedMessageBatch } from '../utils/room';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -38,8 +39,6 @@ type AIAssistantProviderProps = {
   room: Room;
   isMobile: boolean;
 };
-
-const isFromMe = (sender: string, selfUserId: string) => sender === selfUserId;
 
 export function AIAssistantProvider({ children, room, isMobile }: AIAssistantProviderProps) {
   const [inputValue, setInputValue] = useState('');
@@ -103,17 +102,22 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
 
         // Get the actual room conversation from timeline
         const timeline = room.getLiveTimeline().getEvents();
+        const roomName = room.name || 'Unknown';
         const roomContext = timeline
           .filter((event) => event.getSender() && event.getContent().body)
-          .map((event) => ({
-            sender: event.getSender() as string,
-            text: event.getContent().body as string,
-            timestamp: new Date(event.getTs()).toISOString(),
-            is_from_me: isFromMe(event.getSender() as string, myUserId),
-          }));
+          .map((event) => {
+            const sender = event.getSender() as string;
+            const senderMember = room.getMember(sender);
+            const senderName = senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
+            return {
+              sender,
+              text: event.getContent().body as string,
+              timestamp: new Date(event.getTs()).toISOString(),
+              is_from_me: isMessageFromMe(sender, myUserId, roomName, senderName),
+            };
+          });
 
-        const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
-        const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
+        const message = getLastReceivedMessageBatch(roomContext, 'Nói gì cũng được');
 
         console.log('Calling generateResponseFromMessage API...');
         const response = await generateResponseFromMessage({ message, context: roomContext, spec });
@@ -146,14 +150,20 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
     try {
       // Get the actual room conversation from timeline
       const timeline = room.getLiveTimeline().getEvents();
+      const roomName = room.name || 'Unknown';
       const roomContext = timeline
         .filter((event) => event.getSender() && event.getContent().body)
-        .map((event) => ({
-          sender: event.getSender() as string,
-          text: event.getContent().body as string,
-          timestamp: new Date(event.getTs()).toISOString(),
-          is_from_me: isFromMe(event.getSender() as string, myUserId),
-        }));
+        .map((event) => {
+          const sender = event.getSender() as string;
+          const senderMember = room.getMember(sender);
+          const senderName = senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
+          return {
+            sender,
+            text: event.getContent().body as string,
+            timestamp: new Date(event.getTs()).toISOString(),
+            is_from_me: isMessageFromMe(sender, myUserId, roomName, senderName),
+          };
+        });
 
       const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
       const msgToGetResponse = lastNonUserMsg || {
@@ -196,14 +206,20 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
     async (text: string) => {
       if (text.trim().length > 0 && mx && myUserId) {
         const timeline = room.getLiveTimeline().getEvents();
+        const roomName = room.name || 'Unknown';
         const roomContext = timeline
           .filter((event) => event.getSender() && event.getContent().body)
-          .map((event) => ({
-            sender: event.getSender() as string,
-            text: event.getContent().body as string,
-            timestamp: new Date(event.getTs()).toISOString(),
-            is_from_me: isFromMe(event.getSender() as string, myUserId),
-          }));
+          .map((event) => {
+            const sender = event.getSender() as string;
+            const senderMember = room.getMember(sender);
+            const senderName = senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
+            return {
+              sender,
+              text: event.getContent().body as string,
+              timestamp: new Date(event.getTs()).toISOString(),
+              is_from_me: isMessageFromMe(sender, myUserId, roomName, senderName),
+            };
+          });
 
         const score = await gradeMessage({ message: text, context: roomContext });
         // Simple grade mapping
