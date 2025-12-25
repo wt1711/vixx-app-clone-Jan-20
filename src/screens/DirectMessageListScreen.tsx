@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,10 +10,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { Settings } from 'lucide-react-native';
-import { Room } from 'matrix-js-sdk';
 import { useDirectRooms } from '../hooks/useDirectRooms';
 import { getMatrixClient } from '../matrixClient';
-import { getRoomAvatarUrl, getLastRoomMessage } from '../utils/room';
+import { getRoomAvatarUrl, getLastRoomMessageAsync } from '../utils/room';
 import { useAuth } from '../context/AuthContext';
 import { RoomListItem, RoomItemData } from '../components/room/RoomListItem';
 import { LoadingScreen } from '../components/common/LoadingScreen';
@@ -32,40 +31,74 @@ export function DirectMessageListScreen({
 }: DirectMessageListScreenProps) {
   const { directRooms, isLoading } = useDirectRooms();
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [roomItems, setRoomItems] = useState<RoomItemData[]>([]);
+  const [loading, setLoading] = useState(true);
   const mx = getMatrixClient();
   const { logout } = useAuth();
   const insets = useSafeAreaInsets();
+  const loadingRef = useRef(false);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+  // Load room data with async message fetching
+  const loadRoomItems = useCallback(async () => {
+    if (!mx || loadingRef.current) return;
 
-  const roomItems: RoomItemData[] = useMemo(() => {
+    loadingRef.current = true;
     setLoading(true);
-    if (!mx) return [];
 
-    const items = directRooms.map((room: Room) => {
+    const items: RoomItemData[] = [];
+
+    // First pass: create items with basic data (fast)
+    for (const room of directRooms) {
       const name = room.name || 'Unknown';
-      const { message: lastMessage, timestamp: lastEventTime } = getLastRoomMessage(room);
       const unreadCount = room.getUnreadNotificationCount() || 0;
       const avatarUrl = getRoomAvatarUrl(mx, room, 96, true);
 
-      return {
+      items.push({
         roomId: room.roomId,
         room,
         name,
-        lastMessage,
-        lastEventTime,
+        lastMessage: '',
+        lastEventTime: room.getLastActiveTimestamp() || 0,
         unreadCount,
         avatarUrl,
-      };
-    });
+      });
+    }
 
+    // Sort by last active timestamp initially
+    items.sort((a, b) => (b.lastEventTime || 0) - (a.lastEventTime || 0));
+
+    // Show items immediately with timestamps
+    setRoomItems([...items]);
     setLoading(false);
-    return items;
-  }, [directRooms, mx]);
+
+    // Second pass: fetch actual last messages (async)
+    const updatedItems = await Promise.all(
+      items.map(async (item) => {
+        const { message, timestamp } = await getLastRoomMessageAsync(mx, item.room);
+        return {
+          ...item,
+          lastMessage: message,
+          lastEventTime: timestamp || item.lastEventTime,
+        };
+      })
+    );
+
+    // Sort by actual message timestamp
+    updatedItems.sort((a, b) => (b.lastEventTime || 0) - (a.lastEventTime || 0));
+    setRoomItems(updatedItems);
+    loadingRef.current = false;
+  }, [mx, directRooms]);
+
+  useEffect(() => {
+    if (!isLoading && directRooms.length >= 0) {
+      loadRoomItems();
+    }
+  }, [isLoading, directRooms, loadRoomItems]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadRoomItems().finally(() => setRefreshing(false));
+  }, [loadRoomItems]);
 
   const renderItem = useCallback(
     ({ item }: { item: RoomItemData }) => (
@@ -75,12 +108,12 @@ export function DirectMessageListScreen({
         onPress={onSelectRoom}
       />
     ),
-    [selectedRoomId, onSelectRoom]
+    [selectedRoomId, onSelectRoom],
   );
 
   const keyExtractor = useCallback((item: RoomItemData) => item.roomId, []);
 
-  if (isLoading || loading) {
+  if (isLoading || (loading && roomItems.length === 0)) {
     return <LoadingScreen message="Loading messages..." />;
   }
 

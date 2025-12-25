@@ -1,4 +1,4 @@
-import { EventTimeline, MatrixClient, MatrixEvent, MsgType, Room, RoomMember, RoomType } from "matrix-js-sdk";
+import { EventTimeline, MatrixClient, MatrixEvent, MsgType, Room, RoomMember, RoomType, Direction } from "matrix-js-sdk";
 import { MessageEvent, StateEvent, RelationType } from "../types/matrix/room";
 
 
@@ -117,41 +117,94 @@ export type LastMessageInfo = {
 };
 
 /**
- * Gets the last user message from a room timeline, skipping state events and notices.
- * Returns the formatted message preview and timestamp.
+ * Formats a message event into a preview string
  */
-export const getLastRoomMessage = (room: Room): LastMessageInfo => {
-  const timeline = room.getLiveTimeline().getEvents();
-  let message = '';
-  let timestamp = 0;
+const formatMessagePreview = (content: Record<string, any>): string => {
+  if (content.msgtype === MsgType.Text) {
+    return content.body || '';
+  } else if (content.msgtype === MsgType.Image) {
+    return '📷 Image';
+  } else if (content.msgtype === MsgType.Video) {
+    return '🎥 Video';
+  } else if (content.msgtype === MsgType.File) {
+    return '📎 File';
+  } else if (content.msgtype === MsgType.Audio) {
+    return '🎵 Audio';
+  }
+  return 'Message';
+};
 
-  for (let i = timeline.length - 1; i >= 0; i--) {
-    const event = timeline[i];
+/**
+ * Finds the last message from an array of events
+ */
+const findLastMessageInEvents = (events: MatrixEvent[]): LastMessageInfo | null => {
+  for (let i = events.length - 1; i >= 0; i--) {
+    const event = events[i];
     if (event.getType() === MessageEvent.RoomMessage) {
       const content = event.getContent();
       // Skip notice messages (bot/system messages)
       if (content.msgtype === MsgType.Notice) {
         continue;
       }
-      timestamp = event.getTs();
-      if (content.msgtype === MsgType.Text) {
-        message = content.body || '';
-      } else if (content.msgtype === MsgType.Image) {
-        message = '📷 Image';
-      } else if (content.msgtype === MsgType.Video) {
-        message = '🎥 Video';
-      } else if (content.msgtype === MsgType.File) {
-        message = '📎 File';
-      } else if (content.msgtype === MsgType.Audio) {
-        message = '🎵 Audio';
-      } else {
-        message = 'Message';
-      }
+      return {
+        message: formatMessagePreview(content),
+        timestamp: event.getTs(),
+      };
+    }
+  }
+  return null;
+};
+
+/**
+ * Gets the last user message from a room timeline, skipping state events and notices.
+ * Synchonous version - only checks currently loaded events.
+ */
+export const getLastRoomMessage = (room: Room): LastMessageInfo => {
+  const timeline = room.getLiveTimeline().getEvents();
+  const result = findLastMessageInEvents(timeline);
+  return result || { message: '', timestamp: 0 };
+};
+
+/**
+ * Gets the last user message, paginating backwards if needed.
+ * Use this when you need to ensure a message is found.
+ */
+export const getLastRoomMessageAsync = async (
+  client: MatrixClient,
+  room: Room,
+  maxPaginationAttempts = 3
+): Promise<LastMessageInfo> => {
+  const timeline = room.getLiveTimeline();
+  let events = timeline.getEvents();
+
+  // First check current timeline
+  let result = findLastMessageInEvents(events);
+  if (result) return result;
+
+  // Paginate backwards to find a message
+  let attempts = 0;
+  while (attempts < maxPaginationAttempts) {
+    const token = timeline.getPaginationToken(Direction.Backward);
+    if (!token) break;
+
+    try {
+      await client.paginateEventTimeline(timeline, {
+        backwards: true,
+        limit: 20,
+      });
+
+      events = timeline.getEvents();
+      result = findLastMessageInEvents(events);
+      if (result) return result;
+
+      attempts++;
+    } catch (error) {
+      console.error('[getLastRoomMessageAsync] Pagination failed:', error);
       break;
     }
   }
 
-  return { message, timestamp };
+  return { message: '', timestamp: 0 };
 };
 
   export const isMessageFromMe = (
