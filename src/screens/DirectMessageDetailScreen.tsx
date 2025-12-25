@@ -1,4 +1,3 @@
-/* eslint-disable no-unreachable */
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
@@ -17,13 +16,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from '../matrixClient';
-import { usePaymentVerification } from '../hooks/usePaymentVerification';
 import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 import { RoomTimeline } from '../components/room/RoomTimeline';
 import { RoomInput } from '../components/room/RoomInput';
 import { RoomViewHeader } from '../components/room/RoomViewHeader';
 import { AIAssistantModal } from '../components/ai/AIAssistantModal';
-import { PaymentModal } from '../components/payment/PaymentModal';
 import { AIAssistantProvider } from '../context/AIAssistantContext';
 
 type DirectMessageDetailScreenProps = {
@@ -40,9 +37,7 @@ export function DirectMessageDetailScreen({
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const mx = getMatrixClient();
-  const { paymentState, refreshPaymentStatus } = usePaymentVerification();
 
   useEffect(() => {
     if (!mx) {
@@ -93,30 +88,9 @@ export function DirectMessageDetailScreen({
   }, [mx, roomId]);
 
   const handleAIAssistantClick = useCallback(() => {
-    // Ignore for now
-    return;
-
-    console.log('🤖 AI Assistant clicked - Payment state:', {
-      hasPaid: paymentState.hasPaid,
-      isLoading: paymentState.isLoading,
-    });
-
-    if (!paymentState.hasPaid && !paymentState.isLoading) {
-      console.log('💳 Payment required - showing payment modal');
-      setShowPaymentModal(true);
-      return;
-    }
-
-    console.log('✅ Payment verified - toggling AI assistant');
+    // TODO: Re-enable when payment is implemented
     setShowAIAssistant(true);
-  }, [paymentState]);
-
-  const handlePaymentSuccess = useCallback(() => {
-    console.log('✅ Payment successful - refreshing status');
-    refreshPaymentStatus();
-    setShowPaymentModal(false);
-    setShowAIAssistant(true);
-  }, [refreshPaymentStatus]);
+  }, []);
 
   const swipeGesture = Gesture.Pan()
     .activeOffsetX(50)
@@ -183,7 +157,6 @@ export function DirectMessageDetailScreen({
               room={room}
               onBack={onBack}
               onAIAssistantClick={handleAIAssistantClick}
-              paymentState={paymentState}
             />
 
             <View style={styles.keyboardView}>
@@ -208,13 +181,6 @@ export function DirectMessageDetailScreen({
               room={room}
             />
           </AIAssistantProvider>
-
-          {/* Payment Modal */}
-          <PaymentModal
-            visible={showPaymentModal}
-            onClose={() => setShowPaymentModal(false)}
-            onSuccess={handlePaymentSuccess}
-          />
         </SafeAreaView>
       </GestureDetector>
     </GestureHandlerRootView>
