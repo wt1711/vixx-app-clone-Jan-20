@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { RoomEvent, ClientEvent, Room, Direction } from 'matrix-js-sdk';
 import { useMatrixClient } from './useMatrixClient';
 import { transformRoom, RoomListItem } from '../utils/roomTransformer';
+import { MessageEvent } from '../types/matrix/room';
 
 const MIN_MESSAGES_PER_ROOM = 1;
 
@@ -75,7 +76,7 @@ export const useRoomList = () => {
         const timeline = room.getLiveTimeline();
         const events = timeline.getEvents();
         const messageCount = events.filter(
-          (e) => e.getType() === 'm.room.message'
+          (e) => e.getType() === MessageEvent.RoomMessage
         ).length;
 
         // Only paginate if we don't have enough messages

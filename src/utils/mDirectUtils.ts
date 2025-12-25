@@ -1,5 +1,6 @@
 import React from 'react';
 import { MatrixClient, MatrixEvent, ClientEvent } from 'matrix-js-sdk';
+import { AccountDataType } from '../types/matrix/room';
 
 /**
  * Get m.direct account data and extract direct room IDs
@@ -39,14 +40,14 @@ export const useMDirects = (mx: MatrixClient | null): Set<string> => {
     }
 
     // Get initial m.direct account data
-    const mDirectEvent = mx.getAccountData('m.direct');
+    const mDirectEvent = mx.getAccountData(AccountDataType.Direct as any);
     if (mDirectEvent) {
       setMDirects(getMDirects(mDirectEvent));
     }
 
     // Listen for account data updates
     const handleAccountData = (event: MatrixEvent) => {
-      if (event.getType() === 'm.direct') {
+      if (event.getType() === AccountDataType.Direct) {
         setMDirects(getMDirects(event));
       }
     };

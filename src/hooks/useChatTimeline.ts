@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { MatrixEvent, Room, Direction } from 'matrix-js-sdk';
 import { useMatrixClient } from './useMatrixClient';
+import { MessageEvent } from '../types/matrix/room';
 
 export interface NativeMessage {
   id: string;
@@ -55,7 +56,7 @@ function mapEventToMessage(
   evt: MatrixEvent,
   myUserId: string
 ): NativeMessage | null {
-  if (evt.getType() !== 'm.room.message') {
+  if (evt.getType() !== MessageEvent.RoomMessage) {
     return null;
   }
 

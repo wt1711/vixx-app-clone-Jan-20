@@ -1,5 +1,5 @@
 import { EventTimeline, MatrixClient, MatrixEvent, MsgType, Room, RoomMember, RoomType } from "matrix-js-sdk";
-import { MessageEvent, StateEvent } from "../types/matrix/room";
+import { MessageEvent, StateEvent, RelationType } from "../types/matrix/room";
 
 
 export const getStateEvent = (
@@ -98,7 +98,7 @@ export const getRoomAvatarUrl = (
     'm.relates_to': {
       event_id: eventId,
       key,
-      rel_type: 'm.annotation',
+      rel_type: RelationType.Annotation,
     },
     shortcode,
   });
@@ -106,7 +106,7 @@ export const getRoomAvatarUrl = (
   export const getEventReactions = (room: Room, eventId: string) => {
     return room.getUnfilteredTimelineSet().relations.getChildEventsForEvent(
       eventId,
-      'm.annotation' as any,
+      RelationType.Annotation as any,
       MessageEvent.Reaction
     );
   };
