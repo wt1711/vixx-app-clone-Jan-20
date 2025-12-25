@@ -5,9 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { Send, Sparkles } from 'lucide-react-native';
+import { Send } from 'lucide-react-native';
 import { useAIAssistant } from '../../context/AIAssistantContext';
 import { EventType, MsgType, Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
@@ -19,7 +20,12 @@ type RoomInputProps = {
 export function RoomInput({ room }: RoomInputProps) {
   const [sending, setSending] = useState(false);
   const mx = getMatrixClient();
-  const { generateInitialResponse, isGeneratingResponse, inputValue, setInputValue } = useAIAssistant();
+  const {
+    generateInitialResponse,
+    isGeneratingResponse,
+    inputValue,
+    setInputValue,
+  } = useAIAssistant();
 
   // Use context's inputValue as the text input
   const inputText = inputValue;
@@ -80,7 +86,10 @@ export function RoomInput({ room }: RoomInputProps) {
             {isGeneratingResponse ? (
               <ActivityIndicator size="small" color="#A855F7" />
             ) : (
-              <Sparkles color="#A855F7" size={22} />
+              <Image
+                source={require('../../../assets/logo.png')}
+                style={styles.vixxLogo}
+              />
             )}
           </TouchableOpacity>
           <TouchableOpacity
@@ -169,5 +178,11 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     opacity: 0.5,
+  },
+  vixxLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
   },
 });
