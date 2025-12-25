@@ -6,23 +6,16 @@ import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
 import { getRoomAvatarUrl } from '../../utils/room';
 
-type PaymentState = {
-  isLoading: boolean;
-  hasPaid: boolean;
-};
-
 type RoomViewHeaderProps = {
   room: Room;
   onBack: () => void;
   onAIAssistantClick: () => void;
-  paymentState: PaymentState;
 };
 
 export function RoomViewHeader({
   room,
   onBack,
   onAIAssistantClick,
-  paymentState,
 }: RoomViewHeaderProps) {
   const mx = getMatrixClient();
 
@@ -62,7 +55,6 @@ export function RoomViewHeader({
       <TouchableOpacity
         onPress={onAIAssistantClick}
         style={styles.aiButton}
-        disabled={paymentState.isLoading}
       >
         <User color="#FFFFFF" size={24} />
       </TouchableOpacity>
