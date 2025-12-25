@@ -111,6 +111,49 @@ export const getRoomAvatarUrl = (
     );
   };
 
+export type LastMessageInfo = {
+  message: string;
+  timestamp: number;
+};
+
+/**
+ * Gets the last user message from a room timeline, skipping state events and notices.
+ * Returns the formatted message preview and timestamp.
+ */
+export const getLastRoomMessage = (room: Room): LastMessageInfo => {
+  const timeline = room.getLiveTimeline().getEvents();
+  let message = '';
+  let timestamp = 0;
+
+  for (let i = timeline.length - 1; i >= 0; i--) {
+    const event = timeline[i];
+    if (event.getType() === MessageEvent.RoomMessage) {
+      const content = event.getContent();
+      // Skip notice messages (bot/system messages)
+      if (content.msgtype === MsgType.Notice) {
+        continue;
+      }
+      timestamp = event.getTs();
+      if (content.msgtype === MsgType.Text) {
+        message = content.body || '';
+      } else if (content.msgtype === MsgType.Image) {
+        message = '📷 Image';
+      } else if (content.msgtype === MsgType.Video) {
+        message = '🎥 Video';
+      } else if (content.msgtype === MsgType.File) {
+        message = '📎 File';
+      } else if (content.msgtype === MsgType.Audio) {
+        message = '🎵 Audio';
+      } else {
+        message = 'Message';
+      }
+      break;
+    }
+  }
+
+  return { message, timestamp };
+};
+
   export const isMessageFromMe = (
     sender: string,
     myUserId: string | null | undefined,

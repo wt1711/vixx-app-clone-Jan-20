@@ -18,7 +18,7 @@ const Gradient = LinearGradient as any;
 import { Room } from 'matrix-js-sdk';
 import { useDirectRooms } from '../hooks/useDirectRooms';
 import { getMatrixClient } from '../matrixClient';
-import { getRoomAvatarUrl } from '../utils/room';
+import { getRoomAvatarUrl, getLastRoomMessage } from '../utils/room';
 import { useAuth } from '../context/AuthContext';
 
 type DirectMessageListScreenProps = {
@@ -64,27 +64,8 @@ export function DirectMessageListScreen({
       // This matches the NextJS implementation
       const name = room.name || 'Unknown';
 
-      // Get last message
-      const timeline = room.timeline;
-      const lastEvent = timeline[timeline.length - 1];
-      let lastMessage = '';
-      let lastEventTime = 0;
-
-      if (lastEvent) {
-        lastEventTime = lastEvent.getTs();
-        const content = lastEvent.getContent();
-        if (content.msgtype === 'm.text') {
-          lastMessage = content.body || '';
-        } else if (content.msgtype === 'm.image') {
-          lastMessage = '📷 Image';
-        } else if (content.msgtype === 'm.video') {
-          lastMessage = '🎥 Video';
-        } else if (content.msgtype === 'm.file') {
-          lastMessage = '📎 File';
-        } else {
-          lastMessage = 'Message';
-        }
-      }
+      // Get last message from room timeline
+      const { message: lastMessage, timestamp: lastEventTime } = getLastRoomMessage(room);
 
       const unreadCount = room.getUnreadNotificationCount() || 0;
       const avatarUrl = getRoomAvatarUrl(mx, room, 96, true);
@@ -167,7 +148,9 @@ export function DirectMessageListScreen({
                 <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                  <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
+                  <Text style={styles.avatarText}>
+                    {getInitials(item.name)}
+                  </Text>
                 </View>
               )}
               {item.unreadCount > 0 && <View style={styles.unreadDot} />}
@@ -255,7 +238,11 @@ export function DirectMessageListScreen({
           blurAmount={80}
           reducedTransparencyFallbackColor="#0A0A0F"
         />
-        <TouchableOpacity onPress={logout} style={styles.settingsButton} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={logout}
+          style={styles.settingsButton}
+          activeOpacity={0.7}
+        >
           <Settings color="#FFFFFF" size={24} />
         </TouchableOpacity>
       </View>
