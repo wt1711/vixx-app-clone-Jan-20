@@ -49,6 +49,16 @@ export enum Membership {
   export enum RoomType {
     Space = 'm.space',
   }
+
+  export enum AccountDataType {
+    Direct = 'm.direct',
+  }
+
+  export enum RelationType {
+    Annotation = 'm.annotation',
+    Replace = 'm.replace',
+    Thread = 'm.thread',
+  }
   
   export type MSpaceChildContent = {
     via: string[];

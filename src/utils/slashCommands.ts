@@ -1,15 +1,17 @@
+import { MsgType } from 'matrix-js-sdk';
+
 export function parseMessageContent(text: string): {
-  msgtype: string;
+  msgtype: MsgType;
   body: string;
 } {
   // /me emote command
   if (text.startsWith('/me ')) {
-    return { msgtype: 'm.emote', body: text.substring(4) };
+    return { msgtype: MsgType.Emote, body: text.substring(4) };
   }
 
   // /notice command
   if (text.startsWith('/notice ')) {
-    return { msgtype: 'm.notice', body: text.substring(8) };
+    return { msgtype: MsgType.Notice, body: text.substring(8) };
   }
 
   // Inline replacements
@@ -27,5 +29,5 @@ export function parseMessageContent(text: string): {
     body = body.replace('/unflip', '┬─┬ノ( º _ ºノ)');
   }
 
-  return { msgtype: 'm.text', body };
+  return { msgtype: MsgType.Text, body };
 }

@@ -1,4 +1,5 @@
 import { Room, MatrixClient } from 'matrix-js-sdk';
+import { MessageEvent } from '../types/matrix/room';
 
 /**
  * UI-ready room item for FlatList consumption
@@ -69,13 +70,13 @@ function shouldHideMessage(text: string): boolean {
  * Transforms a Matrix Room into a UI-ready RoomListItem
  */
 export function transformRoom(room: Room, client: MatrixClient): RoomListItem {
-  // Find the last actual message (m.room.message), not state events
+  // Find the last actual message (MessageEvent.RoomMessage), not state events
   let lastMessage = 'No messages';
   const timeline = room.getLiveTimeline().getEvents();
 
   for (let i = timeline.length - 1; i >= 0; i--) {
     const event = timeline[i];
-    if (event.getType() === 'm.room.message') {
+    if (event.getType() === MessageEvent.RoomMessage) {
       const body = event.getContent()?.body || '';
       // Skip hidden bot messages
       if (body && !shouldHideMessage(body)) {
