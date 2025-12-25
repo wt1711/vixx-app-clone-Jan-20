@@ -1,13 +1,14 @@
 /* eslint-disable no-unreachable */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
-  KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Animated,
+  Keyboard,
 } from 'react-native';
 import {
   Gesture,
@@ -130,6 +131,37 @@ export function DirectMessageDetailScreen({
     })
     .runOnJS(true);
 
+  // Fast keyboard animation
+  const keyboardHeight = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, e => {
+      Animated.timing(keyboardHeight, {
+        toValue: e.endCoordinates.height,
+        duration: 100,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      Animated.timing(keyboardHeight, {
+        toValue: 0,
+        duration: 100,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [keyboardHeight]);
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -184,19 +216,20 @@ export function DirectMessageDetailScreen({
               paymentState={paymentState}
             />
 
-            <KeyboardAvoidingView
-              style={styles.keyboardView}
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              keyboardVerticalOffset={0}
-            >
+            <View style={styles.keyboardView}>
               <View style={styles.timelineContainer}>
                 <RoomTimeline room={room} eventId={eventId} />
               </View>
 
-              <View style={styles.inputContainer}>
+              <Animated.View
+                style={[
+                  styles.inputContainer,
+                  { marginBottom: keyboardHeight },
+                ]}
+              >
                 <RoomInput room={room} />
-              </View>
-            </KeyboardAvoidingView>
+              </Animated.View>
+            </View>
 
             {/* AI Assistant Modal */}
             <AIAssistantModal
