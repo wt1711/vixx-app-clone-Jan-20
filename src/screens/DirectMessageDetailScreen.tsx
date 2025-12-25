@@ -121,7 +121,10 @@ export function DirectMessageDetailScreen({
   const swipeGesture = Gesture.Pan()
     .activeOffsetX(50)
     .onEnd(event => {
-      if (event.translationX > 100 && Math.abs(event.velocityX) > Math.abs(event.velocityY)) {
+      if (
+        event.translationX > 100 &&
+        Math.abs(event.velocityX) > Math.abs(event.velocityY)
+      ) {
         onBack();
       }
     })
@@ -184,7 +187,7 @@ export function DirectMessageDetailScreen({
             <KeyboardAvoidingView
               style={styles.keyboardView}
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+              keyboardVerticalOffset={0}
             >
               <View style={styles.timelineContainer}>
                 <RoomTimeline room={room} eventId={eventId} />
