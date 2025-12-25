@@ -9,6 +9,11 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
@@ -113,6 +118,15 @@ export function DirectMessageDetailScreen({
     setShowAIAssistant(true);
   }, [refreshPaymentStatus]);
 
+  const swipeGesture = Gesture.Pan()
+    .activeOffsetX(50)
+    .onEnd(event => {
+      if (event.translationX > 100 && Math.abs(event.velocityX) > Math.abs(event.velocityY)) {
+        onBack();
+      }
+    })
+    .runOnJS(true);
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -150,50 +164,54 @@ export function DirectMessageDetailScreen({
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <LinearGradient
-        colors={['#0A0A0F', '#1A1A2E', '#16213E', '#0A0A0F']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <AIAssistantProvider room={room} isMobile={true}>
-        <RoomViewHeader
-          room={room}
-          onBack={onBack}
-          onAIAssistantClick={handleAIAssistantClick}
-          paymentState={paymentState}
-        />
+    <GestureHandlerRootView style={styles.container}>
+      <GestureDetector gesture={swipeGesture}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <LinearGradient
+            colors={['#0A0A0F', '#1A1A2E', '#16213E', '#0A0A0F']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <AIAssistantProvider room={room} isMobile={true}>
+            <RoomViewHeader
+              room={room}
+              onBack={onBack}
+              onAIAssistantClick={handleAIAssistantClick}
+              paymentState={paymentState}
+            />
 
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
-          <View style={styles.timelineContainer}>
-            <RoomTimeline room={room} eventId={eventId} />
-          </View>
+            <KeyboardAvoidingView
+              style={styles.keyboardView}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            >
+              <View style={styles.timelineContainer}>
+                <RoomTimeline room={room} eventId={eventId} />
+              </View>
 
-          <View style={styles.inputContainer}>
-            <RoomInput room={room} />
-          </View>
-        </KeyboardAvoidingView>
+              <View style={styles.inputContainer}>
+                <RoomInput room={room} />
+              </View>
+            </KeyboardAvoidingView>
 
-        {/* AI Assistant Modal */}
-        <AIAssistantModal
-          visible={showAIAssistant}
-          onClose={() => setShowAIAssistant(false)}
-          room={room}
-        />
-      </AIAssistantProvider>
+            {/* AI Assistant Modal */}
+            <AIAssistantModal
+              visible={showAIAssistant}
+              onClose={() => setShowAIAssistant(false)}
+              room={room}
+            />
+          </AIAssistantProvider>
 
-      {/* Payment Modal */}
-      <PaymentModal
-        visible={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        onSuccess={handlePaymentSuccess}
-      />
-    </SafeAreaView>
+          {/* Payment Modal */}
+          <PaymentModal
+            visible={showPaymentModal}
+            onClose={() => setShowPaymentModal(false)}
+            onSuccess={handlePaymentSuccess}
+          />
+        </SafeAreaView>
+      </GestureDetector>
+    </GestureHandlerRootView>
   );
 }
 
