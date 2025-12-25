@@ -132,7 +132,9 @@ export function DirectMessageDetailScreen({
     .runOnJS(true);
 
   // Fast keyboard animation
-  const keyboardHeight = useRef(new Animated.Value(0)).current;
+  // Start with 32px bottom padding when no keyboard
+  const bottomGap = 32;
+  const keyboardHeight = useRef(new Animated.Value(bottomGap)).current;
 
   useEffect(() => {
     const showEvent =
@@ -150,7 +152,7 @@ export function DirectMessageDetailScreen({
 
     const hideSub = Keyboard.addListener(hideEvent, () => {
       Animated.timing(keyboardHeight, {
-        toValue: 0,
+        toValue: bottomGap, // 32px gap when keyboard hidden
         duration: 100,
         useNativeDriver: false,
       }).start();

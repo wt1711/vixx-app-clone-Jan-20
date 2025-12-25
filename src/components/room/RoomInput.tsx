@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 0,
     paddingTop: 8,
-    paddingBottom: 16,
+    paddingBottom: 0,
     backgroundColor: 'transparent',
     alignItems: 'center',
   },
