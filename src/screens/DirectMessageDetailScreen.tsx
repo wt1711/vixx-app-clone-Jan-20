@@ -1,14 +1,12 @@
 /* eslint-disable no-unreachable */
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
-  Platform,
   ActivityIndicator,
   Animated,
-  Keyboard,
 } from 'react-native';
 import {
   Gesture,
@@ -20,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from '../matrixClient';
 import { usePaymentVerification } from '../hooks/usePaymentVerification';
+import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 import { RoomTimeline } from '../components/room/RoomTimeline';
 import { RoomInput } from '../components/room/RoomInput';
 import { RoomViewHeader } from '../components/room/RoomViewHeader';
@@ -131,38 +130,7 @@ export function DirectMessageDetailScreen({
     })
     .runOnJS(true);
 
-  // Fast keyboard animation
-  // Start with 32px bottom padding when no keyboard
-  const bottomGap = 32;
-  const keyboardHeight = useRef(new Animated.Value(bottomGap)).current;
-
-  useEffect(() => {
-    const showEvent =
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent =
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSub = Keyboard.addListener(showEvent, e => {
-      Animated.timing(keyboardHeight, {
-        toValue: e.endCoordinates.height,
-        duration: 100,
-        useNativeDriver: false,
-      }).start();
-    });
-
-    const hideSub = Keyboard.addListener(hideEvent, () => {
-      Animated.timing(keyboardHeight, {
-        toValue: bottomGap, // 32px gap when keyboard hidden
-        duration: 100,
-        useNativeDriver: false,
-      }).start();
-    });
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, [keyboardHeight]);
+  const keyboardHeight = useKeyboardHeight({ defaultPadding: 32 });
 
   if (loading) {
     return (
