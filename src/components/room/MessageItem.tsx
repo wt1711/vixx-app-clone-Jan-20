@@ -16,7 +16,8 @@ import {
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { MessageItem, ReactionData } from './types';
-import { formatTimeWithDay, getInitials } from './utils';
+import { formatTimeWithDay } from '../../utils/timeFormatter';
+import { getInitials } from '../../utils/stringUtils';
 
 // Enable LayoutAnimation for Android
 if (
