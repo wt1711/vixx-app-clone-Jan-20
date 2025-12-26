@@ -49,6 +49,33 @@ export const getRoomAvatarUrl = (
     return event.getContent().type !== RoomType.Space;
   };
 
+  export const isInvite = (room: Room | null): boolean => {
+    if (!room) return false;
+    const event = getStateEvent(room, StateEvent.RoomCreate);
+    if (!event) return false;
+    const membership = room.getMyMembership();
+    if (membership !== "invite") return false;
+    if (event.getContent().type === RoomType.Space) return false
+    const inviter = room.getDMInviter();
+    if (inviter) {
+      // Common bot patterns
+      const botPatterns = [
+        /bot$/i, // ends with 'bot'
+        /^@.*bot:/i, // starts with @...bot:
+        /bridge/i, // contains 'bridge'
+        /service/i, // contains 'service'
+        /admin/i, // contains 'admin'
+        /system/i, // contains 'system'
+        /notification/i, // contains 'notification'
+      ];
+
+      const isBot = botPatterns.some((pattern) => pattern.test(inviter));
+      if (isBot) return false;
+    }
+
+    return true;
+  };
+
   export const IsBotPrivateChat = (roomName: string | undefined) => {
     if (roomName) {
       // Common bot patterns

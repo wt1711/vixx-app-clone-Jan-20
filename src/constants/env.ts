@@ -72,7 +72,7 @@ export const API_ENDPOINTS = {
   // Social Accounts endpoints
   SOCIAL_ACCOUNTS: {
     BASE: `${ENV.API_BASE_URL}/api/social-accounts`,
-    SYNC: `${ENV.API_BASE_URL}/api/social-accounts/sync`,
+    SYNC: `${ENV.API_BASE_URL}/api/social-accounts/sync-status`,
   },
   
   // Payment endpoints

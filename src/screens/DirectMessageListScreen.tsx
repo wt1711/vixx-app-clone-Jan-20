@@ -5,6 +5,8 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
+  ActivityIndicator,
+  Text,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -17,6 +19,9 @@ import { useAuth } from '../context/AuthContext';
 import { RoomListItem, RoomItemData } from '../components/room/RoomListItem';
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { EmptyState } from '../components/common/EmptyState';
+import { SocialAccountService } from '../services/apiService';
+import ForceLogOutModal from '../components/ForceLogOutModal';
+import PendingInvitationsModal from '../components/PendingInvitationsModal';
 
 type DirectMessageListScreenProps = {
   onSelectRoom: (roomId: string) => void;
@@ -29,12 +34,16 @@ export function DirectMessageListScreen({
   onCreateChat,
   selectedRoomId,
 }: DirectMessageListScreenProps) {
-  const { directRooms, isLoading } = useDirectRooms();
+  const { directRooms, isLoading, invitedRooms } = useDirectRooms();
   const [refreshing, setRefreshing] = useState(false);
   const [roomItems, setRoomItems] = useState<RoomItemData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [showForceLogOut, setShowForceLogOut] = useState(false);
+  const [showPendingInvitationsModal, setShowPendingInvitationsModal] = useState(false);
   const mx = getMatrixClient();
   const { logout } = useAuth();
+  const socialAccountService = SocialAccountService.getInstance();
   const insets = useSafeAreaInsets();
   const loadingRef = useRef(false);
 
@@ -95,6 +104,40 @@ export function DirectMessageListScreen({
     }
   }, [isLoading, directRooms, loadRoomItems]);
 
+  const onForceLogout = () => {
+    setShowForceLogOut(true);
+  }
+
+  const handleCheckConnectedAccount = async () => {
+    try {
+      setSyncing(true);
+      const synced = await socialAccountService.syncSocialAccounts(onForceLogout);
+      if (synced) {
+        const result = await socialAccountService.getSocialAccounts(onForceLogout);
+        const isInstagramAccountConnected = socialAccountService.instagramAccountConnected(result);
+        if (!isInstagramAccountConnected) {
+          onForceLogout();
+          return;
+        }
+        setSyncing(false);
+      }
+    } catch (error) {
+      console.info('Error syncing social accounts:', error);
+    }
+  }
+
+  useEffect(() => {
+    if (showForceLogOut) {
+      setTimeout(logout, 2000);
+    }
+  }, [showForceLogOut]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (socialAccountService.needSync) {
+      handleCheckConnectedAccount();
+    }
+  }, [socialAccountService.needSync]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadRoomItems().finally(() => setRefreshing(false));
@@ -140,6 +183,18 @@ export function DirectMessageListScreen({
           <Settings color="#FFFFFF" size={24} />
         </TouchableOpacity>
       </View>
+      {syncing ? (
+        <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF6B35" />
+        <Text style={styles.loadingText}>Syncing your account...</Text>
+      </View>
+      ) : null}
+      {invitedRooms.length > 0 ? (
+        <View style={styles.invitedRoomsContainer}>
+          <TouchableOpacity onPress={() => setShowPendingInvitationsModal(true)} style={styles.invitedRoomsButton}>
+            <Text style={styles.invitedRoomsText}>You have {invitedRooms.length} pending invitation{invitedRooms.length > 1 ? 's' : ''}</Text>
+          </TouchableOpacity>
+        </View>) : null }
       {roomItems.length === 0 ? (
         <EmptyState
           title="No direct messages yet"
@@ -163,6 +218,8 @@ export function DirectMessageListScreen({
           showsVerticalScrollIndicator={false}
         />
       )}
+      <ForceLogOutModal visible={showForceLogOut}/>
+      <PendingInvitationsModal visible={showPendingInvitationsModal} invitedRooms={invitedRooms} mx={mx} onClose={() => setShowPendingInvitationsModal(false)}/>
     </View>
   );
 }
@@ -187,5 +244,32 @@ const styles = StyleSheet.create({
   listContent: {
     paddingVertical: 16,
     paddingHorizontal: 16,
+  },
+  invitedRoomsContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  invitedRoomsButton: {
+    backgroundColor: '#E4405F',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  invitedRoomsText: {
+    fontSize: 16,
+    color: 'white',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#9CA3AF',
   },
 });

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Room, RoomEvent, ClientEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from '../matrixClient';
 import { useMDirects } from '../utils/mDirectUtils';
-import { IsBotPrivateChat, isRoom } from '../utils/room';
+import { IsBotPrivateChat, isInvite, isRoom } from '../utils/room';
 
 /**
  * Hook to get all direct message rooms
@@ -10,6 +10,7 @@ import { IsBotPrivateChat, isRoom } from '../utils/room';
  */
 export const useDirectRooms = () => {
   const [directRooms, setDirectRooms] = useState<Room[]>([]);
+  const [invitedRooms, setInvitedRooms] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const mx = getMatrixClient();
   const mDirects = useMDirects(mx);
@@ -24,7 +25,8 @@ export const useDirectRooms = () => {
 
     // Filter for direct message rooms using m.direct account data
     // This matches the NextJS implementation exactly
-    const directs = allRooms.filter((room) => isRoom(room) && !mDirects.has(room.roomId) && !IsBotPrivateChat(room?.name));
+    const directs = allRooms.filter((room) => isRoom(room) && !isInvite(room) && !mDirects.has(room.roomId) && !IsBotPrivateChat(room?.name));
+    const invited = allRooms.filter((room) => isRoom(room) && isInvite(room) && !mDirects.has(room.roomId) && !IsBotPrivateChat(room?.name));
 
     // Sort by last active timestamp (most recent first)
     const sorted = directs.sort((a, b) => {
@@ -32,6 +34,7 @@ export const useDirectRooms = () => {
     });
 
     setDirectRooms(sorted);
+    setInvitedRooms(invited);
     setIsLoading(false);
   }, [mx, mDirects]);
 
@@ -68,6 +71,6 @@ export const useDirectRooms = () => {
     };
   }, [mx, updateDirectRooms]);
 
-  return { directRooms, isLoading };
+  return { directRooms, isLoading, invitedRooms };
 };
 
