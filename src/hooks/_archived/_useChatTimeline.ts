@@ -1,7 +1,13 @@
+/**
+ * @deprecated ARCHIVED - 2024-12-26
+ * Replaced by useRoomTimeline.ts which consolidates all message loading logic.
+ * This file is kept for reference only.
+ */
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { MatrixEvent, Room, Direction } from 'matrix-js-sdk';
-import { useMatrixClient } from './useMatrixClient';
-import { MessageEvent } from '../types/matrix/room';
+import { useMatrixClient } from '../useMatrixClient';
+import { MessageEvent } from '../../types/matrix/room';
 
 export interface NativeMessage {
   id: string;

@@ -26,8 +26,7 @@ export interface RoomListItem {
 }
 
 /**
- * Patterns for messages that should be hidden from preview
- * Keep in sync with useChatTimeline.ts HIDDEN_MESSAGE_PATTERNS
+ * Patterns for messages that should be hidden from room list preview
  */
 const HIDDEN_MESSAGE_PATTERNS: RegExp[] = [
   /Failed to load message/i,
