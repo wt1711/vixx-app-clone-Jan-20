@@ -3,7 +3,7 @@ import { FlatList, NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
 import { MessageItem } from '../components/room/types';
 
 const NEAR_BOTTOM_THRESHOLD = 350;
-const NEAR_TOP_THRESHOLD = 200;
+const NEAR_TOP_THRESHOLD = 100;
 
 interface UseTimelineScrollOptions {
   messages: MessageItem[];
@@ -18,7 +18,7 @@ interface UseTimelineScrollReturn {
   flatListRef: React.RefObject<FlatList<any> | null>;
   showScrollButton: boolean;
   handleScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-  handleContentSizeChange: () => void;
+  handleContentSizeChange: (width: number, height: number) => void;
   scrollToBottom: () => void;
 }
 
@@ -47,17 +47,30 @@ export function useTimelineScroll({
 }: UseTimelineScrollOptions): UseTimelineScrollReturn {
   const flatListRef = useRef<FlatList>(null);
   const isInitialLoad = useRef(true);
+  const initialScrollAttempts = useRef(0);
   const isNearBottom = useRef(true);
   const prevLastMessageId = useRef<string | null>(null);
+  const showScrollButtonRef = useRef(false);
+  const loadMoreDebounced = useRef(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  // Scroll to bottom after initial load
+  // Scroll to bottom after initial load (with retry for maintainVisibleContentPosition compatibility)
   useEffect(() => {
     if (!loading && isInitialLoad.current && messages.length > 0) {
-      setTimeout(() => {
+      const scrollToEnd = () => {
         flatListRef.current?.scrollToEnd({ animated: false });
-        isInitialLoad.current = false;
-      }, 100);
+        initialScrollAttempts.current++;
+
+        // Retry a few times to ensure scroll works with maintainVisibleContentPosition
+        if (initialScrollAttempts.current < 3) {
+          setTimeout(scrollToEnd, 100);
+        } else {
+          isInitialLoad.current = false;
+        }
+      };
+
+      // Start with a longer delay to let FlatList settle
+      setTimeout(scrollToEnd, 150);
     }
   }, [loading, messages.length]);
 
@@ -105,23 +118,42 @@ export function useTimelineScroll({
         contentSize.height - layoutMeasurement.height - contentOffset.y;
       isNearBottom.current = distanceFromBottom < NEAR_BOTTOM_THRESHOLD;
 
-      // Show scroll button when user is more than 1 screen height from bottom
-      setShowScrollButton(distanceFromBottom > layoutMeasurement.height);
+      // Only update state when visibility actually changes (avoid re-renders)
+      const shouldShowButton = distanceFromBottom > layoutMeasurement.height;
+      if (shouldShowButton !== showScrollButtonRef.current) {
+        showScrollButtonRef.current = shouldShowButton;
+        setShowScrollButton(shouldShowButton);
+      }
 
-      // Load more when near top
-      if (contentOffset.y < NEAR_TOP_THRESHOLD && canLoadMore && !loadingMore) {
-        loadMoreMessages();
+      // Load more when near top (with debounce to prevent rapid re-triggers)
+      if (
+        contentOffset.y < NEAR_TOP_THRESHOLD &&
+        canLoadMore &&
+        !loadingMore &&
+        !loadMoreDebounced.current
+      ) {
+        loadMoreDebounced.current = true;
+        loadMoreMessages().finally(() => {
+          // Reset debounce after a delay
+          setTimeout(() => {
+            loadMoreDebounced.current = false;
+          }, 500);
+        });
       }
     },
     [canLoadMore, loadingMore, loadMoreMessages],
   );
 
   // Handle content size changes (backup for initial scroll)
-  const handleContentSizeChange = useCallback(() => {
-    if (isInitialLoad.current && messages.length > 0) {
-      flatListRef.current?.scrollToEnd({ animated: false });
-    }
-  }, [messages.length]);
+  const handleContentSizeChange = useCallback(
+    (_width: number, height: number) => {
+      // Only scroll on initial load when we have content
+      if (isInitialLoad.current && messages.length > 0 && height > 0) {
+        flatListRef.current?.scrollToEnd({ animated: false });
+      }
+    },
+    [messages.length],
+  );
 
   // Scroll to bottom handler
   const scrollToBottom = useCallback(() => {

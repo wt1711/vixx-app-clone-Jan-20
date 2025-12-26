@@ -107,6 +107,19 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     setSelectedMessageId(prev => (prev === msgEventId ? null : msgEventId));
   }, []);
 
+  // Handle scroll-to-index failures (fallback for variable height items)
+  const onScrollToIndexFailed = useCallback(
+    (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index: info.index,
+          animated: false,
+        });
+      }, 100);
+    },
+    [flatListRef],
+  );
+
   // ─── Hour Separators ────────────────────────────────────────────────────────
   const firstOfHourIds = React.useMemo(() => {
     const ids = new Set<string>();
@@ -173,17 +186,21 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.eventId}
-        getItemLayout={(_, index) => ({ length: 80, offset: 80 * index, index })}
         contentContainerStyle={styles.listContent}
         onScroll={handleScroll}
-        scrollEventThrottle={400}
+        scrollEventThrottle={16}
         ListHeaderComponent={renderHeader}
         onContentSizeChange={handleContentSizeChange}
+        onScrollToIndexFailed={onScrollToIndexFailed}
+        maintainVisibleContentPosition={{
+          minIndexForVisible: 1,
+          autoscrollToTopThreshold: 10,
+        }}
         removeClippedSubviews
-        maxToRenderPerBatch={10}
-        updateCellsBatchingPeriod={50}
-        initialNumToRender={15}
-        windowSize={10}
+        maxToRenderPerBatch={15}
+        updateCellsBatchingPeriod={100}
+        initialNumToRender={20}
+        windowSize={21}
         keyboardShouldPersistTaps="handled"
       />
 
