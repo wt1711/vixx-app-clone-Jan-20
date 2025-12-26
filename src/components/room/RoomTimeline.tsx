@@ -12,6 +12,7 @@ import { MessageEvent } from '../../types/matrix/room';
 import { MessageItem, RoomTimelineProps } from './types';
 import { MessageItemComponent } from './MessageItem';
 import { QuickReactionsModal, ModalPosition } from './QuickReactionsModal';
+import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { useRoomTimeline } from '../../hooks/useRoomTimeline';
 
 const NEAR_BOTTOM_THRESHOLD = 350;
@@ -40,6 +41,8 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const isInitialLoad = useRef(true);
   const isNearBottom = useRef(true);
   const prevLastMessageId = useRef<string | null>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const screenHeight = useRef(0);
 
   // Scroll to bottom after initial load
   useEffect(() => {
@@ -90,10 +93,16 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     (event: any) => {
       const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
 
+      // Store screen height for scroll button visibility
+      screenHeight.current = layoutMeasurement.height;
+
       // Track if user is near bottom
       const distanceFromBottom =
         contentSize.height - layoutMeasurement.height - contentOffset.y;
       isNearBottom.current = distanceFromBottom < NEAR_BOTTOM_THRESHOLD;
+
+      // Show scroll button when user is more than 1 screen height from bottom
+      setShowScrollButton(distanceFromBottom > layoutMeasurement.height);
 
       // Load more when near top
       if (contentOffset.y < NEAR_TOP_THRESHOLD && canLoadMore && !loadingMore) {
@@ -102,6 +111,11 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     },
     [canLoadMore, loadingMore, loadMoreMessages],
   );
+
+  // Scroll to bottom handler for the button
+  const scrollToBottom = useCallback(() => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  }, []);
 
   // Memoized header component
   const renderHeader = useCallback(() => {
@@ -314,6 +328,8 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         bounces={true}
         keyboardShouldPersistTaps="handled"
       />
+
+      <ScrollToBottomButton visible={showScrollButton} onPress={scrollToBottom} />
 
       <QuickReactionsModal
         visible={quickReactionsEventId !== null}
