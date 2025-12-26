@@ -56,11 +56,15 @@ export const useDirectRooms = () => {
     // Listen for member changes (people joining/leaving)
     mx.on(RoomEvent.MyMembership, updateDirectRooms);
 
+    // Listen for read receipts (updates unread count)
+    mx.on(RoomEvent.Receipt, updateDirectRooms);
+
     return () => {
       mx.off(RoomEvent.Timeline, updateDirectRooms);
       mx.off(RoomEvent.Name, updateDirectRooms);
       mx.off(ClientEvent.Room, updateDirectRooms);
       mx.off(RoomEvent.MyMembership, updateDirectRooms);
+      mx.off(RoomEvent.Receipt, updateDirectRooms);
     };
   }, [mx, updateDirectRooms]);
 

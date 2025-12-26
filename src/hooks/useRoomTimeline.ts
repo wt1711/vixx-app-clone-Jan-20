@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { MatrixEvent, Room, RoomEvent, Direction } from 'matrix-js-sdk';
+import { MatrixEvent, Room, RoomEvent, Direction, ReceiptType } from 'matrix-js-sdk';
 import { getMatrixClient } from '../matrixClient';
 import {
   getMemberAvatarMxc,
@@ -12,6 +12,31 @@ import { getReactionsForEvent } from '../components/room/utils';
 
 const MIN_MESSAGES_FOR_INITIAL_LOAD = 10;
 const PAGINATION_LIMIT = 10;
+
+/**
+ * Sends a read receipt for the latest message in the room
+ */
+async function sendReadReceiptForLatestMessage(
+  mx: ReturnType<typeof getMatrixClient>,
+  room: Room,
+): Promise<void> {
+  if (!mx) return;
+
+  try {
+    const timeline = room.getLiveTimeline();
+    const events = timeline.getEvents();
+
+    // Find the last event (any type, not just messages)
+    const lastEvent = events[events.length - 1];
+    if (!lastEvent) return;
+
+    // Send read receipt
+    await mx.sendReadReceipt(lastEvent, ReceiptType.Read);
+  } catch (error) {
+    // Silently fail - read receipts are not critical
+    console.debug('Failed to send read receipt:', error);
+  }
+}
 
 interface UseRoomTimelineOptions {
   room: Room;
@@ -154,6 +179,9 @@ export function useRoomTimeline({
     setLoading(false);
     updateCanLoadMore(timeline);
 
+    // Send read receipt when messages are loaded (marks room as read)
+    sendReadReceiptForLatestMessage(mx, room);
+
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
     }
@@ -211,6 +239,8 @@ export function useRoomTimeline({
     const onRoomTimeline = (event: MatrixEvent, roomObj: Room | undefined) => {
       if (roomObj?.roomId === room.roomId) {
         refresh();
+        // Send read receipt for new messages while viewing the room
+        sendReadReceiptForLatestMessage(mx, room);
       }
     };
 
