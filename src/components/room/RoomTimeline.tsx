@@ -14,6 +14,17 @@ import { MessageItemComponent } from './MessageItem';
 import { QuickReactionsModal, ModalPosition } from './QuickReactionsModal';
 import { useRoomTimeline } from '../../hooks/useRoomTimeline';
 
+const NEAR_BOTTOM_THRESHOLD = 350;
+const NEAR_TOP_THRESHOLD = 200;
+
+/**
+ * Determines if we should auto-scroll to bottom when new messages arrive.
+ * Scrolls if: user is near bottom OR the new message is from the current user.
+ */
+function shouldAutoScroll(isNearBottom: boolean, isOwnMessage: boolean): boolean {
+  return isOwnMessage || isNearBottom;
+}
+
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const {
     messages,
@@ -27,6 +38,8 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const flatListRef = useRef<FlatList>(null);
   const mx = getMatrixClient();
   const isInitialLoad = useRef(true);
+  const isNearBottom = useRef(true);
+  const prevLastMessageId = useRef<string | null>(null);
 
   // Scroll to bottom after initial load
   useEffect(() => {
@@ -53,12 +66,37 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     }
   }, [eventId, messages]);
 
-  // All hooks must be called before any conditional returns
+  // Auto-scroll to bottom when new messages arrive (not when loading older messages)
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    const lastMessageId = lastMessage?.eventId ?? null;
+
+    // Only trigger if the last message changed (new message at the end)
+    const hasNewMessage =
+      lastMessageId !== null && lastMessageId !== prevLastMessageId.current;
+    prevLastMessageId.current = lastMessageId;
+
+    if (!hasNewMessage || isInitialLoad.current) return;
+
+    if (shouldAutoScroll(isNearBottom.current, lastMessage?.isOwn ?? false)) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
+  // Handle scroll events
   const handleScroll = useCallback(
     (event: any) => {
-      const { contentOffset } = event.nativeEvent;
-      // Check if user scrolled near the top (within 200px)
-      if (contentOffset.y < 200 && canLoadMore && !loadingMore) {
+      const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+
+      // Track if user is near bottom
+      const distanceFromBottom =
+        contentSize.height - layoutMeasurement.height - contentOffset.y;
+      isNearBottom.current = distanceFromBottom < NEAR_BOTTOM_THRESHOLD;
+
+      // Load more when near top
+      if (contentOffset.y < NEAR_TOP_THRESHOLD && canLoadMore && !loadingMore) {
         loadMoreMessages();
       }
     },
