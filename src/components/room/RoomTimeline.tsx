@@ -6,226 +6,53 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
-import { Room, MatrixEvent, RoomEvent, Direction } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
-import {
-  getMemberAvatarMxc,
-  getRoomAvatarUrl,
-  messageEventOnly,
-  getEventReactions,
-  getReactionContent,
-  isMessageFromMe,
-} from '../../utils/room';
+import { getEventReactions, getReactionContent } from '../../utils/room';
 import { MessageEvent } from '../../types/matrix/room';
 import { MessageItem, RoomTimelineProps } from './types';
-import { getReactionsForEvent } from './utils';
 import { MessageItemComponent } from './MessageItem';
 import { QuickReactionsModal, ModalPosition } from './QuickReactionsModal';
+import { ScrollToBottomButton } from './ScrollToBottomButton';
+import { useRoomTimeline } from '../../hooks/useRoomTimeline';
+
+const NEAR_BOTTOM_THRESHOLD = 350;
+const NEAR_TOP_THRESHOLD = 200;
+
+/**
+ * Determines if we should auto-scroll to bottom when new messages arrive.
+ * Scrolls if: user is near bottom OR the new message is from the current user.
+ */
+function shouldAutoScroll(isNearBottom: boolean, isOwnMessage: boolean): boolean {
+  return isOwnMessage || isNearBottom;
+}
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
-  const [messages, setMessages] = useState<MessageItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [canLoadMore, setCanLoadMore] = useState(true);
+  const {
+    messages,
+    loading,
+    loadingMore,
+    canLoadMore,
+    loadMoreMessages,
+    refresh,
+  } = useRoomTimeline({ room });
+
   const flatListRef = useRef<FlatList>(null);
   const mx = getMatrixClient();
   const isInitialLoad = useRef(true);
+  const isNearBottom = useRef(true);
+  const prevLastMessageId = useRef<string | null>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const screenHeight = useRef(0);
 
-  const mapEventToMessage = useCallback(
-    (event: MatrixEvent): MessageItem | null => {
-      if (!mx || event.getType() !== 'm.room.message') return null;
-
-      const content = event.getContent();
-      const sender = event.getSender() || '';
-      const senderMember = room.getMember(sender);
-      const senderName =
-        senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
-      const roomName = room.name || 'Unknown';
-      const isOwn = isMessageFromMe(sender, mx.getUserId(), roomName, senderName);
-      const avatarUrl = isOwn
-        ? undefined
-        : getMemberAvatarMxc(mx, room, sender) ||
-          getRoomAvatarUrl(mx, room, 96, true);
-
-      if (!messageEventOnly(event)) return null;
-
-      let contentText = '';
-      let imageUrl: string | undefined;
-      let imageInfo: { w?: number; h?: number; mimetype?: string } | undefined;
-
-      if (content.msgtype === 'm.text') {
-        contentText = content.body || '';
-      } else if (content.msgtype === 'm.image') {
-        // Extract image URL from content
-        const mxcUrl = content.file?.url || content.url;
-        if (mxcUrl && typeof mxcUrl === 'string') {
-          // Convert MXC URL to HTTP with authentication
-          imageUrl =
-            mx.mxcUrlToHttp(
-              mxcUrl,
-              400,
-              400,
-              'scale',
-              undefined,
-              false,
-              true,
-            ) || undefined;
-          imageUrl = `${imageUrl}&access_token=${mx.getAccessToken()}`;
-          imageInfo = content.info || content.file?.info;
-        }
-        contentText = content.body || '📷 Image';
-      } else if (content.msgtype === 'm.video') {
-        contentText = '🎥 Video';
-      } else if (content.msgtype === 'm.file') {
-        contentText = '📎 File';
-      } else {
-        contentText = 'Message';
-      }
-
-      // Get reactions for this event
-      const currentEventId = event.getId() || '';
-      const reactions = getReactionsForEvent(
-        room,
-        currentEventId,
-        mx.getUserId() || '',
-      );
-
-      return {
-        eventId: currentEventId,
-        sender,
-        senderName,
-        content: contentText,
-        timestamp: event.getTs(),
-        msgtype: content.msgtype,
-        isOwn,
-        avatarUrl: avatarUrl || undefined,
-        imageUrl,
-        imageInfo,
-        reactions,
-      };
-    },
-    [mx, room],
-  );
-
-  const getEventFromMessage = () => {
-    const timeline = room.getLiveTimeline();
-    const events = timeline.getEvents();
-
-    const messageItems: MessageItem[] = events
-      .map(mapEventToMessage)
-      .filter((item): item is MessageItem => item !== null);
-    return { messageItems, timeline };
-  };
-
-  const loadMessages = useCallback(async () => {
-    if (!mx || !room) return;
-
-    let { messageItems, timeline } = getEventFromMessage();
-
-    if (messageItems.length < 10 && isInitialLoad.current) {
-      await mx.paginateEventTimeline(timeline, {
-        backwards: true,
-        limit: 50, // Load 10 messages at a time
-      });
-      const newData = getEventFromMessage();
-      messageItems = newData.messageItems;
-      timeline = newData.timeline;
-    }
-
-    setMessages(messageItems);
-    setLoading(false);
-
-    // Check if we can paginate backwards
-    setTimeout(() => {
-      const paginationToken = timeline.getPaginationToken(Direction.Backward);
-      setCanLoadMore(!!paginationToken);
-    }, 600);
-
-    // Scroll to bottom after initial load
-    if (isInitialLoad.current && messageItems.length > 0) {
+  // Scroll to bottom after initial load
+  useEffect(() => {
+    if (!loading && isInitialLoad.current && messages.length > 0) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
         isInitialLoad.current = false;
-      }, 1000);
+      }, 100);
     }
-  }, [mx, room, mapEventToMessage]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadMoreMessages = useCallback(async () => {
-    if (!mx || !room || loadingMore || !canLoadMore) return;
-
-    setLoadingMore(true);
-    try {
-      const timeline = room.getLiveTimeline();
-      const paginationToken = timeline.getPaginationToken(Direction.Backward);
-
-      if (!paginationToken) {
-        setCanLoadMore(false);
-        setLoadingMore(false);
-        return;
-      }
-
-      // Store current scroll position
-      const currentFirstMessageId =
-        messages.length > 0 ? messages[0].eventId : null;
-
-      // Paginate backwards to load older messages
-      await mx.paginateEventTimeline(timeline, {
-        backwards: true,
-        limit: 50, // Load 50 messages at a time
-      });
-
-      // Reload messages after pagination
-      loadMessages();
-
-      // Try to maintain scroll position
-      if (currentFirstMessageId) {
-        setTimeout(() => {
-          const newIndex = messages.findIndex(
-            m => m.eventId === currentFirstMessageId,
-          );
-          if (newIndex >= 0) {
-            flatListRef.current?.scrollToIndex({
-              index: newIndex,
-              animated: false,
-            });
-          }
-        }, 500);
-      }
-    } catch (error) {
-      console.info('Failed to load more messages:', error);
-      setCanLoadMore(false);
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [mx, room, loadingMore, canLoadMore, messages, loadMessages]);
-
-  useEffect(() => {
-    if (!mx || !room) {
-      setLoading(false);
-      return;
-    }
-
-    loadMessages();
-
-    // Listen for new events
-    const onRoomTimeline = (event: MatrixEvent, roomObj: Room | undefined) => {
-      if (roomObj?.roomId === room.roomId) {
-        loadMessages();
-        // Auto-scroll to bottom on new message (only if user is at bottom)
-        if (event.getType() === 'm.room.message') {
-          setTimeout(() => {
-            flatListRef.current?.scrollToEnd({ animated: true });
-          }, 100);
-        }
-      }
-    };
-
-    mx.on(RoomEvent.Timeline, onRoomTimeline);
-
-    return () => {
-      mx.off(RoomEvent.Timeline, onRoomTimeline);
-    };
-  }, [mx, room, loadMessages]);
+  }, [loading, messages.length]);
 
   // Scroll to specific event if eventId prop is provided
   useEffect(() => {
@@ -242,17 +69,53 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     }
   }, [eventId, messages]);
 
-  // All hooks must be called before any conditional returns
+  // Auto-scroll to bottom when new messages arrive (not when loading older messages)
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    const lastMessageId = lastMessage?.eventId ?? null;
+
+    // Only trigger if the last message changed (new message at the end)
+    const hasNewMessage =
+      lastMessageId !== null && lastMessageId !== prevLastMessageId.current;
+    prevLastMessageId.current = lastMessageId;
+
+    if (!hasNewMessage || isInitialLoad.current) return;
+
+    if (shouldAutoScroll(isNearBottom.current, lastMessage?.isOwn ?? false)) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
+  // Handle scroll events
   const handleScroll = useCallback(
     (event: any) => {
-      const { contentOffset } = event.nativeEvent;
-      // Check if user scrolled near the top (within 200px)
-      if (contentOffset.y < 200 && canLoadMore && !loadingMore) {
+      const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+
+      // Store screen height for scroll button visibility
+      screenHeight.current = layoutMeasurement.height;
+
+      // Track if user is near bottom
+      const distanceFromBottom =
+        contentSize.height - layoutMeasurement.height - contentOffset.y;
+      isNearBottom.current = distanceFromBottom < NEAR_BOTTOM_THRESHOLD;
+
+      // Show scroll button when user is more than 1 screen height from bottom
+      setShowScrollButton(distanceFromBottom > layoutMeasurement.height);
+
+      // Load more when near top
+      if (contentOffset.y < NEAR_TOP_THRESHOLD && canLoadMore && !loadingMore) {
         loadMoreMessages();
       }
     },
     [canLoadMore, loadingMore, loadMoreMessages],
   );
+
+  // Scroll to bottom handler for the button
+  const scrollToBottom = useCallback(() => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  }, []);
 
   // Memoized header component
   const renderHeader = useCallback(() => {
@@ -313,12 +176,12 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
           );
         }
         // Reload messages to update reactions
-        loadMessages();
+        refresh();
       } catch (error) {
         console.info('Error toggling reaction:', error);
       }
     },
-    [mx, room, loadMessages],
+    [mx, room, refresh],
   );
 
   // Add reaction handler - accepts optional emoji
@@ -465,6 +328,8 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         bounces={true}
         keyboardShouldPersistTaps="handled"
       />
+
+      <ScrollToBottomButton visible={showScrollButton} onPress={scrollToBottom} />
 
       <QuickReactionsModal
         visible={quickReactionsEventId !== null}

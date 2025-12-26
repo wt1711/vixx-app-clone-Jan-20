@@ -1,5 +1,6 @@
 import { Room, MatrixClient } from 'matrix-js-sdk';
 import { MessageEvent } from '../types/matrix/room';
+import { formatRelativeTime } from './timeFormatter';
 
 /**
  * UI-ready room item for FlatList consumption
@@ -25,36 +26,7 @@ export interface RoomListItem {
 }
 
 /**
- * Formats a timestamp into a human-readable relative time string
- */
-export function formatRelativeTime(ts: number): string {
-  if (!ts) return '';
-
-  const now = Date.now();
-  const diffMs = now - ts;
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 1) {
-    return 'Just now';
-  } else if (diffMins < 60) {
-    return `${diffMins}m ago`;
-  } else if (diffHours < 24) {
-    return `${diffHours}h ago`;
-  } else if (diffDays === 1) {
-    return 'Yesterday';
-  } else if (diffDays < 7) {
-    return `${diffDays}d ago`;
-  } else {
-    const date = new Date(ts);
-    return date.toLocaleDateString();
-  }
-}
-
-/**
- * Patterns for messages that should be hidden from preview
- * Keep in sync with useChatTimeline.ts HIDDEN_MESSAGE_PATTERNS
+ * Patterns for messages that should be hidden from room list preview
  */
 const HIDDEN_MESSAGE_PATTERNS: RegExp[] = [
   /Failed to load message/i,

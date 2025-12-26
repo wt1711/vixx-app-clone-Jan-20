@@ -1,0 +1,50 @@
+import React from 'react';
+import { StyleSheet, TouchableOpacity, Text } from 'react-native';
+
+interface ScrollToBottomButtonProps {
+  visible: boolean;
+  onPress: () => void;
+}
+
+export function ScrollToBottomButton({
+  visible,
+  onPress,
+}: ScrollToBottomButtonProps) {
+  if (!visible) return null;
+
+  return (
+    <TouchableOpacity
+      style={styles.button}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <Text style={styles.arrow}>↓</Text>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  button: {
+    position: 'absolute',
+    bottom: 16,
+    alignSelf: 'center',
+    left: '50%',
+    marginLeft: -22,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  arrow: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+});

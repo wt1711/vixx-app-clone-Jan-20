@@ -3,36 +3,6 @@ import { getEventReactions } from '../../utils/room';
 import { ReactionData } from './types';
 
 /**
- * Format timestamp with day abbreviation and time
- * e.g., "MON 14:30"
- */
-export const formatTimeWithDay = (timestamp: number): string => {
-  const date = new Date(timestamp);
-  const day = date
-    .toLocaleDateString('en-US', { weekday: 'short' })
-    .toUpperCase();
-  const time = date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-  return `${day} ${time}`;
-};
-
-/**
- * Get initials from a name (max 2 characters)
- * e.g., "John Doe" -> "JD"
- */
-export const getInitials = (name: string): string => {
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-};
-
-/**
  * Get reactions for a specific event in a room
  */
 export const getReactionsForEvent = (
