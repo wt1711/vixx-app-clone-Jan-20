@@ -1,11 +1,12 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Image,
+  Animated,
+  Easing,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { Send, ImageIcon } from 'lucide-react-native';
@@ -29,6 +30,31 @@ export function RoomInput({ room }: RoomInputProps) {
     inputValue,
     setInputValue,
   } = useAIAssistant();
+
+  // Rotation animation for vixx logo
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isGeneratingResponse) {
+      const animation = Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      );
+      animation.start();
+      return () => animation.stop();
+    } else {
+      rotateAnim.setValue(0);
+    }
+  }, [isGeneratingResponse, rotateAnim]);
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   // Use context's inputValue as the text input
   const inputText = inputValue;
@@ -90,21 +116,17 @@ export function RoomInput({ room }: RoomInputProps) {
           editable={!sending && !isUploading}
         />
         <TouchableOpacity
-          style={[
-            styles.aiButton,
-            isGeneratingResponse && styles.aiButtonDisabled,
-          ]}
+          style={styles.aiButton}
           onPress={generateInitialResponse}
           disabled={isGeneratingResponse}
         >
-          {isGeneratingResponse ? (
-            <ActivityIndicator size="small" color={colors.accent.purple} />
-          ) : (
-            <Image
-              source={require('../../../assets/logo.png')}
-              style={styles.vixxLogo}
-            />
-          )}
+          <Animated.Image
+            source={require('../../../assets/logo.png')}
+            style={[
+              styles.vixxLogo,
+              { transform: [{ rotate: spin }] },
+            ]}
+          />
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -182,9 +204,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.transparent.white50,
     borderRadius: 16,
-  },
-  aiButtonDisabled: {
-    opacity: 0.5,
   },
   sendButton: {
     width: 24,
