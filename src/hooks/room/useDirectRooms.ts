@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Room, RoomEvent, ClientEvent } from 'matrix-js-sdk';
-import { getMatrixClient } from '../matrixClient';
-import { useMDirects } from '../utils/mDirectUtils';
-import { IsBotPrivateChat, isInvite, isRoom } from '../utils/room';
+import { getMatrixClient } from '../../matrixClient';
+import { useMDirects } from '../../utils/mDirectUtils';
+import { IsBotPrivateChat, isInvite, isRoom } from '../../utils/room';
 
 /**
  * Hook to get all direct message rooms

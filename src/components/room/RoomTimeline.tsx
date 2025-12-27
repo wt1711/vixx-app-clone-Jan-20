@@ -10,11 +10,9 @@ import { getMatrixClient } from '../../matrixClient';
 import { getEventReactions, getReactionContent } from '../../utils/room';
 import { MessageEvent } from '../../types/matrix/room';
 import { MessageItem, RoomTimelineProps } from './types';
-import { MessageItemComponent } from './MessageItem';
-import { QuickReactionsModal, ModalPosition } from './QuickReactionsModal';
+import { MessageItemComponent, QuickReactionsModal, ModalPosition } from './message';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
-import { useRoomTimeline } from '../../hooks/useRoomTimeline';
-import { useTimelineScroll } from '../../hooks/useTimelineScroll';
+import { useRoomTimeline, useTimelineScroll } from '../../hooks/room';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const mx = getMatrixClient();
