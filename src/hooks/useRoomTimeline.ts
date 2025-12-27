@@ -11,7 +11,7 @@ import { MessageItem } from '../components/room/types';
 import { getReactionsForEvent } from '../components/room/utils';
 
 const MIN_MESSAGES_FOR_INITIAL_LOAD = 10;
-const PAGINATION_LIMIT = 10;
+const PAGINATION_LIMIT = 30;
 
 /**
  * Sends a read receipt for the latest message in the room
@@ -141,7 +141,8 @@ export function useRoomTimeline({
     const events = timeline.getEvents();
     const messageItems: MessageItem[] = events
       .map(mapEventToMessage)
-      .filter((item): item is MessageItem => item !== null);
+      .filter((item): item is MessageItem => item !== null)
+      .reverse(); // Newest first for inverted FlatList
     return { messageItems, timeline };
   }, [room, mapEventToMessage]);
 

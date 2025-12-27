@@ -7,9 +7,6 @@ import {
   TouchableOpacity,
   Pressable,
   Animated,
-  LayoutAnimation,
-  Platform,
-  UIManager,
   StyleProp,
   ViewStyle,
   ImageStyle,
@@ -18,14 +15,6 @@ import { BlurView } from '@react-native-community/blur';
 import { MessageItem, ReactionData } from './types';
 import { formatTimeWithDay } from '../../utils/timeFormatter';
 import { getInitials } from '../../utils/stringUtils';
-
-// Enable LayoutAnimation for Android
-if (
-  Platform.OS === 'android' &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -195,14 +184,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     useEffect(() => {
       if (isFirstOfHour) return;
 
-      LayoutAnimation.configureNext(
-        LayoutAnimation.create(
-          300,
-          LayoutAnimation.Types.easeInEaseOut,
-          LayoutAnimation.Properties.opacity,
-        ),
-      );
-
+      // Use only Animated.timing with native driver (no LayoutAnimation to avoid global jank)
       Animated.timing(animatedOpacity, {
         toValue: showTimestamp ? 1 : 0,
         duration: 300,
@@ -301,20 +283,40 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     );
   },
   (prevProps, nextProps) => {
-    // Custom comparison function for better performance
-    const reactionsEqual =
-      JSON.stringify(prevProps.item.reactions) ===
-      JSON.stringify(nextProps.item.reactions);
-    return (
-      prevProps.item.eventId === nextProps.item.eventId &&
-      prevProps.item.content === nextProps.item.content &&
-      prevProps.item.timestamp === nextProps.item.timestamp &&
-      prevProps.item.imageUrl === nextProps.item.imageUrl &&
-      prevProps.item.avatarUrl === nextProps.item.avatarUrl &&
-      prevProps.showTimestamp === nextProps.showTimestamp &&
-      prevProps.isFirstOfHour === nextProps.isFirstOfHour &&
-      reactionsEqual
-    );
+    // Fast path: check simple properties first
+    if (
+      prevProps.item.eventId !== nextProps.item.eventId ||
+      prevProps.item.content !== nextProps.item.content ||
+      prevProps.item.timestamp !== nextProps.item.timestamp ||
+      prevProps.item.imageUrl !== nextProps.item.imageUrl ||
+      prevProps.item.avatarUrl !== nextProps.item.avatarUrl ||
+      prevProps.showTimestamp !== nextProps.showTimestamp ||
+      prevProps.isFirstOfHour !== nextProps.isFirstOfHour
+    ) {
+      return false;
+    }
+
+    // Same reference means equal (fast path)
+    if (prevProps.item.reactions === nextProps.item.reactions) {
+      return true;
+    }
+
+    // Shallow comparison for reactions (avoid JSON.stringify)
+    const prevReactions = prevProps.item.reactions ?? [];
+    const nextReactions = nextProps.item.reactions ?? [];
+
+    if (prevReactions.length !== nextReactions.length) {
+      return false;
+    }
+
+    return prevReactions.every((r, i) => {
+      const next = nextReactions[i];
+      return (
+        r.key === next?.key &&
+        r.count === next?.count &&
+        r.myReaction === next?.myReaction
+      );
+    });
   },
 );
 

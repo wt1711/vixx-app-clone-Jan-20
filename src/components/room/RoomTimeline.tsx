@@ -107,12 +107,28 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     setSelectedMessageId(prev => (prev === msgEventId ? null : msgEventId));
   }, []);
 
+  // Handle scroll-to-index failures (fallback for variable height items)
+  const onScrollToIndexFailed = useCallback(
+    (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index: info.index,
+          animated: false,
+        });
+      }, 100);
+    },
+    [flatListRef],
+  );
+
   // ─── Hour Separators ────────────────────────────────────────────────────────
+  // Messages are in reverse order (newest first) for inverted FlatList,
+  // so iterate from end (oldest) to find first message of each hour
   const firstOfHourIds = React.useMemo(() => {
     const ids = new Set<string>();
     let lastHour: number | null = null;
 
-    for (const msg of messages) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
       const msgDate = new Date(msg.timestamp);
       const msgHour =
         msgDate.getFullYear() * 1000000 +
@@ -171,19 +187,20 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       <FlatList
         ref={flatListRef}
         data={messages}
+        inverted
         renderItem={renderMessage}
         keyExtractor={(item) => item.eventId}
-        getItemLayout={(_, index) => ({ length: 80, offset: 80 * index, index })}
         contentContainerStyle={styles.listContent}
         onScroll={handleScroll}
-        scrollEventThrottle={400}
+        scrollEventThrottle={16}
         ListHeaderComponent={renderHeader}
         onContentSizeChange={handleContentSizeChange}
+        onScrollToIndexFailed={onScrollToIndexFailed}
         removeClippedSubviews
-        maxToRenderPerBatch={10}
-        updateCellsBatchingPeriod={50}
-        initialNumToRender={15}
-        windowSize={10}
+        maxToRenderPerBatch={15}
+        updateCellsBatchingPeriod={100}
+        initialNumToRender={20}
+        windowSize={21}
         keyboardShouldPersistTaps="handled"
       />
 
