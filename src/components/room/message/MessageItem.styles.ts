@@ -42,6 +42,10 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
+  messageBubbleContentImage: {
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+  },
   timestampRow: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -53,11 +57,9 @@ export const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.5)',
     textAlign: 'center',
   },
-  imageContainer: {
-    marginBottom: 4,
-  },
+  imageContainer: {},
   messageImage: {
-    borderRadius: 12,
+    borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   messageImageWithRatio: {

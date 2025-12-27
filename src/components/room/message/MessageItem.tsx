@@ -159,6 +159,12 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     ];
 
     const blurFallbackColor = item.isOwn ? '#123660' : '#1A1D24';
+    const isImageMessage = item.msgtype === 'm.image' && item.imageUrl;
+
+    const contentStyle: StyleProp<ViewStyle> = [
+      styles.messageBubbleContent,
+      isImageMessage && styles.messageBubbleContentImage,
+    ];
 
     const timestampStyle: StyleProp<ViewStyle> = [
       styles.timestampRow,
@@ -209,7 +215,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
                 blurAmount={80}
                 reducedTransparencyFallbackColor={blurFallbackColor}
               />
-              <View style={styles.messageBubbleContent}>
+              <View style={contentStyle}>
                 <MessageContent item={item} imageStyle={imageStyle} />
               </View>
             </View>
