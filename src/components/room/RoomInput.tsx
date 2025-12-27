@@ -8,10 +8,11 @@ import {
   Image,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { Send } from 'lucide-react-native';
+import { Send, ImageIcon } from 'lucide-react-native';
 import { useAIAssistant } from '../../context/AIAssistantContext';
 import { EventType, MsgType, Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
+import { useImageSender } from '../../hooks/message/useImageSender';
 import { colors } from '../../theme';
 
 type RoomInputProps = {
@@ -21,6 +22,7 @@ type RoomInputProps = {
 export function RoomInput({ room }: RoomInputProps) {
   const [sending, setSending] = useState(false);
   const mx = getMatrixClient();
+  const { pickAndSendImage, isUploading } = useImageSender(room.roomId);
   const {
     generateInitialResponse,
     isGeneratingResponse,
@@ -62,6 +64,20 @@ export function RoomInput({ room }: RoomInputProps) {
           blurAmount={80}
           reducedTransparencyFallbackColor={colors.background.primary}
         />
+        <TouchableOpacity
+          style={[
+            styles.imageButton,
+            isUploading && styles.imageButtonDisabled,
+          ]}
+          onPress={pickAndSendImage}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <ActivityIndicator size="small" color={colors.text.secondary} />
+          ) : (
+            <ImageIcon color={colors.text.secondary} size={24} />
+          )}
+        </TouchableOpacity>
         <TextInput
           style={styles.input}
           placeholder="flirt with her..."
@@ -71,7 +87,7 @@ export function RoomInput({ room }: RoomInputProps) {
           multiline
           maxLength={5000}
           onSubmitEditing={handleSend}
-          editable={!sending}
+          editable={!sending && !isUploading}
         />
         <TouchableOpacity
           style={[
@@ -101,7 +117,12 @@ export function RoomInput({ room }: RoomInputProps) {
           {sending ? (
             <ActivityIndicator size="small" color={colors.accent.primary} />
           ) : (
-            <Send color={inputText.trim() ? colors.accent.primary : colors.text.tertiary} size={24} />
+            <Send
+              color={
+                inputText.trim() ? colors.accent.primary : colors.text.tertiary
+              }
+              size={24}
+            />
           )}
         </TouchableOpacity>
       </View>
@@ -145,13 +166,22 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     maxHeight: 100,
   },
-  aiButton: {
-    width: 36,
-    height: 36,
+  imageButton: {
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.transparent.purple15,
-    borderRadius: 18,
+  },
+  imageButtonDisabled: {
+    opacity: 0.5,
+  },
+  aiButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.transparent.white50,
+    borderRadius: 16,
   },
   aiButtonDisabled: {
     opacity: 0.5,
@@ -167,9 +197,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   vixxLogo: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: colors.text.white,
   },
 });

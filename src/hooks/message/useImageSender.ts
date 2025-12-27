@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import ImagePicker from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { useMatrixClient } from '../useMatrixClient';
 import { EventType, MsgType } from 'matrix-js-sdk';
 
@@ -21,15 +21,8 @@ export const useImageSender = (roomId: string | null) => {
       throw new Error('Cannot send image: client or roomId not available');
     }
 
-    // // Request permission
-    // const permissionResult =
-    //   await ImagePicker.requestCameraRollPermissions();
-    // if (!permissionResult.granted) {
-    //   throw new Error('Permission to access gallery was denied');
-    // }
-
     // Launch picker
-    const result = await ImagePicker.launchImageLibrary({
+    const result = await launchImageLibrary({
       mediaType: 'photo',
       quality: 0.8,
     });
@@ -39,11 +32,17 @@ export const useImageSender = (roomId: string | null) => {
     }
 
     const asset = result.assets[0];
+    // Normalize mimetype (image/jpg -> image/jpeg)
+    let mimeType = asset.type || 'image/jpeg';
+    if (mimeType === 'image/jpg') {
+      mimeType = 'image/jpeg';
+    }
+
     const imageInfo: ImageInfo = {
       uri: asset.uri || '',
       width: asset.width || 0,
       height: asset.height || 0,
-      mimeType: asset.type || 'image/jpeg',
+      mimeType,
       fileName: asset.fileName || `image_${Date.now()}.jpg`,
       fileSize: asset.fileSize,
     };
@@ -63,26 +62,41 @@ export const useImageSender = (roomId: string | null) => {
       const response = await fetch(imageInfo.uri);
       const blob = await response.blob();
 
-      // Upload to Matrix media repository
-      const uploadResponse = await client.uploadContent(blob, {
-        name: imageInfo.fileName,
-        type: imageInfo.mimeType,
+      // Upload to Matrix media repository (direct fetch - SDK adds trailing slash)
+      const baseUrl = client.getHomeserverUrl();
+      const accessToken = client.getAccessToken();
+      const uploadUrl = `${baseUrl}/_matrix/media/v3/upload`;
+
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': imageInfo.mimeType,
+        },
+        body: blob,
       });
 
-      const contentUri = uploadResponse.content_uri;
+      if (!uploadRes.ok) {
+        const errorText = await uploadRes.text();
+        throw new Error(`Upload failed: ${uploadRes.status} ${errorText}`);
+      }
+
+      const uploadResult = await uploadRes.json();
+      const contentUri = uploadResult.content_uri;
 
       // Send m.image message
       await client.sendEvent(roomId, EventType.RoomMessage, {
         msgtype: MsgType.Image,
         body: imageInfo.fileName,
+        filename: imageInfo.fileName,
         url: contentUri,
         info: {
-          h: imageInfo.height,
           w: imageInfo.width,
+          h: imageInfo.height,
           mimetype: imageInfo.mimeType,
           size: imageInfo.fileSize,
         },
-      });
+      } as any);
     } finally {
       setIsUploading(false);
     }
