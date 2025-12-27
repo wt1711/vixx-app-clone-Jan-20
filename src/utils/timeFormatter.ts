@@ -17,10 +17,12 @@ export function formatRelativeTimeWithRecent(timestamp?: number): FormattedTime 
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  if (minutes < 60) {
-    return { text: `${minutes}m ago`, isRecent: true };
+  if (minutes < 1) {
+    return { text: 'now', isRecent: true };
+  } else if (minutes < 60) {
+    return { text: `${minutes}m`, isRecent: true };
   } else if (hours < 24) {
-    return { text: `${hours}h ago`, isRecent: true };
+    return { text: `${hours}h`, isRecent: true };
   } else if (days === 1) {
     return { text: 'Yesterday', isRecent: false };
   } else if (days < 7) {
