@@ -22,6 +22,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { SocialAccountService } from '../services/apiService';
 import ForceLogOutModal from '../components/ForceLogOutModal';
 import PendingInvitationsModal from '../components/PendingInvitationsModal';
+import { colors, gradients } from '../theme';
 
 type DirectMessageListScreenProps = {
   onSelectRoom: (roomId: string) => void;
@@ -163,7 +164,7 @@ export function DirectMessageListScreen({
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#0A0A0F', '#1A1A2E', '#16213E', '#0A0A0F']}
+        colors={[...gradients.screenBackground]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -173,19 +174,19 @@ export function DirectMessageListScreen({
           style={StyleSheet.absoluteFill}
           blurType="dark"
           blurAmount={80}
-          reducedTransparencyFallbackColor="#0A0A0F"
+          reducedTransparencyFallbackColor={colors.background.primary}
         />
         <TouchableOpacity
           onPress={logout}
           style={styles.settingsButton}
           activeOpacity={0.7}
         >
-          <Settings color="#FFFFFF" size={24} />
+          <Settings color={colors.text.primary} size={24} />
         </TouchableOpacity>
       </View>
       {syncing ? (
         <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6B35" />
+        <ActivityIndicator size="large" color={colors.accent.primary} />
         <Text style={styles.loadingText}>Syncing your account...</Text>
       </View>
       ) : null}
@@ -211,7 +212,7 @@ export function DirectMessageListScreen({
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#FF6B35"
+              tintColor={colors.accent.primary}
             />
           }
           contentContainerStyle={styles.listContent}
@@ -227,7 +228,7 @@ export function DirectMessageListScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0F',
+    backgroundColor: colors.background.primary,
   },
   header: {
     flexDirection: 'row',
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: colors.transparent.white10,
   },
   settingsButton: {
     padding: 8,
@@ -251,7 +252,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   invitedRoomsButton: {
-    backgroundColor: '#E4405F',
+    backgroundColor: colors.accent.instagram,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 20,
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   },
   invitedRoomsText: {
     fontSize: 16,
-    color: 'white',
+    color: colors.text.white,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -270,6 +271,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#9CA3AF',
+    color: colors.text.secondary,
   },
 });

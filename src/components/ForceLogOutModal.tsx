@@ -1,5 +1,6 @@
 import { ActivityIndicator, Modal, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { colors } from '../theme';
 
 const ForceLogOutModal = ({visible} : {visible: boolean}) => {
   return (
@@ -14,7 +15,7 @@ const ForceLogOutModal = ({visible} : {visible: boolean}) => {
       <View style={styles.modalContent}>
       <Text style={styles.title}>Loging Out</Text>
         <Text style={styles.description}>Your session has expired. Please log in again.</Text>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color={colors.fallback.blue} />
       </View>
       </SafeAreaView>
       </SafeAreaProvider>
@@ -28,13 +29,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 10,
-        color: 'white',
+        color: colors.text.white,
     },
     description: {
         fontSize: 16,
         textAlign: 'center',
         marginBottom: 10,
-        color: 'white',
+        color: colors.text.white,
     },
     modalContainer: {
         flex: 1,
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
   modalContent: {
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: colors.transparent.black60,
     padding: 20,
     borderRadius: 10,
   },

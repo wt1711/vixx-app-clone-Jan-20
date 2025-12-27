@@ -13,6 +13,7 @@ import { MessageItem, RoomTimelineProps } from './types';
 import { MessageItemComponent, QuickReactionsModal, ModalPosition } from './message';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { useRoomTimeline, useTimelineScroll } from '../../hooks/room';
+import { colors } from '../../theme';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const mx = getMatrixClient();
@@ -147,7 +148,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     if (!loadingMore) return null;
     return (
       <View style={styles.loadingMoreContainer}>
-        <ActivityIndicator size="small" color="#FF6B35" />
+        <ActivityIndicator size="small" color={colors.accent.primary} />
         <Text style={styles.loadingMoreText}>Loading older messages...</Text>
       </View>
     );
@@ -174,7 +175,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6B35" />
+        <ActivityIndicator size="large" color={colors.accent.primary} />
       </View>
     );
   }
@@ -233,6 +234,6 @@ const styles = StyleSheet.create({
   loadingMoreText: {
     marginTop: 8,
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.text.secondary,
   },
 });

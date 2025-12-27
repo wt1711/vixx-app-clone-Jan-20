@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { colors } from '../../theme';
 
 type EmptyStateProps = {
   title: string;
@@ -37,23 +38,23 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text.primary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: 24,
   },
   button: {
-    backgroundColor: '#FF6B35',
+    backgroundColor: colors.accent.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 20,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.text.white,
     fontSize: 16,
     fontWeight: '600',
   },

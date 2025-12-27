@@ -10,6 +10,7 @@ import { BlurView } from '@react-native-community/blur';
 import { Room } from 'matrix-js-sdk';
 import { formatRelativeTimeWithRecent } from '../../utils/timeFormatter';
 import { getInitials } from '../../utils/stringUtils';
+import { colors } from '../../theme';
 
 export type RoomItemData = {
   roomId: string;
@@ -95,7 +96,7 @@ export function RoomListItem({ item, isSelected, onPress }: RoomListItemProps) {
           style={StyleSheet.absoluteFill}
           blurType="dark"
           blurAmount={80}
-          reducedTransparencyFallbackColor="#1A1A2E"
+          reducedTransparencyFallbackColor={colors.background.secondary}
         />
         <View style={styles.roomItemContent}>
           <View style={styles.avatarContainer}>
@@ -128,11 +129,11 @@ const styles = StyleSheet.create({
   },
   roomItem: {
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: colors.transparent.white15,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: 'rgba(10, 10, 15, 0.3)',
-    shadowColor: '#000',
+    backgroundColor: colors.transparent.roomItem,
+    shadowColor: colors.background.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   roomItemSelected: {
-    backgroundColor: 'rgba(30, 30, 45, 0.5)',
+    backgroundColor: colors.transparent.roomItemSelected,
   },
   avatarContainer: {
     position: 'relative',
@@ -156,15 +157,15 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: colors.transparent.white30,
   },
   avatarPlaceholder: {
-    backgroundColor: '#2A2A3E',
+    backgroundColor: colors.background.elevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    color: '#9CA3AF',
+    color: colors.text.secondary,
     fontSize: 20,
     fontWeight: '600',
   },
@@ -175,10 +176,10 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#FF6B35',
+    backgroundColor: colors.accent.primary,
     borderWidth: 2,
-    borderColor: '#0A0A0F',
-    shadowColor: '#FF6B35',
+    borderColor: colors.background.primary,
+    shadowColor: colors.accent.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 4,
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
   roomName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text.primary,
     flex: 1,
   },
   roomNameUnread: {
@@ -204,21 +205,21 @@ const styles = StyleSheet.create({
   },
   roomTime: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.text.secondary,
     fontWeight: '500',
     marginLeft: 8,
   },
   roomTimeUnread: {
-    color: '#FF6B35',
+    color: colors.accent.primary,
     fontWeight: '600',
   },
   roomLastMessage: {
     fontSize: 14,
-    color: '#D1D5DB',
+    color: colors.text.lastMessage,
     fontWeight: '600',
   },
   roomLastMessageUnread: {
-    color: '#F3F4F6',
+    color: colors.text.messageOther,
     fontWeight: '800',
   },
 });

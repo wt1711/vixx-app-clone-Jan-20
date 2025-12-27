@@ -5,6 +5,7 @@ import { ArrowLeft, User } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
 import { getRoomAvatarUrl } from '../../utils/room';
+import { colors } from '../../theme';
 
 type RoomViewHeaderProps = {
   room: Room;
@@ -33,10 +34,10 @@ export function RoomViewHeader({
         style={StyleSheet.absoluteFill}
         blurType="dark"
         blurAmount={80}
-        reducedTransparencyFallbackColor="#0A0A0F"
+        reducedTransparencyFallbackColor={colors.background.primary}
       />
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <ArrowLeft color="#FFFFFF" size={24} />
+        <ArrowLeft color={colors.text.primary} size={24} />
       </TouchableOpacity>
 
       <View style={styles.headerCenter}>
@@ -44,7 +45,7 @@ export function RoomViewHeader({
           <Image source={{ uri: avatarUrl }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]}>
-            <User color="#9CA3AF" size={16} />
+            <User color={colors.text.secondary} size={16} />
           </View>
         )}
         <Text style={styles.roomName} numberOfLines={1}>
@@ -56,7 +57,7 @@ export function RoomViewHeader({
         onPress={onAIAssistantClick}
         style={styles.aiButton}
       >
-        <User color="#FFFFFF" size={24} />
+        <User color={colors.text.primary} size={24} />
       </TouchableOpacity>
     </View>
   );
@@ -70,9 +71,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: colors.transparent.white10,
     overflow: 'hidden',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: colors.transparent.black30,
   },
   backButton: {
     padding: 8,
@@ -87,19 +88,19 @@ const styles = StyleSheet.create({
   avatar: {
     width: 40,
     height: 40,
-    borderRadius: '50%',
+    borderRadius: 20,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: colors.transparent.white30,
   },
   avatarPlaceholder: {
-    backgroundColor: '#2A2A3E',
+    backgroundColor: colors.background.elevated,
     justifyContent: 'center',
     alignItems: 'center',
   },
   roomName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text.primary,
   },
   aiButton: {
     padding: 8,

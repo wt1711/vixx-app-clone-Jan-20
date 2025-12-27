@@ -5,6 +5,7 @@ import { BlurView } from '@react-native-community/blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Settings } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
+import { colors, gradients } from '../../theme';
 
 type LoadingScreenProps = {
   message?: string;
@@ -20,7 +21,7 @@ export function LoadingScreen({
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#0A0A0F', '#1A1A2E', '#16213E', '#0A0A0F']}
+        colors={[...gradients.screenBackground]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -31,15 +32,15 @@ export function LoadingScreen({
             style={StyleSheet.absoluteFill}
             blurType="dark"
             blurAmount={80}
-            reducedTransparencyFallbackColor="#0A0A0F"
+            reducedTransparencyFallbackColor={colors.background.primary}
           />
           <TouchableOpacity style={styles.settingsButton}>
-            <Settings color="#FFFFFF" size={24} />
+            <Settings color={colors.text.primary} size={24} />
           </TouchableOpacity>
         </View>
       )}
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6B35" />
+        <ActivityIndicator size="large" color={colors.accent.primary} />
         <Text style={styles.loadingText}>{message}</Text>
       </View>
     </View>
@@ -49,7 +50,7 @@ export function LoadingScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0F',
+    backgroundColor: colors.background.primary,
   },
   header: {
     flexDirection: 'row',
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: colors.transparent.white10,
   },
   settingsButton: {
     padding: 8,
@@ -71,6 +72,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#9CA3AF',
+    color: colors.text.secondary,
   },
 });

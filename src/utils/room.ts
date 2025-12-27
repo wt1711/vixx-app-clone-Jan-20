@@ -141,6 +141,7 @@ export const getRoomAvatarUrl = (
 export type LastMessageInfo = {
   message: string;
   timestamp: number;
+  isReaction?: boolean;
 };
 
 /**
@@ -162,13 +163,36 @@ const formatMessagePreview = (content: Record<string, any>): string => {
 };
 
 /**
- * Finds the last message from an array of events
+ * Formats a reaction event into a preview string
+ */
+const formatReactionPreview = (content: Record<string, any>): string => {
+  const reactionKey = content['m.relates_to']?.key;
+  if (reactionKey) {
+    return `Reacted ${reactionKey} to a message`;
+  }
+  return 'Reacted to a message';
+};
+
+/**
+ * Finds the last message or reaction from an array of events
  */
 const findLastMessageInEvents = (events: MatrixEvent[]): LastMessageInfo | null => {
   for (let i = events.length - 1; i >= 0; i--) {
     const event = events[i];
-    if (event.getType() === MessageEvent.RoomMessage) {
-      const content = event.getContent();
+    const eventType = event.getType();
+    const content = event.getContent();
+
+    // Check for reaction events
+    if (eventType === MessageEvent.Reaction) {
+      return {
+        message: formatReactionPreview(content),
+        timestamp: event.getTs(),
+        isReaction: true,
+      };
+    }
+
+    // Check for regular message events
+    if (eventType === MessageEvent.RoomMessage) {
       // Skip notice messages (bot/system messages)
       if (content.msgtype === MsgType.Notice) {
         continue;

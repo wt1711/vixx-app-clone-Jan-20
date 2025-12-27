@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { DirectMessageListScreen } from './DirectMessageListScreen';
 import { DirectMessageDetailScreen } from './DirectMessageDetailScreen';
 import Login from './Login';
+import { colors } from '../theme';
 
 type Screen = 'login' | 'list' | 'detail';
 
@@ -48,7 +49,7 @@ export default function Home() {
     return (
       <SafeAreaProvider>
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#E4405F" />
+          <ActivityIndicator size="large" color={colors.accent.instagram} />
           <Text style={styles.loadingText}>Loading session…</Text>
         </View>
       </SafeAreaProvider>
@@ -79,6 +80,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    color: '#555',
+    color: colors.text.tertiary,
   },
 });
