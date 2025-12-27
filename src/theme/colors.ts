@@ -32,7 +32,7 @@ export const colors = {
 
   // Message bubbles
   message: {
-    own: '#123660',
+    own: '#3B82F6',
     other: '#1A1D24',
   },
 
