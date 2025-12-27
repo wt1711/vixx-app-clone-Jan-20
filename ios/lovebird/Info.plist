@@ -33,6 +33,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>VIXX needs camera access to take photos and send them in chat</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>VIXX needs photo library access to select and send images in chat</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>RCTNewArchEnabled</key>

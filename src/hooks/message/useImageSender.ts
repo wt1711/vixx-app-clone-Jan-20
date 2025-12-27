@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { launchImageLibrary, launchCamera, Asset } from 'react-native-image-picker';
 import { useMatrixClient } from '../useMatrixClient';
 import { EventType, MsgType } from 'matrix-js-sdk';
 
@@ -16,29 +16,12 @@ export const useImageSender = (roomId: string | null) => {
   const { client } = useMatrixClient();
   const [isUploading, setIsUploading] = useState(false);
 
-  const pickAndSendImage = async (): Promise<void> => {
-    if (!client || !roomId) {
-      throw new Error('Cannot send image: client or roomId not available');
-    }
-
-    // Launch picker
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.8,
-    });
-
-    if (result.didCancel || !result.assets || result.assets.length === 0) {
-      return; // User cancelled
-    }
-
-    const asset = result.assets[0];
-    // Normalize mimetype (image/jpg -> image/jpeg)
+  const processAsset = (asset: Asset): ImageInfo => {
     let mimeType = asset.type || 'image/jpeg';
     if (mimeType === 'image/jpg') {
       mimeType = 'image/jpeg';
     }
-
-    const imageInfo: ImageInfo = {
+    return {
       uri: asset.uri || '',
       width: asset.width || 0,
       height: asset.height || 0,
@@ -46,8 +29,41 @@ export const useImageSender = (roomId: string | null) => {
       fileName: asset.fileName || `image_${Date.now()}.jpg`,
       fileSize: asset.fileSize,
     };
+  };
 
-    await uploadAndSendImage(imageInfo);
+  const pickAndSendImage = async (): Promise<void> => {
+    if (!client || !roomId) {
+      throw new Error('Cannot send image: client or roomId not available');
+    }
+
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.8,
+    });
+
+    if (result.didCancel || !result.assets || result.assets.length === 0) {
+      return;
+    }
+
+    await uploadAndSendImage(processAsset(result.assets[0]));
+  };
+
+  const takeAndSendPhoto = async (): Promise<void> => {
+    if (!client || !roomId) {
+      throw new Error('Cannot take photo: client or roomId not available');
+    }
+
+    const result = await launchCamera({
+      mediaType: 'photo',
+      quality: 0.8,
+      cameraType: 'back',
+    });
+
+    if (result.didCancel || !result.assets || result.assets.length === 0) {
+      return;
+    }
+
+    await uploadAndSendImage(processAsset(result.assets[0]));
   };
 
   const uploadAndSendImage = async (imageInfo: ImageInfo): Promise<void> => {
@@ -102,5 +118,5 @@ export const useImageSender = (roomId: string | null) => {
     }
   };
 
-  return { pickAndSendImage, isUploading };
+  return { pickAndSendImage, takeAndSendPhoto, isUploading };
 };
