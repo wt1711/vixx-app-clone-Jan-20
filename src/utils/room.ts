@@ -142,6 +142,8 @@ export type LastMessageInfo = {
   message: string;
   timestamp: number;
   isReaction?: boolean;
+  senderId?: string;
+  senderName?: string;
 };
 
 /**
@@ -188,6 +190,8 @@ const findLastMessageInEvents = (events: MatrixEvent[]): LastMessageInfo | null 
         message: formatReactionPreview(content),
         timestamp: event.getTs(),
         isReaction: true,
+        senderId: event.getSender() || undefined,
+        senderName: event.sender?.name || undefined,
       };
     }
 
@@ -200,6 +204,8 @@ const findLastMessageInEvents = (events: MatrixEvent[]): LastMessageInfo | null 
       return {
         message: formatMessagePreview(content),
         timestamp: event.getTs(),
+        senderId: event.getSender() || undefined,
+        senderName: event.sender?.name || undefined,
       };
     }
   }

@@ -14,7 +14,7 @@ import { BlurView } from '@react-native-community/blur';
 import { Settings } from 'lucide-react-native';
 import { useDirectRooms } from '../hooks/room';
 import { getMatrixClient } from '../matrixClient';
-import { getRoomAvatarUrl, getLastRoomMessageAsync } from '../utils/room';
+import { getRoomAvatarUrl, getLastRoomMessageAsync, isMessageFromMe } from '../utils/room';
 import { useAuth } from '../context/AuthContext';
 import { RoomListItem, RoomItemData } from '../components/room/RoomListItem';
 import { LoadingScreen } from '../components/common/LoadingScreen';
@@ -82,12 +82,14 @@ export function DirectMessageListScreen({
     setLoading(false);
 
     // Second pass: fetch actual last messages (async)
+    const myUserId = mx.getUserId();
     const updatedItems = await Promise.all(
       items.map(async (item) => {
-        const { message, timestamp } = await getLastRoomMessageAsync(mx, item.room);
+        const { message, timestamp, senderId, senderName } = await getLastRoomMessageAsync(mx, item.room);
+        const isFromMe = senderId ? isMessageFromMe(senderId, myUserId, item.name, senderName || '') : false;
         return {
           ...item,
-          lastMessage: message,
+          lastMessage: message ? (isFromMe ? `You: ${message}` : message) : '',
           lastEventTime: timestamp || item.lastEventTime,
         };
       })
