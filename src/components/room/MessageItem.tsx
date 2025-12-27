@@ -4,7 +4,6 @@ import {
   View,
   Text,
   Image,
-  TouchableOpacity,
   Pressable,
   Animated,
   StyleProp,
@@ -12,9 +11,11 @@ import {
   ImageStyle,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { MessageItem, ReactionData } from './types';
+import { MessageItem } from './types';
 import { formatTimeWithDay } from '../../utils/timeFormatter';
-import { getInitials } from '../../utils/stringUtils';
+import { Avatar } from '../common/Avatar';
+import { ReactionsList } from './Reactions';
+import { styles } from './MessageItem.styles';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -27,113 +28,55 @@ export type MessageItemProps = {
   isFirstOfHour?: boolean;
 };
 
-// Sub-component for avatar display
-const Avatar = ({
-  avatarUrl,
-  initials,
-}: {
-  avatarUrl?: string;
-  initials: string;
-}) => {
-  if (avatarUrl) {
-    return <Image source={{ uri: avatarUrl }} style={styles.avatar} />;
-  }
-  return (
-    <View style={[styles.avatar, styles.avatarPlaceholder]}>
-      <Text style={styles.avatarText}>{initials}</Text>
-    </View>
+function areReactionsEqual(
+  prev: MessageItemProps['item']['reactions'],
+  next: MessageItemProps['item']['reactions'],
+): boolean {
+  if (prev === next) return true;
+
+  const a = prev ?? [];
+  const b = next ?? [];
+
+  if (a.length !== b.length) return false;
+
+  return a.every(
+    (r, i) =>
+      r.key === b[i]?.key &&
+      r.count === b[i]?.count &&
+      r.myReaction === b[i]?.myReaction,
   );
-};
+}
 
-// Sub-component for a single reaction button
-const ReactionButton = ({
-  reaction,
-  isOwn,
-  onPress,
-}: {
-  reaction: ReactionData;
-  isOwn: boolean;
-  onPress: () => void;
-}) => {
-  const buttonStyle = useMemo(() => {
-    const baseStyle = isOwn
-      ? styles.reactionButtonInsideOwn
-      : styles.reactionButtonInsideOther;
+function isMessageItemEqual(
+  prev: MessageItemProps,
+  next: MessageItemProps,
+): boolean {
+  const { item: prevItem, ...prevRest } = prev;
+  const { item: nextItem, ...nextRest } = next;
 
-    if (!reaction.myReaction) {
-      return baseStyle;
-    }
-
-    const activeStyle = isOwn
-      ? styles.reactionButtonActiveInsideOwn
-      : styles.reactionButtonActiveInsideOther;
-
-    return [baseStyle, activeStyle];
-  }, [isOwn, reaction.myReaction]);
-
-  const countStyle = useMemo(() => {
-    const baseStyle = isOwn
-      ? styles.reactionCountInsideOwn
-      : styles.reactionCountInsideOther;
-
-    if (!reaction.myReaction) {
-      return baseStyle;
-    }
-
-    const activeStyle = isOwn
-      ? styles.reactionCountActiveInsideOwn
-      : styles.reactionCountActiveInsideOther;
-
-    return [baseStyle, activeStyle];
-  }, [isOwn, reaction.myReaction]);
-
-  const emojiStyle =
-    reaction.count > 1
-      ? [styles.reactionEmojiInside, { marginRight: 2 }]
-      : styles.reactionEmojiInside;
-
-  return (
-    <TouchableOpacity style={buttonStyle} onPress={onPress} activeOpacity={0.6}>
-      <Text style={emojiStyle}>{reaction.key}</Text>
-      {reaction.count > 1 && <Text style={countStyle}>{reaction.count}</Text>}
-    </TouchableOpacity>
-  );
-};
-
-// Sub-component for reactions list
-const ReactionsList = ({
-  reactions,
-  isOwn,
-  onReactionPress,
-}: {
-  reactions: ReactionData[];
-  isOwn: boolean;
-  onReactionPress?: (key: string) => void;
-}) => {
-  if (!reactions || reactions.length === 0) {
-    return null;
+  // Check top-level props
+  if (
+    prevRest.showTimestamp !== nextRest.showTimestamp ||
+    prevRest.isFirstOfHour !== nextRest.isFirstOfHour
+  ) {
+    return false;
   }
 
-  const containerStyle = [
-    styles.reactionsContainer,
-    isOwn ? styles.reactionsContainerOwn : styles.reactionsContainerOther,
-  ];
+  // Check item scalar fields
+  if (
+    prevItem.eventId !== nextItem.eventId ||
+    prevItem.content !== nextItem.content ||
+    prevItem.timestamp !== nextItem.timestamp ||
+    prevItem.imageUrl !== nextItem.imageUrl ||
+    prevItem.avatarUrl !== nextItem.avatarUrl
+  ) {
+    return false;
+  }
 
-  return (
-    <View style={containerStyle} pointerEvents="box-none">
-      {reactions.map(reaction => (
-        <ReactionButton
-          key={reaction.key}
-          reaction={reaction}
-          isOwn={isOwn}
-          onPress={() => onReactionPress?.(reaction.key)}
-        />
-      ))}
-    </View>
-  );
-};
+  // Check reactions (reference equality first, then shallow compare)
+  return areReactionsEqual(prevItem.reactions, nextItem.reactions);
+}
 
-// Sub-component for message content (text or image)
 const MessageContent = ({
   item,
   imageStyle,
@@ -184,7 +127,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     useEffect(() => {
       if (isFirstOfHour) return;
 
-      // Use only Animated.timing with native driver (no LayoutAnimation to avoid global jank)
       Animated.timing(animatedOpacity, {
         toValue: showTimestamp ? 1 : 0,
         duration: 300,
@@ -193,7 +135,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     }, [showTimestamp, animatedOpacity, isFirstOfHour]);
 
     const timeString = formatTimeWithDay(item.timestamp);
-    const initials = getInitials(item.senderName);
 
     const imageStyle = useMemo<StyleProp<ImageStyle>>(() => {
       const { w, h } = item.imageInfo ?? {};
@@ -251,7 +192,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
         <View ref={messageRef} style={containerStyle}>
           {!item.isOwn && (
             <View style={styles.avatarContainer}>
-              <Avatar avatarUrl={item.avatarUrl} initials={initials} />
+              <Avatar avatarUrl={item.avatarUrl} name={item.senderName} />
             </View>
           )}
 
@@ -282,214 +223,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       </View>
     );
   },
-  (prevProps, nextProps) => {
-    // Fast path: check simple properties first
-    if (
-      prevProps.item.eventId !== nextProps.item.eventId ||
-      prevProps.item.content !== nextProps.item.content ||
-      prevProps.item.timestamp !== nextProps.item.timestamp ||
-      prevProps.item.imageUrl !== nextProps.item.imageUrl ||
-      prevProps.item.avatarUrl !== nextProps.item.avatarUrl ||
-      prevProps.showTimestamp !== nextProps.showTimestamp ||
-      prevProps.isFirstOfHour !== nextProps.isFirstOfHour
-    ) {
-      return false;
-    }
-
-    // Same reference means equal (fast path)
-    if (prevProps.item.reactions === nextProps.item.reactions) {
-      return true;
-    }
-
-    // Shallow comparison for reactions (avoid JSON.stringify)
-    const prevReactions = prevProps.item.reactions ?? [];
-    const nextReactions = nextProps.item.reactions ?? [];
-
-    if (prevReactions.length !== nextReactions.length) {
-      return false;
-    }
-
-    return prevReactions.every((r, i) => {
-      const next = nextReactions[i];
-      return (
-        r.key === next?.key &&
-        r.count === next?.count &&
-        r.myReaction === next?.myReaction
-      );
-    });
-  },
+  isMessageItemEqual,
 );
 
 MessageItemComponent.displayName = 'MessageItem';
-
-const styles = StyleSheet.create({
-  messageContainer: {
-    flexDirection: 'row',
-    marginBottom: 18,
-    alignItems: 'flex-end',
-  },
-  messageOwn: {
-    justifyContent: 'flex-end',
-  },
-  messageOther: {
-    justifyContent: 'flex-start',
-  },
-  avatarContainer: {
-    marginRight: 8,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#2A2A3E',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    color: '#9CA3AF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  messageBubbleWrapper: {
-    maxWidth: '75%',
-  },
-  messageBubble: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.55,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  messageBubbleContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  timestampRow: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
-  },
-  timestampText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.5)',
-    textAlign: 'center',
-  },
-  imageContainer: {
-    marginBottom: 4,
-  },
-  messageImage: {
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  messageImageWithRatio: {
-    maxWidth: 250,
-    maxHeight: 300,
-    width: '100%',
-  },
-  messageImageDefault: {
-    width: 250,
-    height: 200,
-  },
-  imageCaption: {
-    marginTop: 8,
-  },
-  messageBubbleOwn: {
-    backgroundColor: '#123660',
-  },
-  messageBubbleOther: {
-    backgroundColor: '#1A1D24',
-    shadowColor: 'rgba(12, 20, 40, 0.6)',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 18,
-    elevation: 4,
-  },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 22,
-    fontWeight: '500',
-  },
-  messageTextOwn: {
-    color: '#E4E7EB',
-  },
-  messageTextOther: {
-    color: '#F3F4F6',
-  },
-  reactionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    position: 'absolute',
-    bottom: -10,
-    gap: 2,
-    alignItems: 'center',
-  },
-  reactionsContainerOwn: {
-    left: 8,
-  },
-  reactionsContainerOther: {
-    left: 8,
-  },
-  reactionButtonInsideOwn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-    paddingVertical: 3,
-    borderRadius: 10,
-    backgroundColor: 'rgba(60, 60, 70, 0.95)',
-    minHeight: 20,
-    minWidth: 20,
-  },
-  reactionButtonInsideOther: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-    paddingVertical: 3,
-    borderRadius: 10,
-    backgroundColor: 'rgba(60, 60, 70, 0.95)',
-    minHeight: 20,
-    minWidth: 20,
-  },
-  reactionButtonActiveInsideOwn: {
-    backgroundColor: 'rgba(80, 80, 90, 0.95)',
-  },
-  reactionButtonActiveInsideOther: {
-    backgroundColor: 'rgba(80, 80, 90, 0.95)',
-  },
-  reactionEmojiInside: {
-    fontSize: 10,
-    marginRight: 0,
-    lineHeight: 14,
-  },
-  reactionEmojiInsideSingle: {
-    marginRight: 0,
-  },
-  reactionCountInsideOwn: {
-    fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '600',
-    marginLeft: 2,
-  },
-  reactionCountInsideOther: {
-    fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '600',
-    marginLeft: 2,
-  },
-  reactionCountActiveInsideOwn: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  reactionCountActiveInsideOther: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-});
