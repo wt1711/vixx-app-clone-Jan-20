@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image } from 'react-native';
 import { getInitials } from '../../utils/stringUtils';
+import { colors } from '../../theme';
 
 export type AvatarProps = {
   avatarUrl?: string;
@@ -40,15 +41,15 @@ export const Avatar = ({
 const styles = StyleSheet.create({
   avatar: {
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: colors.transparent.white30,
   },
   placeholder: {
-    backgroundColor: '#2A2A3E',
+    backgroundColor: colors.background.elevated,
     justifyContent: 'center',
     alignItems: 'center',
   },
   text: {
-    color: '#9CA3AF',
+    color: colors.text.secondary,
     fontWeight: 'bold',
   },
 });

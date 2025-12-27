@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import { ReactionData } from '../types';
+import { colors } from '../../../theme';
 
 type ReactionButtonProps = {
   reaction: ReactionData;
@@ -88,12 +89,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 3,
     borderRadius: 10,
-    backgroundColor: 'rgba(60, 60, 70, 0.95)',
+    backgroundColor: colors.transparent.reactionButton,
     minHeight: 20,
     minWidth: 20,
   },
   buttonActive: {
-    backgroundColor: 'rgba(80, 80, 90, 0.95)',
+    backgroundColor: colors.transparent.reactionButtonActive,
   },
   emoji: {
     fontSize: 10,
@@ -102,12 +103,12 @@ const styles = StyleSheet.create({
   },
   count: {
     fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: colors.transparent.white90,
     fontWeight: '600',
     marginLeft: 2,
   },
   countActive: {
-    color: '#FFFFFF',
+    color: colors.text.white,
     fontWeight: '700',
   },
 });

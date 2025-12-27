@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../../theme';
 
 export const styles = StyleSheet.create({
   messageContainer: {
@@ -21,18 +22,18 @@ export const styles = StyleSheet.create({
   messageBubble: {
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: colors.background.black,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.55,
     shadowRadius: 20,
     elevation: 6,
   },
   messageBubbleOwn: {
-    backgroundColor: '#123660',
+    backgroundColor: colors.message.own,
   },
   messageBubbleOther: {
-    backgroundColor: '#1A1D24',
-    shadowColor: 'rgba(12, 20, 40, 0.6)',
+    backgroundColor: colors.message.other,
+    shadowColor: colors.shadow.dark,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 18,
@@ -54,13 +55,13 @@ export const styles = StyleSheet.create({
   timestampText: {
     fontSize: 12,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: colors.transparent.white50,
     textAlign: 'center',
   },
   imageContainer: {},
   messageImage: {
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.transparent.white10,
   },
   messageImageWithRatio: {
     maxWidth: 250,
@@ -80,9 +81,9 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   messageTextOwn: {
-    color: '#E4E7EB',
+    color: colors.text.messageOwn,
   },
   messageTextOther: {
-    color: '#F3F4F6',
+    color: colors.text.messageOther,
   },
 });

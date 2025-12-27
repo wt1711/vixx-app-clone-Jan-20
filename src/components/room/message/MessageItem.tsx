@@ -16,6 +16,7 @@ import { formatTimeWithDay } from '../../../utils/timeFormatter';
 import { Avatar } from '../../common/Avatar';
 import { ReactionsList } from './Reactions';
 import { styles } from './MessageItem.styles';
+import { colors } from '../../../theme';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -158,7 +159,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
     ];
 
-    const blurFallbackColor = item.isOwn ? '#123660' : '#1A1D24';
+    const blurFallbackColor = item.isOwn ? colors.message.own : colors.message.other;
     const isImageMessage = item.msgtype === 'm.image' && item.imageUrl;
 
     const contentStyle: StyleProp<ViewStyle> = [

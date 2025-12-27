@@ -13,6 +13,7 @@ import LoginInstagramModal from '../components/LoginInstagramModal';
 import { InstagramIcon } from 'lucide-react-native';
 import { AuthService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
+import { colors } from '../theme';
 
 export default function Login() {
   const [open, setOpen] = useState(false);
@@ -63,10 +64,10 @@ export default function Login() {
             style={styles.button}
           >
             {isLoading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color={colors.text.primary} />
             ) : (
               <View style={styles.blurButton}>
-                <InstagramIcon color="#FFFFFF" size={24} />
+                <InstagramIcon color={colors.text.primary} size={24} />
                 <Text style={styles.buttonText}>Login with Instagram</Text>
               </View>
             )}
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     elevation: 8,
-    shadowColor: '#000',
+    shadowColor: colors.background.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -131,12 +132,12 @@ const styles = StyleSheet.create({
     gap: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: colors.transparent.white20,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.transparent.white10,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: colors.text.primary,
     fontSize: 15,
     fontWeight: '700',
   },
@@ -146,6 +147,6 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: '#000000',
+    backgroundColor: colors.background.black,
   },
 });

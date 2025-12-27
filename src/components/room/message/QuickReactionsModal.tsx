@@ -7,6 +7,7 @@ import {
   Modal,
   Dimensions,
 } from 'react-native';
+import { colors } from '../../../theme';
 
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
@@ -91,7 +92,7 @@ export function QuickReactionsModal({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.transparent.black50,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -102,13 +103,13 @@ const styles = StyleSheet.create({
   },
   quickReactionsPicker: {
     flexDirection: 'row',
-    backgroundColor: '#1A1D24',
+    backgroundColor: colors.message.other,
     borderRadius: 28,
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    shadowColor: '#FF6B35',
+    borderColor: colors.transparent.white15,
+    shadowColor: colors.accent.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,

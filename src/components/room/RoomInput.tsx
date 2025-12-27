@@ -12,6 +12,7 @@ import { Send } from 'lucide-react-native';
 import { useAIAssistant } from '../../context/AIAssistantContext';
 import { EventType, MsgType, Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
+import { colors } from '../../theme';
 
 type RoomInputProps = {
   room: Room;
@@ -59,12 +60,12 @@ export function RoomInput({ room }: RoomInputProps) {
           style={StyleSheet.absoluteFill}
           blurType="dark"
           blurAmount={80}
-          reducedTransparencyFallbackColor="#0A0A0F"
+          reducedTransparencyFallbackColor={colors.background.primary}
         />
         <TextInput
           style={styles.input}
           placeholder="flirt with her..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.text.placeholder}
           value={inputText}
           onChangeText={setInputText}
           multiline
@@ -81,7 +82,7 @@ export function RoomInput({ room }: RoomInputProps) {
           disabled={isGeneratingResponse}
         >
           {isGeneratingResponse ? (
-            <ActivityIndicator size="small" color="#A855F7" />
+            <ActivityIndicator size="small" color={colors.accent.purple} />
           ) : (
             <Image
               source={require('../../../assets/logo.png')}
@@ -98,9 +99,9 @@ export function RoomInput({ room }: RoomInputProps) {
           disabled={!inputText.trim() || sending}
         >
           {sending ? (
-            <ActivityIndicator size="small" color="#FF6B35" />
+            <ActivityIndicator size="small" color={colors.accent.primary} />
           ) : (
-            <Send color={inputText.trim() ? '#FF6B35' : '#6B7280'} size={24} />
+            <Send color={inputText.trim() ? colors.accent.primary : colors.text.tertiary} size={24} />
           )}
         </TouchableOpacity>
       </View>
@@ -119,19 +120,19 @@ const styles = StyleSheet.create({
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(5, 6, 10, 0.92)',
+    backgroundColor: colors.transparent.inputBar,
     borderRadius: 25,
     paddingHorizontal: 16,
     paddingVertical: 12,
     width: '95%',
     gap: 12,
-    shadowColor: '#000',
+    shadowColor: colors.background.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.6,
     shadowRadius: 30,
     elevation: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: colors.transparent.white15,
     overflow: 'hidden',
   },
   input: {
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingVertical: 0,
     fontSize: 16,
-    color: '#E5E7EB',
+    color: colors.text.input,
     borderWidth: 0,
     maxHeight: 100,
   },
@@ -149,7 +150,7 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(168, 85, 247, 0.15)',
+    backgroundColor: colors.transparent.purple15,
     borderRadius: 18,
   },
   aiButtonDisabled: {
@@ -169,6 +170,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.text.white,
   },
 });
