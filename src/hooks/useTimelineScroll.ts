@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { MessageItem } from '../components/room/types';
 
+// For inverted list: offset 0 = bottom, large offset = top
 const NEAR_BOTTOM_THRESHOLD = 350;
 const NEAR_TOP_THRESHOLD = 100;
 
@@ -30,12 +31,13 @@ function shouldAutoScroll(isNearBottom: boolean, isOwnMessage: boolean): boolean
 }
 
 /**
- * Hook that manages all timeline scroll behavior:
- * - Initial scroll to bottom
+ * Hook that manages all timeline scroll behavior for an INVERTED FlatList:
  * - Auto-scroll on new messages (if near bottom or own message)
  * - Scroll to specific event
- * - Load more messages on scroll to top
+ * - Load more messages on scroll to visual top (far from offset 0)
  * - Show/hide scroll-to-bottom button
+ *
+ * Note: For inverted FlatList, offset 0 = visual bottom, large offset = visual top
  */
 export function useTimelineScroll({
   messages,
@@ -46,37 +48,18 @@ export function useTimelineScroll({
   targetEventId,
 }: UseTimelineScrollOptions): UseTimelineScrollReturn {
   const flatListRef = useRef<FlatList>(null);
-  const isInitialLoad = useRef(true);
-  const initialScrollAttempts = useRef(0);
   const isNearBottom = useRef(true);
-  const prevLastMessageId = useRef<string | null>(null);
+  // Track first message (newest) for new message detection in inverted list
+  const prevFirstMessageId = useRef<string | null>(null);
   const showScrollButtonRef = useRef(false);
   const loadMoreDebounced = useRef(false);
+  const contentHeight = useRef(0);
+  const layoutHeight = useRef(0);
   const [showScrollButton, setShowScrollButton] = useState(false);
-
-  // Scroll to bottom after initial load (with retry for maintainVisibleContentPosition compatibility)
-  useEffect(() => {
-    if (!loading && isInitialLoad.current && messages.length > 0) {
-      const scrollToEnd = () => {
-        flatListRef.current?.scrollToEnd({ animated: false });
-        initialScrollAttempts.current++;
-
-        // Retry a few times to ensure scroll works with maintainVisibleContentPosition
-        if (initialScrollAttempts.current < 3) {
-          setTimeout(scrollToEnd, 100);
-        } else {
-          isInitialLoad.current = false;
-        }
-      };
-
-      // Start with a longer delay to let FlatList settle
-      setTimeout(scrollToEnd, 150);
-    }
-  }, [loading, messages.length]);
 
   // Scroll to specific event if targetEventId is provided
   useEffect(() => {
-    if (targetEventId && messages.length > 0) {
+    if (targetEventId && messages.length > 0 && !loading) {
       const targetIndex = messages.findIndex(m => m.eventId === targetEventId);
       if (targetIndex >= 0) {
         setTimeout(() => {
@@ -87,23 +70,25 @@ export function useTimelineScroll({
         }, 200);
       }
     }
-  }, [targetEventId, messages]);
+  }, [targetEventId, messages, loading]);
 
-  // Auto-scroll to bottom when new messages arrive (not when loading older messages)
+  // Auto-scroll to bottom when new messages arrive
+  // For inverted list, new messages appear at index 0 (first in array)
   useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    const lastMessageId = lastMessage?.eventId ?? null;
+    const firstMessage = messages[0];
+    const firstMessageId = firstMessage?.eventId ?? null;
 
-    // Only trigger if the last message changed (new message at the end)
+    // Only trigger if the first message changed (new message arrived)
     const hasNewMessage =
-      lastMessageId !== null && lastMessageId !== prevLastMessageId.current;
-    prevLastMessageId.current = lastMessageId;
+      firstMessageId !== null && firstMessageId !== prevFirstMessageId.current;
+    prevFirstMessageId.current = firstMessageId;
 
-    if (!hasNewMessage || isInitialLoad.current) return;
+    if (!hasNewMessage) return;
 
-    if (shouldAutoScroll(isNearBottom.current, lastMessage?.isOwn ?? false)) {
+    if (shouldAutoScroll(isNearBottom.current, firstMessage?.isOwn ?? false)) {
       setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
+        // For inverted list, bottom is at offset 0
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
       }, 100);
     }
   }, [messages]);
@@ -113,21 +98,26 @@ export function useTimelineScroll({
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
 
-      // Track if user is near bottom
-      const distanceFromBottom =
-        contentSize.height - layoutMeasurement.height - contentOffset.y;
-      isNearBottom.current = distanceFromBottom < NEAR_BOTTOM_THRESHOLD;
+      // Cache dimensions for load-more calculation
+      contentHeight.current = contentSize.height;
+      layoutHeight.current = layoutMeasurement.height;
 
-      // Only update state when visibility actually changes (avoid re-renders)
-      const shouldShowButton = distanceFromBottom > layoutMeasurement.height;
+      // For inverted list: offset 0 = bottom, so "near bottom" = small offset
+      isNearBottom.current = contentOffset.y < NEAR_BOTTOM_THRESHOLD;
+
+      // Show scroll button when far from bottom (large offset)
+      const shouldShowButton = contentOffset.y > layoutMeasurement.height;
       if (shouldShowButton !== showScrollButtonRef.current) {
         showScrollButtonRef.current = shouldShowButton;
         setShowScrollButton(shouldShowButton);
       }
 
-      // Load more when near top (with debounce to prevent rapid re-triggers)
+      // Load more when near visual top (for inverted list, this means large offset)
+      // Visual top = far end of scrollable content
+      const distanceFromTop =
+        contentSize.height - layoutMeasurement.height - contentOffset.y;
       if (
-        contentOffset.y < NEAR_TOP_THRESHOLD &&
+        distanceFromTop < NEAR_TOP_THRESHOLD &&
         canLoadMore &&
         !loadingMore &&
         !loadMoreDebounced.current
@@ -144,20 +134,18 @@ export function useTimelineScroll({
     [canLoadMore, loadingMore, loadMoreMessages],
   );
 
-  // Handle content size changes (backup for initial scroll)
+  // Handle content size changes (no-op for inverted list, kept for interface compatibility)
   const handleContentSizeChange = useCallback(
-    (_width: number, height: number) => {
-      // Only scroll on initial load when we have content
-      if (isInitialLoad.current && messages.length > 0 && height > 0) {
-        flatListRef.current?.scrollToEnd({ animated: false });
-      }
+    (_width: number, _height: number) => {
+      // No initial scroll needed - inverted list starts at bottom automatically
     },
-    [messages.length],
+    [],
   );
 
   // Scroll to bottom handler
   const scrollToBottom = useCallback(() => {
-    flatListRef.current?.scrollToEnd({ animated: true });
+    // For inverted list, bottom is at offset 0
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, []);
 
   return {

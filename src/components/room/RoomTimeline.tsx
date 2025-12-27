@@ -121,11 +121,14 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   );
 
   // ─── Hour Separators ────────────────────────────────────────────────────────
+  // Messages are in reverse order (newest first) for inverted FlatList,
+  // so iterate from end (oldest) to find first message of each hour
   const firstOfHourIds = React.useMemo(() => {
     const ids = new Set<string>();
     let lastHour: number | null = null;
 
-    for (const msg of messages) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
       const msgDate = new Date(msg.timestamp);
       const msgHour =
         msgDate.getFullYear() * 1000000 +
@@ -184,6 +187,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       <FlatList
         ref={flatListRef}
         data={messages}
+        inverted
         renderItem={renderMessage}
         keyExtractor={(item) => item.eventId}
         contentContainerStyle={styles.listContent}
@@ -192,10 +196,6 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         ListHeaderComponent={renderHeader}
         onContentSizeChange={handleContentSizeChange}
         onScrollToIndexFailed={onScrollToIndexFailed}
-        maintainVisibleContentPosition={{
-          minIndexForVisible: 1,
-          autoscrollToTopThreshold: 10,
-        }}
         removeClippedSubviews
         maxToRenderPerBatch={15}
         updateCellsBatchingPeriod={100}

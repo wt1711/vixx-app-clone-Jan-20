@@ -141,7 +141,8 @@ export function useRoomTimeline({
     const events = timeline.getEvents();
     const messageItems: MessageItem[] = events
       .map(mapEventToMessage)
-      .filter((item): item is MessageItem => item !== null);
+      .filter((item): item is MessageItem => item !== null)
+      .reverse(); // Newest first for inverted FlatList
     return { messageItems, timeline };
   }, [room, mapEventToMessage]);
 
