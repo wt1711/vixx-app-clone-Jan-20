@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import ImagePicker from 'react-native-image-picker';
-import { useMatrixClient } from './useMatrixClient';
+import { useMatrixClient } from '../useMatrixClient';
 import { EventType, MsgType } from 'matrix-js-sdk';
 
 export interface ImageInfo {

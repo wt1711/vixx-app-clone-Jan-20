@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Room, SyncState } from 'matrix-js-sdk';
-import { useMatrixClient } from './useMatrixClient';
+import { useMatrixClient } from '../useMatrixClient';
 
 export const useActiveRoom = (targetRoomId?: string) => {
   const { client } = useMatrixClient();

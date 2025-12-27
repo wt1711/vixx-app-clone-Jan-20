@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
-import { ReactionData } from './types';
+import { ReactionData } from '../types';
 
 type ReactionButtonProps = {
   reaction: ReactionData;

@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { Settings } from 'lucide-react-native';
-import { useDirectRooms } from '../hooks/useDirectRooms';
+import { useDirectRooms } from '../hooks/room';
 import { getMatrixClient } from '../matrixClient';
 import { getRoomAvatarUrl, getLastRoomMessageAsync } from '../utils/room';
 import { useAuth } from '../context/AuthContext';

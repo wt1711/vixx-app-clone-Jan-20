@@ -11,9 +11,9 @@ import {
   ImageStyle,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { MessageItem } from './types';
-import { formatTimeWithDay } from '../../utils/timeFormatter';
-import { Avatar } from '../common/Avatar';
+import { MessageItem } from '../types';
+import { formatTimeWithDay } from '../../../utils/timeFormatter';
+import { Avatar } from '../../common/Avatar';
 import { ReactionsList } from './Reactions';
 import { styles } from './MessageItem.styles';
 
