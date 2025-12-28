@@ -7,7 +7,7 @@ import {
   messageEventOnly,
   isMessageFromMe,
 } from '../../utils/room';
-import { MessageItem } from '../../components/room/types';
+import { MessageItem, ReplyToData } from '../../components/room/types';
 import { getReactionsForEvent } from '../../components/room/utils';
 
 const MIN_MESSAGES_FOR_INITIAL_LOAD = 10;
@@ -116,6 +116,55 @@ export function useRoomTimeline({
         mx.getUserId() || '',
       );
 
+      // Extract reply-to data if present
+      let replyTo: ReplyToData | undefined;
+      const relatesTo = content['m.relates_to'];
+      const inReplyToEventId = relatesTo?.['m.in_reply_to']?.event_id;
+
+      if (inReplyToEventId) {
+        // Try to find the event in all loaded timelines
+        const replyEvent = room.findEventById(inReplyToEventId);
+
+        if (replyEvent) {
+          const replyContent = replyEvent.getContent();
+          const replySender = replyEvent.getSender() || '';
+          const replySenderMember = room.getMember(replySender);
+          const replySenderName =
+            replySenderMember?.name ||
+            replySender.split('@')[0]?.split(':')[0] ||
+            'Unknown';
+
+          let replyContentText = '';
+          if (replyContent.msgtype === 'm.text') {
+            replyContentText = replyContent.body || '';
+          } else if (replyContent.msgtype === 'm.image') {
+            replyContentText = '📷 Image';
+          } else if (replyContent.msgtype === 'm.video') {
+            replyContentText = '🎥 Video';
+          } else if (replyContent.msgtype === 'm.file') {
+            replyContentText = '📎 File';
+          } else {
+            replyContentText = 'Message';
+          }
+
+          const replyIsOwn = isMessageFromMe(
+            replySender,
+            mx.getUserId(),
+            roomName,
+            replySenderName,
+          );
+
+          replyTo = {
+            eventId: inReplyToEventId,
+            sender: replySender,
+            senderName: replySenderName,
+            content: replyContentText,
+            msgtype: replyContent.msgtype,
+            isOwn: replyIsOwn,
+          };
+        }
+      }
+
       return {
         eventId: currentEventId,
         sender,
@@ -128,6 +177,7 @@ export function useRoomTimeline({
         imageUrl,
         imageInfo,
         reactions,
+        replyTo,
       };
     },
     [mx, room],

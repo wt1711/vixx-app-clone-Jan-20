@@ -86,4 +86,15 @@ export const styles = StyleSheet.create({
   messageTextOther: {
     color: colors.text.messageOther,
   },
+  replyPreviewContainer: {
+    marginBottom: 4,
+    maxWidth: '75%',
+  },
+  replyPreviewOwn: {
+    alignSelf: 'flex-end',
+  },
+  replyPreviewOther: {
+    alignSelf: 'flex-start',
+    marginLeft: 48, // Account for avatar space
+  },
 });

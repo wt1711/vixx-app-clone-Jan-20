@@ -15,6 +15,7 @@ import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
 import { Avatar } from '../../common/Avatar';
 import { ReactionsList } from './Reactions';
+import { ReplyPreview } from './ReplyPreview';
 import { styles } from './MessageItem.styles';
 import { colors } from '../../../theme';
 
@@ -25,6 +26,7 @@ export type MessageItemProps = {
     getPosition: () => { x: number; y: number; width: number; height: number },
   ) => void;
   onBubblePress?: () => void;
+  onReplyPreviewPress?: (eventId: string) => void;
   showTimestamp?: boolean;
   isFirstOfHour?: boolean;
 };
@@ -74,6 +76,11 @@ function isMessageItemEqual(
     return false;
   }
 
+  // Check replyTo
+  if (prevItem.replyTo?.eventId !== nextItem.replyTo?.eventId) {
+    return false;
+  }
+
   // Check reactions (reference equality first, then shallow compare)
   return areReactionsEqual(prevItem.reactions, nextItem.reactions);
 }
@@ -116,6 +123,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     onReactionPress,
     onLongPress,
     onBubblePress,
+    onReplyPreviewPress,
     showTimestamp,
     isFirstOfHour,
   }) => {
@@ -196,6 +204,26 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
           </Animated.View>
         )}
 
+        {/* Reply preview above message - sizes to its own content */}
+        {item.replyTo && (
+          <View
+            style={[
+              styles.replyPreviewContainer,
+              item.isOwn ? styles.replyPreviewOwn : styles.replyPreviewOther,
+            ]}
+          >
+            <ReplyPreview
+              replyTo={item.replyTo}
+              isOwn={item.isOwn}
+              onPress={
+                onReplyPreviewPress
+                  ? () => onReplyPreviewPress(item.replyTo!.eventId)
+                  : undefined
+              }
+            />
+          </View>
+        )}
+
         <View ref={messageRef} style={containerStyle}>
           {!item.isOwn && (
             <View style={styles.avatarContainer}>
@@ -203,29 +231,30 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
             </View>
           )}
 
-          <Pressable
-            onPress={onBubblePress}
-            onLongPress={handleLongPress}
-            delayLongPress={500}
-            style={styles.messageBubbleWrapper}
-          >
-            <View style={bubbleStyle}>
-              <BlurView
-                style={StyleSheet.absoluteFill}
-                blurType="dark"
-                blurAmount={80}
-                reducedTransparencyFallbackColor={blurFallbackColor}
-              />
-              <View style={contentStyle}>
-                <MessageContent item={item} imageStyle={imageStyle} />
+          <View style={styles.messageBubbleWrapper}>
+            <Pressable
+              onPress={onBubblePress}
+              onLongPress={handleLongPress}
+              delayLongPress={500}
+            >
+              <View style={bubbleStyle}>
+                <BlurView
+                  style={StyleSheet.absoluteFill}
+                  blurType="dark"
+                  blurAmount={80}
+                  reducedTransparencyFallbackColor={blurFallbackColor}
+                />
+                <View style={contentStyle}>
+                  <MessageContent item={item} imageStyle={imageStyle} />
+                </View>
               </View>
-            </View>
+            </Pressable>
             <ReactionsList
               reactions={item.reactions ?? []}
               isOwn={item.isOwn}
               onReactionPress={onReactionPress}
             />
-          </Pressable>
+          </View>
         </View>
       </View>
     );
