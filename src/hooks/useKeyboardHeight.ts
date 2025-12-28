@@ -29,7 +29,7 @@ export function useKeyboardHeight(options: UseKeyboardHeightOptions = {}) {
 
     const showSub = Keyboard.addListener(showEvent, e => {
       Animated.timing(keyboardHeight, {
-        toValue: e.endCoordinates.height,
+        toValue: e.endCoordinates.height + 2,
         duration,
         useNativeDriver: false,
       }).start();
