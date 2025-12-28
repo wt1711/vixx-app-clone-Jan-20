@@ -20,6 +20,12 @@ export const ReplyPreview = React.memo<ReplyPreviewProps>(
     // Determine the label based on who is replying to whom
     const label = isOwn ? 'You replied' : 'Replied to you';
 
+    // Bubble style matches the original message (based on replyTo.isOwn)
+    const bubbleStyle = [
+      styles.quotedBubble,
+      replyTo.isOwn ? styles.quotedBubbleOwn : styles.quotedBubbleOther,
+    ];
+
     return (
       <TouchableOpacity
         style={styles.container}
@@ -28,7 +34,7 @@ export const ReplyPreview = React.memo<ReplyPreviewProps>(
         disabled={!onPress}
       >
         <Text style={[styles.label, isOwn && styles.labelOwn]}>{label}</Text>
-        <View style={styles.quotedContainer}>
+        <View style={bubbleStyle}>
           {!isOwn && <View style={styles.bar} />}
           <Text style={styles.quotedText} numberOfLines={1}>
             {truncatedContent}
@@ -53,9 +59,19 @@ const styles = StyleSheet.create({
   labelOwn: {
     textAlign: 'right',
   },
-  quotedContainer: {
+  quotedBubble: {
     flexDirection: 'row',
     alignItems: 'stretch',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    opacity: 0.6,
+  },
+  quotedBubbleOwn: {
+    backgroundColor: colors.message.own,
+  },
+  quotedBubbleOther: {
+    backgroundColor: colors.message.other,
   },
   bar: {
     width: 3,

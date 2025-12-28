@@ -12,6 +12,7 @@ export type ReplyToData = {
   senderName: string;
   content: string;
   msgtype?: string;
+  isOwn: boolean;
 };
 
 export type MessageItem = {

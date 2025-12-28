@@ -147,12 +147,20 @@ export function useRoomTimeline({
             replyContentText = 'Message';
           }
 
+          const replyIsOwn = isMessageFromMe(
+            replySender,
+            mx.getUserId(),
+            roomName,
+            replySenderName,
+          );
+
           replyTo = {
             eventId: inReplyToEventId,
             sender: replySender,
             senderName: replySenderName,
             content: replyContentText,
             msgtype: replyContent.msgtype,
+            isOwn: replyIsOwn,
           };
         }
       }

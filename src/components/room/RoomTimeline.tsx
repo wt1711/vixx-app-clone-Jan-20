@@ -118,6 +118,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         senderName: item.senderName,
         content: item.content,
         msgtype: item.msgtype,
+        isOwn: item.isOwn,
       });
     },
     [setReplyingTo],
