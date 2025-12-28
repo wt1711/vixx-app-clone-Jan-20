@@ -8,6 +8,7 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { Send, ImageIcon } from 'lucide-react-native';
 // import { Camera } from 'lucide-react-native';
@@ -97,28 +98,25 @@ export function RoomInput({ room }: RoomInputProps) {
         />
         <TouchableOpacity
           style={[
-            styles.imageButton,
-            isUploading && styles.imageButtonDisabled,
+            styles.mediaButton,
+            isUploading && styles.mediaButtonDisabled,
           ]}
           onPress={pickAndSendImage}
           disabled={isUploading}
         >
-          <ImageIcon color={colors.text.secondary} size={24} />
+          <LinearGradient
+            colors={['#1A1D24', '#22262E', '#2A2F38']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.mediaButtonGradient}
+          >
+            {isUploading ? (
+              <ActivityIndicator size="small" color={colors.text.white} />
+            ) : (
+              <ImageIcon color={colors.text.white} size={22} />
+            )}
+          </LinearGradient>
         </TouchableOpacity>
-        {/* <TouchableOpacity
-          style={[
-            styles.imageButton,
-            isUploading && styles.imageButtonDisabled,
-          ]}
-          onPress={takeAndSendPhoto}
-          disabled={isUploading}
-        >
-          {isUploading ? (
-            <ActivityIndicator size="small" color={colors.text.secondary} />
-          ) : (
-            <Camera color={colors.text.secondary} size={24} />
-          )}
-        </TouchableOpacity> */}
         <TextInput
           style={styles.input}
           placeholder="flirt with her..."
@@ -166,21 +164,22 @@ export function RoomInput({ room }: RoomInputProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 0,
+    alignItems: 'center',
+    paddingHorizontal: 12,
     paddingTop: 8,
     paddingBottom: 0,
     backgroundColor: 'transparent',
-    alignItems: 'center',
   },
   inputBar: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.transparent.inputBar,
     borderRadius: 25,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: '95%',
-    gap: 12,
+    paddingLeft: 6,
+    paddingRight: 16,
+    paddingVertical: 6,
+    gap: 10,
     shadowColor: colors.background.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.6,
@@ -189,6 +188,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.transparent.white15,
     overflow: 'hidden',
+  },
+  mediaButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  mediaButtonGradient: {
+    width: 32,
+    height: 32,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mediaButtonDisabled: {
+    opacity: 0.5,
   },
   input: {
     flex: 1,
@@ -199,15 +214,6 @@ const styles = StyleSheet.create({
     color: colors.text.input,
     borderWidth: 0,
     maxHeight: 100,
-  },
-  imageButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageButtonDisabled: {
-    opacity: 0.5,
   },
   aiButton: {
     width: 32,
