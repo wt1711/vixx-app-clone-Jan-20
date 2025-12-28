@@ -260,9 +260,14 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
               <Reply size={20} color={colors.accent.primary} />
             </Animated.View>
 
-            {/* Reply preview above message bubble */}
+            {/* Reply preview above message - sizes to its own content */}
             {item.replyTo && (
-              <View style={[styles.replyPreviewContainer, item.isOwn ? styles.replyPreviewOwn : styles.replyPreviewOther]}>
+              <View
+                style={[
+                  styles.replyPreviewContainer,
+                  item.isOwn ? styles.replyPreviewOwn : styles.replyPreviewOther,
+                ]}
+              >
                 <ReplyPreview
                   replyTo={item.replyTo}
                   isOwn={item.isOwn}
@@ -282,29 +287,30 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
                 </View>
               )}
 
-              <Pressable
-                onPress={onBubblePress}
-                onLongPress={handleLongPress}
-                delayLongPress={500}
-                style={styles.messageBubbleWrapper}
-              >
-                <View style={bubbleStyle}>
-                  <BlurView
-                    style={StyleSheet.absoluteFill}
-                    blurType="dark"
-                    blurAmount={80}
-                    reducedTransparencyFallbackColor={blurFallbackColor}
-                  />
-                  <View style={contentStyle}>
-                    <MessageContent item={item} imageStyle={imageStyle} />
+              <View style={styles.messageBubbleWrapper}>
+                <Pressable
+                  onPress={onBubblePress}
+                  onLongPress={handleLongPress}
+                  delayLongPress={500}
+                >
+                  <View style={bubbleStyle}>
+                    <BlurView
+                      style={StyleSheet.absoluteFill}
+                      blurType="dark"
+                      blurAmount={80}
+                      reducedTransparencyFallbackColor={blurFallbackColor}
+                    />
+                    <View style={contentStyle}>
+                      <MessageContent item={item} imageStyle={imageStyle} />
+                    </View>
                   </View>
-                </View>
+                </Pressable>
                 <ReactionsList
                   reactions={item.reactions ?? []}
                   isOwn={item.isOwn}
                   onReactionPress={onReactionPress}
                 />
-              </Pressable>
+              </View>
             </View>
           </Animated.View>
         </GestureDetector>
