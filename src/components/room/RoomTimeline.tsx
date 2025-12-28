@@ -13,6 +13,7 @@ import { MessageItem, RoomTimelineProps } from './types';
 import { MessageItemComponent, QuickReactionsModal, ModalPosition } from './message';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { useRoomTimeline, useTimelineScroll } from '../../hooks/room';
+import { useReply } from '../../context/ReplyContext';
 import { colors } from '../../theme';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
@@ -106,6 +107,22 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     setSelectedMessageId(prev => (prev === msgEventId ? null : msgEventId));
   }, []);
 
+  // ─── Reply ─────────────────────────────────────────────────────────────────
+  const { setReplyingTo } = useReply();
+
+  const handleReply = useCallback(
+    (item: MessageItem) => {
+      setReplyingTo({
+        eventId: item.eventId,
+        sender: item.sender,
+        senderName: item.senderName,
+        content: item.content,
+        msgtype: item.msgtype,
+      });
+    },
+    [setReplyingTo],
+  );
+
   // Handle scroll-to-index failures (fallback for variable height items)
   const onScrollToIndexFailed = useCallback(
     (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
@@ -164,11 +181,12 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
           openQuickReactions(item.eventId, position);
         }}
         onBubblePress={() => handleBubblePress(item.eventId)}
+        onReply={() => handleReply(item)}
         showTimestamp={selectedMessageId === item.eventId}
         isFirstOfHour={firstOfHourIds.has(item.eventId)}
       />
     ),
-    [toggleReaction, openQuickReactions, handleBubblePress, selectedMessageId, firstOfHourIds],
+    [toggleReaction, openQuickReactions, handleBubblePress, handleReply, selectedMessageId, firstOfHourIds],
   );
 
   // ─── Loading State ──────────────────────────────────────────────────────────

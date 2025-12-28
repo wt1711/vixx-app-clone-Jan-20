@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
+  Text,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
@@ -10,9 +11,10 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { Send, ImageIcon } from 'lucide-react-native';
+import { Send, ImageIcon, X } from 'lucide-react-native';
 // import { Camera } from 'lucide-react-native';
 import { useAIAssistant } from '../../context/AIAssistantContext';
+import { useReply } from '../../context/ReplyContext';
 import { EventType, MsgType, Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
 import { useImageSender } from '../../hooks/message/useImageSender';
@@ -36,6 +38,7 @@ export function RoomInput({ room }: RoomInputProps) {
     inputValue,
     setInputValue,
   } = useAIAssistant();
+  const { replyingTo, clearReply } = useReply();
 
   // Rotation animation for vixx logo
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -74,10 +77,28 @@ export function RoomInput({ room }: RoomInputProps) {
     setSending(true);
 
     try {
-      await mx.sendEvent(room.roomId, EventType.RoomMessage, {
-        msgtype: MsgType.Text,
-        body: text,
-      });
+      // Build the message content with optional reply relation
+      const content = replyingTo
+        ? {
+            msgtype: MsgType.Text,
+            body: text,
+            'm.relates_to': {
+              'm.in_reply_to': {
+                event_id: replyingTo.eventId,
+              },
+            },
+          }
+        : {
+            msgtype: MsgType.Text,
+            body: text,
+          };
+
+      if (replyingTo) {
+        clearReply();
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await mx.sendEvent(room.roomId, EventType.RoomMessage, content as any);
     } catch (error) {
       console.error('Failed to send message:', error);
       // Restore text on error
@@ -85,10 +106,29 @@ export function RoomInput({ room }: RoomInputProps) {
     } finally {
       setSending(false);
     }
-  }, [inputText, mx, room, sending, setInputText]);
+  }, [inputText, mx, room, sending, setInputText, replyingTo, clearReply]);
 
   return (
     <View style={styles.container}>
+      {/* Reply Bar */}
+      {replyingTo && (
+        <View style={styles.replyBar}>
+          <View style={styles.replyBarContent}>
+            <View style={styles.replyBarIndicator} />
+            <View style={styles.replyBarTextContainer}>
+              <Text style={styles.replyBarLabel}>
+                Replying to {replyingTo.senderName}
+              </Text>
+              <Text style={styles.replyBarMessage} numberOfLines={1}>
+                {replyingTo.content}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity onPress={clearReply} style={styles.replyBarClose}>
+            <X color={colors.text.secondary} size={18} />
+          </TouchableOpacity>
+        </View>
+      )}
       <View style={styles.inputBar}>
         <BlurView
           style={StyleSheet.absoluteFill}
@@ -238,5 +278,46 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     backgroundColor: colors.text.white,
+  },
+  replyBar: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.transparent.inputBar,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.transparent.white15,
+  },
+  replyBarContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  replyBarIndicator: {
+    width: 3,
+    height: 32,
+    backgroundColor: colors.accent.primary,
+    borderRadius: 2,
+    marginRight: 10,
+  },
+  replyBarTextContainer: {
+    flex: 1,
+  },
+  replyBarLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.accent.primary,
+    marginBottom: 2,
+  },
+  replyBarMessage: {
+    fontSize: 13,
+    color: colors.text.secondary,
+  },
+  replyBarClose: {
+    padding: 4,
+    marginLeft: 8,
   },
 });

@@ -86,4 +86,22 @@ export const styles = StyleSheet.create({
   messageTextOther: {
     color: colors.text.messageOther,
   },
+  replyIconContainer: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.transparent.white10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  replyIconOwn: {
+    right: '100%',
+    marginRight: 8,
+  },
+  replyIconOther: {
+    left: -40,
+  },
 });

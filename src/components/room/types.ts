@@ -6,6 +6,14 @@ export type ReactionData = {
   myReaction: boolean;
 };
 
+export type ReplyToData = {
+  eventId: string;
+  sender: string;
+  senderName: string;
+  content: string;
+  msgtype?: string;
+};
+
 export type MessageItem = {
   eventId: string;
   sender: string;
@@ -22,6 +30,7 @@ export type MessageItem = {
     mimetype?: string;
   };
   reactions?: ReactionData[];
+  replyTo?: ReplyToData;
 };
 
 export type RoomTimelineProps = {

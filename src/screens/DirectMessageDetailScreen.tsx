@@ -22,6 +22,7 @@ import { RoomInput } from '../components/room/RoomInput';
 import { RoomViewHeader } from '../components/room/RoomViewHeader';
 import { AIAssistantModal } from '../components/ai/AIAssistantModal';
 import { AIAssistantProvider } from '../context/AIAssistantContext';
+import { ReplyProvider } from '../context/ReplyContext';
 import { colors, gradients } from '../theme';
 
 type DirectMessageDetailScreenProps = {
@@ -153,35 +154,37 @@ export function DirectMessageDetailScreen({
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}
           />
-          <AIAssistantProvider room={room} isMobile={true}>
-            <RoomViewHeader
-              room={room}
-              onBack={onBack}
-              onAIAssistantClick={handleAIAssistantClick}
-            />
+          <ReplyProvider>
+            <AIAssistantProvider room={room} isMobile={true}>
+              <RoomViewHeader
+                room={room}
+                onBack={onBack}
+                onAIAssistantClick={handleAIAssistantClick}
+              />
 
-            <View style={styles.keyboardView}>
-              <View style={styles.timelineContainer}>
-                <RoomTimeline room={room} eventId={eventId} />
+              <View style={styles.keyboardView}>
+                <View style={styles.timelineContainer}>
+                  <RoomTimeline room={room} eventId={eventId} />
+                </View>
+
+                <Animated.View
+                  style={[
+                    styles.inputContainer,
+                    { marginBottom: keyboardHeight },
+                  ]}
+                >
+                  <RoomInput room={room} />
+                </Animated.View>
               </View>
 
-              <Animated.View
-                style={[
-                  styles.inputContainer,
-                  { marginBottom: keyboardHeight },
-                ]}
-              >
-                <RoomInput room={room} />
-              </Animated.View>
-            </View>
-
-            {/* AI Assistant Modal */}
-            <AIAssistantModal
-              visible={showAIAssistant}
-              onClose={() => setShowAIAssistant(false)}
-              room={room}
-            />
-          </AIAssistantProvider>
+              {/* AI Assistant Modal */}
+              <AIAssistantModal
+                visible={showAIAssistant}
+                onClose={() => setShowAIAssistant(false)}
+                room={room}
+              />
+            </AIAssistantProvider>
+          </ReplyProvider>
         </SafeAreaView>
       </GestureDetector>
     </GestureHandlerRootView>
