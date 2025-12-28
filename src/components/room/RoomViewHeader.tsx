@@ -53,12 +53,12 @@ export function RoomViewHeader({
         </Text>
       </View>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={onAIAssistantClick}
         style={styles.aiButton}
       >
         <User color={colors.text.primary} size={24} />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 }
