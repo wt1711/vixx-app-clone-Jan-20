@@ -1,17 +1,21 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Image,
+  Animated,
+  Easing,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { Send } from 'lucide-react-native';
+import { Send, ImageIcon } from 'lucide-react-native';
+// import { Camera } from 'lucide-react-native';
 import { useAIAssistant } from '../../context/AIAssistantContext';
 import { EventType, MsgType, Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
+import { useImageSender } from '../../hooks/message/useImageSender';
 import { colors } from '../../theme';
 
 type RoomInputProps = {
@@ -22,11 +26,41 @@ export function RoomInput({ room }: RoomInputProps) {
   const [sending, setSending] = useState(false);
   const mx = getMatrixClient();
   const {
+    pickAndSendImage,
+    isUploading,
+    // takeAndSendPhoto
+  } = useImageSender(room.roomId);
+  const {
     generateInitialResponse,
     isGeneratingResponse,
     inputValue,
     setInputValue,
   } = useAIAssistant();
+
+  // Rotation animation for vixx logo
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isGeneratingResponse) {
+      const animation = Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      );
+      animation.start();
+      return () => animation.stop();
+    } else {
+      rotateAnim.setValue(0);
+    }
+  }, [isGeneratingResponse, rotateAnim]);
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   // Use context's inputValue as the text input
   const inputText = inputValue;
@@ -62,6 +96,27 @@ export function RoomInput({ room }: RoomInputProps) {
           blurAmount={80}
           reducedTransparencyFallbackColor={colors.background.primary}
         />
+        <TouchableOpacity
+          style={[
+            styles.mediaButton,
+            isUploading && styles.mediaButtonDisabled,
+          ]}
+          onPress={pickAndSendImage}
+          disabled={isUploading}
+        >
+          <LinearGradient
+            colors={['#1A1D24', '#22262E', '#2A2F38']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.mediaButtonGradient}
+          >
+            {isUploading ? (
+              <ActivityIndicator size="small" color={colors.text.white} />
+            ) : (
+              <ImageIcon color={colors.text.white} size={22} />
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
         <TextInput
           style={styles.input}
           placeholder="flirt with her..."
@@ -71,24 +126,17 @@ export function RoomInput({ room }: RoomInputProps) {
           multiline
           maxLength={5000}
           onSubmitEditing={handleSend}
-          editable={!sending}
+          editable={!sending && !isUploading}
         />
         <TouchableOpacity
-          style={[
-            styles.aiButton,
-            isGeneratingResponse && styles.aiButtonDisabled,
-          ]}
+          style={styles.aiButton}
           onPress={generateInitialResponse}
           disabled={isGeneratingResponse}
         >
-          {isGeneratingResponse ? (
-            <ActivityIndicator size="small" color={colors.accent.purple} />
-          ) : (
-            <Image
-              source={require('../../../assets/logo.png')}
-              style={styles.vixxLogo}
-            />
-          )}
+          <Animated.Image
+            source={require('../../../assets/logo.png')}
+            style={[styles.vixxLogo, { transform: [{ rotate: spin }] }]}
+          />
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -101,7 +149,12 @@ export function RoomInput({ room }: RoomInputProps) {
           {sending ? (
             <ActivityIndicator size="small" color={colors.accent.primary} />
           ) : (
-            <Send color={inputText.trim() ? colors.accent.primary : colors.text.tertiary} size={24} />
+            <Send
+              color={
+                inputText.trim() ? colors.accent.primary : colors.text.tertiary
+              }
+              size={24}
+            />
           )}
         </TouchableOpacity>
       </View>
@@ -111,21 +164,22 @@ export function RoomInput({ room }: RoomInputProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 0,
+    alignItems: 'center',
+    paddingHorizontal: 12,
     paddingTop: 8,
     paddingBottom: 0,
     backgroundColor: 'transparent',
-    alignItems: 'center',
   },
   inputBar: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.transparent.inputBar,
     borderRadius: 25,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: '95%',
-    gap: 12,
+    paddingLeft: 6,
+    paddingRight: 16,
+    paddingVertical: 6,
+    gap: 10,
     shadowColor: colors.background.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.6,
@@ -134,6 +188,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.transparent.white15,
     overflow: 'hidden',
+  },
+  mediaButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  mediaButtonGradient: {
+    width: 32,
+    height: 32,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mediaButtonDisabled: {
+    opacity: 0.5,
   },
   input: {
     flex: 1,
@@ -146,15 +216,12 @@ const styles = StyleSheet.create({
     maxHeight: 100,
   },
   aiButton: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.transparent.purple15,
-    borderRadius: 18,
-  },
-  aiButtonDisabled: {
-    opacity: 0.5,
+    backgroundColor: colors.transparent.white50,
+    borderRadius: 16,
   },
   sendButton: {
     width: 24,
@@ -167,9 +234,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   vixxLogo: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: colors.text.white,
   },
 });
