@@ -117,7 +117,8 @@ export function RoomInput({ room }: RoomInputProps) {
             <View style={styles.replyBarIndicator} />
             <View style={styles.replyBarTextContainer}>
               <Text style={styles.replyBarLabel}>
-                Replying to {replyingTo.senderName}
+                Replying to
+                {/* {replyingTo.senderName} */}
               </Text>
               <Text style={styles.replyBarMessage} numberOfLines={1}>
                 {replyingTo.content}
