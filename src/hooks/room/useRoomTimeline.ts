@@ -122,9 +122,8 @@ export function useRoomTimeline({
       const inReplyToEventId = relatesTo?.['m.in_reply_to']?.event_id;
 
       if (inReplyToEventId) {
-        const timeline = room.getLiveTimeline();
-        const events = timeline.getEvents();
-        const replyEvent = events.find(e => e.getId() === inReplyToEventId);
+        // Try to find the event in all loaded timelines
+        const replyEvent = room.findEventById(inReplyToEventId);
 
         if (replyEvent) {
           const replyContent = replyEvent.getContent();
