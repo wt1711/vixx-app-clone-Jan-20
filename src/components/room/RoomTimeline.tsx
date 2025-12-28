@@ -123,6 +123,27 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     [setReplyingTo],
   );
 
+  // ─── Scroll to Replied Message ─────────────────────────────────────────────
+  const scrollToMessage = useCallback(
+    (targetEventId: string) => {
+      const index = messages.findIndex(msg => msg.eventId === targetEventId);
+      if (index !== -1 && flatListRef.current) {
+        flatListRef.current.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.5, // Center the message in view
+        });
+        // Briefly highlight the message by selecting it
+        setSelectedMessageId(targetEventId);
+        // Clear highlight after a short delay
+        setTimeout(() => {
+          setSelectedMessageId(prev => prev === targetEventId ? null : prev);
+        }, 2000);
+      }
+    },
+    [messages, flatListRef],
+  );
+
   // Handle scroll-to-index failures (fallback for variable height items)
   const onScrollToIndexFailed = useCallback(
     (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
@@ -182,11 +203,12 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         }}
         onBubblePress={() => handleBubblePress(item.eventId)}
         onReply={() => handleReply(item)}
+        onReplyPreviewPress={scrollToMessage}
         showTimestamp={selectedMessageId === item.eventId}
         isFirstOfHour={firstOfHourIds.has(item.eventId)}
       />
     ),
-    [toggleReaction, openQuickReactions, handleBubblePress, handleReply, selectedMessageId, firstOfHourIds],
+    [toggleReaction, openQuickReactions, handleBubblePress, handleReply, scrollToMessage, selectedMessageId, firstOfHourIds],
   );
 
   // ─── Loading State ──────────────────────────────────────────────────────────

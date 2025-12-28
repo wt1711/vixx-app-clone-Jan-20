@@ -29,6 +29,7 @@ export type MessageItemProps = {
   ) => void;
   onBubblePress?: () => void;
   onReply?: () => void;
+  onReplyPreviewPress?: (eventId: string) => void;
   showTimestamp?: boolean;
   isFirstOfHour?: boolean;
 };
@@ -128,6 +129,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     onLongPress,
     onBubblePress,
     onReply,
+    onReplyPreviewPress,
     showTimestamp,
     isFirstOfHour,
   }) => {
@@ -258,6 +260,21 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
               <Reply size={20} color={colors.accent.primary} />
             </Animated.View>
 
+            {/* Reply preview above message bubble */}
+            {item.replyTo && (
+              <View style={[styles.replyPreviewContainer, item.isOwn ? styles.replyPreviewOwn : styles.replyPreviewOther]}>
+                <ReplyPreview
+                  replyTo={item.replyTo}
+                  isOwn={item.isOwn}
+                  onPress={
+                    onReplyPreviewPress
+                      ? () => onReplyPreviewPress(item.replyTo!.eventId)
+                      : undefined
+                  }
+                />
+              </View>
+            )}
+
             <View ref={messageRef} style={containerStyle}>
               {!item.isOwn && (
                 <View style={styles.avatarContainer}>
@@ -279,9 +296,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
                     reducedTransparencyFallbackColor={blurFallbackColor}
                   />
                   <View style={contentStyle}>
-                    {item.replyTo && (
-                      <ReplyPreview replyTo={item.replyTo} isOwn={item.isOwn} />
-                    )}
                     <MessageContent item={item} imageStyle={imageStyle} />
                   </View>
                 </View>
