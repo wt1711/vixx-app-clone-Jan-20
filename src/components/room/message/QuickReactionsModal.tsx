@@ -1,15 +1,21 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   Modal,
+  Image,
   Dimensions,
 } from 'react-native';
+import { BlurView } from '@react-native-community/blur';
+import { Reply } from 'lucide-react-native';
+import { MessageItem } from '../types';
+import { ReplyPreview } from './ReplyPreview';
 import { colors } from '../../../theme';
 
-const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+const QUICK_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
 export type ModalPosition = {
   x: number;
@@ -20,24 +26,53 @@ export type ModalPosition = {
 
 export type QuickReactionsModalProps = {
   visible: boolean;
-  targetEventId: string | null;
+  messageItem: MessageItem | null;
   position: ModalPosition | null;
   onClose: () => void;
   onSelectEmoji: (emoji: string, eventId: string) => void;
+  onReply?: () => void;
 };
 
 export function QuickReactionsModal({
   visible,
-  targetEventId,
+  messageItem,
   position,
   onClose,
   onSelectEmoji,
+  onReply,
 }: QuickReactionsModalProps) {
-  if (!targetEventId) return null;
+  if (!messageItem) return null;
 
   const handleEmojiPress = (emoji: string) => {
-    onSelectEmoji(emoji, targetEventId);
+    onSelectEmoji(emoji, messageItem.eventId);
   };
+
+  const handleReplyPress = () => {
+    if (onReply) {
+      onReply();
+    }
+  };
+
+  const isImageMessage =
+    messageItem.msgtype === 'm.image' && messageItem.imageUrl;
+  const blurFallbackColor = messageItem.isOwn
+    ? colors.message.own
+    : colors.message.other;
+
+  // Calculate vertical position based on message position
+  // Reactions row is ~64px, gap is 8px, so we position above the message
+  const REACTIONS_HEIGHT = 64;
+  const GAP = 8;
+  const MIN_TOP = 60; // Minimum distance from top of screen
+  const screenHeight = Dimensions.get('window').height;
+
+  const contentTop = useMemo(() => {
+    if (!position) return MIN_TOP;
+    // Position so the message aligns with original, reactions above it
+    const desiredTop = position.y - REACTIONS_HEIGHT - GAP;
+    // Clamp to keep within screen bounds
+    return Math.max(MIN_TOP, Math.min(desiredTop, screenHeight - 300));
+  }, [position, screenHeight]);
 
   return (
     <Modal
@@ -46,31 +81,31 @@ export function QuickReactionsModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={onClose}
-      >
-        <View style={styles.quickReactionsModalContainer} pointerEvents="box-none">
+      <View style={styles.modalContainer}>
+        {/* Background overlay - tappable to close */}
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={StyleSheet.absoluteFill}>
+            <BlurView
+              style={StyleSheet.absoluteFill}
+              blurType="dark"
+              blurAmount={20}
+              reducedTransparencyFallbackColor={colors.background.black}
+            />
+            <View style={styles.overlayTint} />
+          </View>
+        </TouchableWithoutFeedback>
+
+        {/* Content - not tappable to close */}
+        <View
+          style={[styles.modalContent, { marginTop: contentTop }]}
+          pointerEvents="box-none"
+        >
+          {/* Reactions Section */}
           <View
             style={[
-              styles.quickReactionsPicker,
-              // eslint-disable-next-line react-native/no-inline-styles
-              position
-                ? {
-                    position: 'absolute',
-                    top: Math.max(
-                      10,
-                      Math.min(
-                        position.y - 60,
-                        Dimensions.get('window').height - 100,
-                      ),
-                    ),
-                    left: 10,
-                  }
-                : styles.quickReactionsPickerCentered,
+              styles.reactionsSection,
+              messageItem.isOwn && styles.alignEnd,
             ]}
-            pointerEvents="auto"
           >
             {QUICK_EMOJIS.map(emoji => (
               <TouchableOpacity
@@ -83,41 +118,128 @@ export function QuickReactionsModal({
               </TouchableOpacity>
             ))}
           </View>
+
+          {/* Message Section - mirrors original MessageItem layout */}
+          <View>
+            {/* Reply preview above message */}
+            {messageItem.replyTo && (
+              <View
+                style={[
+                  styles.replyPreviewContainer,
+                  messageItem.isOwn
+                    ? styles.replyPreviewOwn
+                    : styles.replyPreviewOther,
+                ]}
+              >
+                <ReplyPreview
+                  replyTo={messageItem.replyTo}
+                  isOwn={messageItem.isOwn}
+                />
+              </View>
+            )}
+
+            {/* Message container */}
+            <View
+              style={[
+                styles.messageContainer,
+                messageItem.isOwn ? styles.messageOwn : styles.messageOther,
+              ]}
+            >
+              <View style={styles.messageBubbleWrapper}>
+                <View
+                  style={[
+                    styles.messageBubble,
+                    messageItem.isOwn
+                      ? styles.messageBubbleOwn
+                      : styles.messageBubbleOther,
+                  ]}
+                >
+                  <BlurView
+                    style={StyleSheet.absoluteFill}
+                    blurType="dark"
+                    blurAmount={80}
+                    reducedTransparencyFallbackColor={blurFallbackColor}
+                  />
+                  <View style={styles.messageBubbleContent}>
+                    {isImageMessage ? (
+                      <Image
+                        source={{ uri: messageItem.imageUrl }}
+                        style={styles.messageImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Text
+                        style={[
+                          styles.messageText,
+                          messageItem.isOwn
+                            ? styles.messageTextOwn
+                            : styles.messageTextOther,
+                        ]}
+                      >
+                        {messageItem.content}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Actions Menu */}
+          <View
+            style={[
+              styles.actionsSection,
+              messageItem.isOwn && styles.alignEnd,
+            ]}
+          >
+            <Text style={styles.actionsTimestamp}>
+              {new Date(messageItem.timestamp).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </Text>
+            <TouchableOpacity
+              style={styles.actionItem}
+              onPress={handleReplyPress}
+              activeOpacity={0.7}
+            >
+              <Reply size={22} color={colors.text.primary} />
+              <Text style={styles.actionLabel}>Reply</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  modalContainer: {
     flex: 1,
-    backgroundColor: colors.transparent.black50,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  quickReactionsModalContainer: {
-    flex: 1,
-    position: 'relative',
+  overlayTint: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.transparent.black30,
+  },
+  modalContent: {
     width: '100%',
+    paddingHorizontal: 16,
+    gap: 8,
   },
-  quickReactionsPicker: {
+  alignEnd: {
+    alignSelf: 'flex-end',
+  },
+  reactionsSection: {
     flexDirection: 'row',
     backgroundColor: colors.message.other,
     borderRadius: 28,
     paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: colors.transparent.white15,
-    shadowColor: colors.accent.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 10,
-  },
-  quickReactionsPickerCentered: {
-    alignSelf: 'center',
-    marginTop: '50%',
+    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
   },
   quickReactionButton: {
     width: 44,
@@ -125,10 +247,96 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 4,
     backgroundColor: 'transparent',
   },
   quickReactionEmoji: {
-    fontSize: 24,
+    fontSize: 28,
+  },
+  // Message styles - mirroring MessageItem.styles.ts
+  replyPreviewContainer: {
+    marginBottom: 4,
+    maxWidth: '75%',
+  },
+  replyPreviewOwn: {
+    alignSelf: 'flex-end',
+  },
+  replyPreviewOther: {
+    alignSelf: 'flex-start',
+  },
+  messageContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  messageOwn: {
+    justifyContent: 'flex-end',
+  },
+  messageOther: {
+    justifyContent: 'flex-start',
+  },
+  messageBubbleWrapper: {
+    maxWidth: '75%',
+  },
+  messageBubble: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: colors.background.black,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    elevation: 6,
+  },
+  messageBubbleOwn: {
+    backgroundColor: colors.message.own,
+  },
+  messageBubbleOther: {
+    backgroundColor: colors.message.other,
+    shadowColor: colors.shadow.dark,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 18,
+    elevation: 4,
+  },
+  messageBubbleContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  messageText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  messageTextOwn: {
+    color: colors.text.messageOwn,
+  },
+  messageTextOther: {
+    color: colors.text.messageOther,
+  },
+  messageImage: {
+    width: 200,
+    height: 150,
+    borderRadius: 16,
+  },
+  // Actions styles
+  actionsSection: {
+    backgroundColor: colors.message.other,
+    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+  },
+  actionsTimestamp: {
+    fontSize: 13,
+    color: colors.text.secondary,
+    marginBottom: 8,
+  },
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    gap: 16,
+  },
+  actionLabel: {
+    fontSize: 17,
+    color: colors.text.primary,
   },
 });

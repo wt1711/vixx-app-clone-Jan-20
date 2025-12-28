@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,8 +10,6 @@ import {
   ViewStyle,
   ImageStyle,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Reply } from 'lucide-react-native';
 import { BlurView } from '@react-native-community/blur';
 import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
@@ -28,7 +26,6 @@ export type MessageItemProps = {
     getPosition: () => { x: number; y: number; width: number; height: number },
   ) => void;
   onBubblePress?: () => void;
-  onReply?: () => void;
   onReplyPreviewPress?: (eventId: string) => void;
   showTimestamp?: boolean;
   isFirstOfHour?: boolean;
@@ -120,15 +117,12 @@ const MessageContent = ({
   return <Text style={textStyle}>{item.content}</Text>;
 };
 
-const SWIPE_THRESHOLD = 60;
-
 export const MessageItemComponent = React.memo<MessageItemProps>(
   ({
     item,
     onReactionPress,
     onLongPress,
     onBubblePress,
-    onReply,
     onReplyPreviewPress,
     showTimestamp,
     isFirstOfHour,
@@ -138,8 +132,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     const animatedOpacity = useRef(
       new Animated.Value(shouldShowTimestamp ? 1 : 0),
     ).current;
-    const translateX = useRef(new Animated.Value(0)).current;
-    const replyIconOpacity = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
       if (isFirstOfHour) return;
@@ -204,41 +196,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       });
     };
 
-    // Swipe gesture for reply
-    const swipeGesture = Gesture.Pan()
-      .activeOffsetX(20)
-      .failOffsetY([-20, 20])
-      .onUpdate((event) => {
-        // Only allow right swipe, cap at threshold
-        const clampedX = Math.min(Math.max(event.translationX, 0), SWIPE_THRESHOLD);
-        translateX.setValue(clampedX);
-
-        // Show reply icon as user swipes
-        const opacity = Math.min(clampedX / SWIPE_THRESHOLD, 1);
-        replyIconOpacity.setValue(opacity);
-      })
-      .onEnd((event) => {
-        if (event.translationX >= SWIPE_THRESHOLD && onReply) {
-          onReply();
-        }
-
-        // Animate back to original position
-        Animated.parallel([
-          Animated.spring(translateX, {
-            toValue: 0,
-            useNativeDriver: true,
-            tension: 100,
-            friction: 10,
-          }),
-          Animated.timing(replyIconOpacity, {
-            toValue: 0,
-            duration: 150,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      })
-      .runOnJS(true);
-
     return (
       <View>
         {shouldShowTimestamp && (
@@ -247,73 +204,58 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
           </Animated.View>
         )}
 
-        <GestureDetector gesture={swipeGesture}>
-          <Animated.View style={{ transform: [{ translateX }] }}>
-            {/* Reply icon that appears when swiping */}
-            <Animated.View
-              style={[
-                styles.replyIconContainer,
-                item.isOwn ? styles.replyIconOwn : styles.replyIconOther,
-                { opacity: replyIconOpacity },
-              ]}
-            >
-              <Reply size={20} color={colors.accent.primary} />
-            </Animated.View>
+        {/* Reply preview above message - sizes to its own content */}
+        {item.replyTo && (
+          <View
+            style={[
+              styles.replyPreviewContainer,
+              item.isOwn ? styles.replyPreviewOwn : styles.replyPreviewOther,
+            ]}
+          >
+            <ReplyPreview
+              replyTo={item.replyTo}
+              isOwn={item.isOwn}
+              onPress={
+                onReplyPreviewPress
+                  ? () => onReplyPreviewPress(item.replyTo!.eventId)
+                  : undefined
+              }
+            />
+          </View>
+        )}
 
-            {/* Reply preview above message - sizes to its own content */}
-            {item.replyTo && (
-              <View
-                style={[
-                  styles.replyPreviewContainer,
-                  item.isOwn ? styles.replyPreviewOwn : styles.replyPreviewOther,
-                ]}
-              >
-                <ReplyPreview
-                  replyTo={item.replyTo}
-                  isOwn={item.isOwn}
-                  onPress={
-                    onReplyPreviewPress
-                      ? () => onReplyPreviewPress(item.replyTo!.eventId)
-                      : undefined
-                  }
-                />
-              </View>
-            )}
-
-            <View ref={messageRef} style={containerStyle}>
-              {!item.isOwn && (
-                <View style={styles.avatarContainer}>
-                  <Avatar avatarUrl={item.avatarUrl} name={item.senderName} />
-                </View>
-              )}
-
-              <View style={styles.messageBubbleWrapper}>
-                <Pressable
-                  onPress={onBubblePress}
-                  onLongPress={handleLongPress}
-                  delayLongPress={500}
-                >
-                  <View style={bubbleStyle}>
-                    <BlurView
-                      style={StyleSheet.absoluteFill}
-                      blurType="dark"
-                      blurAmount={80}
-                      reducedTransparencyFallbackColor={blurFallbackColor}
-                    />
-                    <View style={contentStyle}>
-                      <MessageContent item={item} imageStyle={imageStyle} />
-                    </View>
-                  </View>
-                </Pressable>
-                <ReactionsList
-                  reactions={item.reactions ?? []}
-                  isOwn={item.isOwn}
-                  onReactionPress={onReactionPress}
-                />
-              </View>
+        <View ref={messageRef} style={containerStyle}>
+          {!item.isOwn && (
+            <View style={styles.avatarContainer}>
+              <Avatar avatarUrl={item.avatarUrl} name={item.senderName} />
             </View>
-          </Animated.View>
-        </GestureDetector>
+          )}
+
+          <View style={styles.messageBubbleWrapper}>
+            <Pressable
+              onPress={onBubblePress}
+              onLongPress={handleLongPress}
+              delayLongPress={500}
+            >
+              <View style={bubbleStyle}>
+                <BlurView
+                  style={StyleSheet.absoluteFill}
+                  blurType="dark"
+                  blurAmount={80}
+                  reducedTransparencyFallbackColor={blurFallbackColor}
+                />
+                <View style={contentStyle}>
+                  <MessageContent item={item} imageStyle={imageStyle} />
+                </View>
+              </View>
+            </Pressable>
+            <ReactionsList
+              reactions={item.reactions ?? []}
+              isOwn={item.isOwn}
+              onReactionPress={onReactionPress}
+            />
+          </View>
+        </View>
       </View>
     );
   },

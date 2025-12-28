@@ -46,19 +46,19 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   });
 
   // ─── Quick Reactions Modal ──────────────────────────────────────────────────
-  const [quickReactionsEventId, setQuickReactionsEventId] = useState<string | null>(null);
+  const [quickReactionsItem, setQuickReactionsItem] = useState<MessageItem | null>(null);
   const [modalPosition, setModalPosition] = useState<ModalPosition | null>(null);
 
   const openQuickReactions = useCallback(
-    (targetEventId: string, position: ModalPosition) => {
+    (item: MessageItem, position: ModalPosition) => {
       setModalPosition(position);
-      setQuickReactionsEventId(targetEventId);
+      setQuickReactionsItem(item);
     },
     [],
   );
 
   const closeQuickReactions = useCallback(() => {
-    setQuickReactionsEventId(null);
+    setQuickReactionsItem(null);
     setModalPosition(null);
   }, []);
 
@@ -122,6 +122,16 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       });
     },
     [setReplyingTo],
+  );
+
+  const handleReplyFromModal = useCallback(
+    () => {
+      if (quickReactionsItem) {
+        handleReply(quickReactionsItem);
+      }
+      closeQuickReactions();
+    },
+    [quickReactionsItem, handleReply, closeQuickReactions],
   );
 
   // ─── Scroll to Replied Message ─────────────────────────────────────────────
@@ -200,10 +210,9 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         onReactionPress={(key: string) => toggleReaction(item.eventId, key)}
         onLongPress={(getPosition) => {
           const position = getPosition();
-          openQuickReactions(item.eventId, position);
+          openQuickReactions(item, position);
         }}
         onBubblePress={() => handleBubblePress(item.eventId)}
-        onReply={() => handleReply(item)}
         onReplyPreviewPress={scrollToMessage}
         showTimestamp={selectedMessageId === item.eventId}
         isFirstOfHour={firstOfHourIds.has(item.eventId)}
@@ -247,11 +256,12 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       <ScrollToBottomButton visible={showScrollButton} onPress={scrollToBottom} />
 
       <QuickReactionsModal
-        visible={quickReactionsEventId !== null}
-        targetEventId={quickReactionsEventId}
+        visible={quickReactionsItem !== null}
+        messageItem={quickReactionsItem}
         position={modalPosition}
         onClose={closeQuickReactions}
         onSelectEmoji={handleQuickReactionSelect}
+        onReply={handleReplyFromModal}
       />
     </>
   );

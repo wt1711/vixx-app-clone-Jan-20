@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   quotedBubble: {
-    borderRadius: 12,
+    borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
     overflow: 'hidden',
