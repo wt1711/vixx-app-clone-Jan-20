@@ -4,20 +4,24 @@ import { View, ActivityIndicator, Text, StyleSheet, BackHandler, Platform } from
 import { useAuth } from '../context/AuthContext';
 import { DirectMessageListScreen } from './DirectMessageListScreen';
 import { DirectMessageDetailScreen } from './DirectMessageDetailScreen';
+import { SettingsScreen } from './SettingsScreen';
 import Login from './Login';
 import { colors } from '../theme';
 
-type Screen = 'login' | 'list' | 'detail';
+type Screen = 'login' | 'list' | 'detail' | 'settings';
 
 export default function Home() {
   const { matrixToken, isLoading } = useAuth();
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Determine current screen for navigation logic
-  const currentScreen: Screen = !matrixToken 
-    ? 'login' 
-    : selectedRoomId 
-    ? 'detail' 
+  const currentScreen: Screen = !matrixToken
+    ? 'login'
+    : showSettings
+    ? 'settings'
+    : selectedRoomId
+    ? 'detail'
     : 'list';
 
   // Handle Android back button
@@ -25,6 +29,11 @@ export default function Home() {
     if (Platform.OS !== 'android') return;
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // If on settings screen, go back to list
+      if (currentScreen === 'settings') {
+        setShowSettings(false);
+        return true;
+      }
       // If on detail screen, go back to list
       if (currentScreen === 'detail' && selectedRoomId) {
         setSelectedRoomId(null);
@@ -45,6 +54,14 @@ export default function Home() {
     setSelectedRoomId(roomId);
   };
 
+  const handleOpenSettings = () => {
+    setShowSettings(true);
+  };
+
+  const handleCloseSettings = () => {
+    setShowSettings(false);
+  };
+
   if (isLoading) {
     return (
       <SafeAreaProvider>
@@ -60,13 +77,18 @@ export default function Home() {
     <SafeAreaProvider>
       {!matrixToken ? (
         <Login />
+      ) : showSettings ? (
+        <SettingsScreen onBack={handleCloseSettings} />
       ) : selectedRoomId ? (
         <DirectMessageDetailScreen
           roomId={selectedRoomId}
           onBack={handleBack}
         />
       ) : (
-        <DirectMessageListScreen onSelectRoom={handleSelectRoom} />
+        <DirectMessageListScreen
+          onSelectRoom={handleSelectRoom}
+          onOpenSettings={handleOpenSettings}
+        />
       )}
     </SafeAreaProvider>
   );

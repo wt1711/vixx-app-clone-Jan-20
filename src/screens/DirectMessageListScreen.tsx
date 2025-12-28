@@ -27,12 +27,14 @@ import { colors, gradients } from '../theme';
 type DirectMessageListScreenProps = {
   onSelectRoom: (roomId: string) => void;
   onCreateChat?: () => void;
+  onOpenSettings?: () => void;
   selectedRoomId?: string;
 };
 
 export function DirectMessageListScreen({
   onSelectRoom,
   onCreateChat,
+  onOpenSettings,
   selectedRoomId,
 }: DirectMessageListScreenProps) {
   const { directRooms, isLoading, invitedRooms } = useDirectRooms();
@@ -179,7 +181,7 @@ export function DirectMessageListScreen({
           reducedTransparencyFallbackColor={colors.background.primary}
         />
         <TouchableOpacity
-          onPress={logout}
+          onPress={onOpenSettings}
           style={styles.settingsButton}
           activeOpacity={0.7}
         >
