@@ -28,11 +28,14 @@ export const ReplyPreview = React.memo<ReplyPreviewProps>(
         disabled={!onPress}
       >
         <Text style={[styles.label, isOwn && styles.labelOwn]}>{label}</Text>
-        <View style={bubbleStyle}>
+        <View style={[styles.bubbleRow, isOwn && styles.bubbleRowOwn]}>
           {!isOwn && <View style={styles.bar} />}
-          <Text style={styles.quotedText} numberOfLines={2}>
-            {replyTo.content}
-          </Text>
+          <View style={bubbleStyle}>
+            <Text style={styles.quotedText} numberOfLines={2}>
+              {replyTo.content}
+            </Text>
+          </View>
+          {isOwn && <View style={styles.barRight} />}
         </View>
       </TouchableOpacity>
     );
@@ -53,10 +56,14 @@ const styles = StyleSheet.create({
   labelOwn: {
     textAlign: 'right',
   },
-  quotedBubble: {
+  bubbleRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    alignItems: 'stretch',
+  },
+  bubbleRowOwn: {
+    justifyContent: 'flex-end',
+  },
+  quotedBubble: {
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -64,16 +71,21 @@ const styles = StyleSheet.create({
   },
   quotedBubbleOwn: {
     backgroundColor: colors.message.own,
-    alignSelf: 'flex-end',
   },
   quotedBubbleOther: {
     backgroundColor: colors.message.other,
   },
   bar: {
     width: 3,
-    backgroundColor: colors.accent.purple,
+    backgroundColor: colors.border.default,
     borderRadius: 2,
     marginRight: 8,
+  },
+  barRight: {
+    width: 3,
+    backgroundColor: colors.border.default,
+    borderRadius: 2,
+    marginLeft: 8,
   },
   quotedText: {
     fontSize: 14,
