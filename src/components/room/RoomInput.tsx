@@ -9,7 +9,8 @@ import {
   Easing,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { Send, ImageIcon, Camera } from 'lucide-react-native';
+import { Send, ImageIcon } from 'lucide-react-native';
+// import { Camera } from 'lucide-react-native';
 import { useAIAssistant } from '../../context/AIAssistantContext';
 import { EventType, MsgType, Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
@@ -23,7 +24,11 @@ type RoomInputProps = {
 export function RoomInput({ room }: RoomInputProps) {
   const [sending, setSending] = useState(false);
   const mx = getMatrixClient();
-  const { pickAndSendImage, takeAndSendPhoto, isUploading } = useImageSender(room.roomId);
+  const {
+    pickAndSendImage,
+    isUploading,
+    // takeAndSendPhoto
+  } = useImageSender(room.roomId);
   const {
     generateInitialResponse,
     isGeneratingResponse,
@@ -100,7 +105,7 @@ export function RoomInput({ room }: RoomInputProps) {
         >
           <ImageIcon color={colors.text.secondary} size={24} />
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[
             styles.imageButton,
             isUploading && styles.imageButtonDisabled,
@@ -113,7 +118,7 @@ export function RoomInput({ room }: RoomInputProps) {
           ) : (
             <Camera color={colors.text.secondary} size={24} />
           )}
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TextInput
           style={styles.input}
           placeholder="flirt with her..."
@@ -132,10 +137,7 @@ export function RoomInput({ room }: RoomInputProps) {
         >
           <Animated.Image
             source={require('../../../assets/logo.png')}
-            style={[
-              styles.vixxLogo,
-              { transform: [{ rotate: spin }] },
-            ]}
+            style={[styles.vixxLogo, { transform: [{ rotate: spin }] }]}
           />
         </TouchableOpacity>
         <TouchableOpacity
