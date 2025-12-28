@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { BlurView } from '@react-native-community/blur';
 import { ReplyToData } from '../types';
 import { colors } from '../../../theme';
 
@@ -31,6 +32,14 @@ export const ReplyPreview = React.memo<ReplyPreviewProps>(
         <View style={[styles.bubbleRow, isOwn && styles.bubbleRowOwn]}>
           {!isOwn && <View style={styles.bar} />}
           <View style={bubbleStyle}>
+            <BlurView
+              style={StyleSheet.absoluteFill}
+              blurType="dark"
+              blurAmount={80}
+              reducedTransparencyFallbackColor={
+                replyTo.isOwn ? colors.message.own : colors.message.other
+              }
+            />
             <Text style={styles.quotedText} numberOfLines={2}>
               {replyTo.content}
             </Text>
@@ -67,14 +76,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    opacity: 0.6,
+    overflow: 'hidden',
+    opacity: 0.5,
   },
   quotedBubbleOwn: {
     backgroundColor: colors.message.own,
   },
-  quotedBubbleOther: {
-    backgroundColor: colors.message.other,
-  },
+  quotedBubbleOther: {},
   bar: {
     width: 3,
     backgroundColor: colors.border.default,
