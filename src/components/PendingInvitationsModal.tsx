@@ -172,6 +172,7 @@ const PendingInvitationsModal = ({visible, invitedRooms, mx, onClose} : {visible
           data={filteredRooms}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
+          keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
@@ -193,6 +194,8 @@ const styles = StyleSheet.create({
         top: 0,
         right: 0,
         padding: 24,
+        zIndex: 10,
+        elevation: 10,
     },
     headerCloseButtonText: {
         fontSize: 24,
