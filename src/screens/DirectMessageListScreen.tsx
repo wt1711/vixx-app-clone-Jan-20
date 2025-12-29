@@ -195,6 +195,7 @@ export function DirectMessageListScreen({
           blurAmount={80}
           reducedTransparencyFallbackColor={colors.background.primary}
         />
+        <Text style={styles.headerTitle}>Messages</Text>
         <TouchableOpacity
           onPress={onOpenSettings}
           style={styles.settingsButton}
@@ -266,6 +267,16 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.transparent.white10,
+  },
+  headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 12,
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text.primary,
   },
   settingsButton: {
     padding: 8,

@@ -35,6 +35,7 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
           blurAmount={80}
           reducedTransparencyFallbackColor={colors.background.primary}
         />
+        <Text style={styles.headerTitle}>Settings</Text>
         <TouchableOpacity
           onPress={onBack}
           style={styles.backButton}
@@ -42,8 +43,6 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
         >
           <ChevronLeft color={colors.text.primary} size={28} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <View style={styles.headerSpacer} />
       </View>
 
       {/* Content */}
@@ -80,26 +79,25 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.transparent.white10,
   },
+  headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 12,
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
   backButton: {
     padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text.primary,
-    textAlign: 'center',
-    marginRight: 28,
-  },
-  headerSpacer: {
-    width: 28,
   },
   content: {
     flex: 1,
