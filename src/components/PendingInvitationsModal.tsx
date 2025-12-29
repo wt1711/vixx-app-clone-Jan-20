@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { Search } from 'lucide-react-native';
+import { Search, Check } from 'lucide-react-native';
 import { colors, gradients } from '../theme';
 import { RoomItemData } from './room/RoomListItem';
 import { getRoomAvatarUrl } from '../utils/room';
@@ -37,6 +37,7 @@ const PendingInvitationsModal = ({
     roomId: string;
     action: 'accept' | 'reject';
   } | null>(null);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   // Load room data with async message fetching
   const loadRoomItems = useCallback(async () => {
@@ -85,6 +86,9 @@ const PendingInvitationsModal = ({
       await mx.joinRoom(room.roomId);
       // Remove from list after successful join
       setRoomItems(prev => prev.filter(item => item.roomId !== room.roomId));
+      // Show success banner
+      setSuccessBanner(room.name || 'Chat');
+      setTimeout(() => setSuccessBanner(null), 5000);
     } catch (error: any) {
       console.error('Failed to accept invitation:', error);
       Alert.alert('Error', error.message || 'Failed to add');
@@ -204,6 +208,16 @@ const PendingInvitationsModal = ({
             </TouchableOpacity>
             <Text style={styles.title}>Add Chat</Text>
 
+            {/* Success Toast */}
+            {successBanner ? (
+              <View style={styles.successfullyAddedToast}>
+                <Check color="#22C55E" size={24} />
+                <View style={styles.toastContent}>
+                  <Text style={styles.toastTitle}>{successBanner} added</Text>
+                </View>
+              </View>
+            ) : null}
+
             {/* Search Input */}
             <View style={styles.searchContainer}>
               <TextInput
@@ -255,6 +269,35 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
     color: 'white',
+  },
+  successfullyAddedToast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderColor: colors.border.light,
+    borderWidth: 1,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  toastContent: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  toastTitle: {
+    color: colors.text.primary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  toastSubtitle: {
+    color: '#6B7280',
+    fontSize: 12,
+    marginTop: 2,
   },
   description: {
     fontSize: 16,
