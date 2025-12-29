@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   addChatButton: {
     borderColor: colors.border.light,
     borderWidth: 1,
-    borderRadius: '50%',
+    borderRadius: 9999,
     padding: 8,
   },
   loadingContainer: {
