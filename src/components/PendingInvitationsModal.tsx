@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
+import { Search } from 'lucide-react-native';
 import { colors, gradients } from '../theme';
 import { RoomItemData } from './room/RoomListItem';
 import { getRoomAvatarUrl } from '../utils/room';
@@ -82,15 +83,21 @@ const PendingInvitationsModal = ({
     setProcessingRoomId({ roomId: room.roomId, action: 'accept' });
     try {
       await mx.joinRoom(room.roomId);
-      Alert.alert('Success', 'Invitation accepted');
       // Remove from list after successful join
       setRoomItems(prev => prev.filter(item => item.roomId !== room.roomId));
     } catch (error: any) {
       console.error('Failed to accept invitation:', error);
-      Alert.alert('Error', error.message || 'Failed to accept invitation');
+      Alert.alert('Error', error.message || 'Failed to add');
     } finally {
       setProcessingRoomId(null);
     }
+  };
+
+  const confirmAccept = (room: Room) => {
+    Alert.alert('', `Add ${room.name || 'this conversation'} to your list?`, [
+      { text: 'Yes', onPress: () => handleAccept(room) },
+      { text: 'No', style: 'cancel' },
+    ]);
   };
 
   const handleReject = async (room: Room) => {
@@ -142,12 +149,12 @@ const PendingInvitationsModal = ({
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.button, styles.acceptButton]}
-              onPress={() => handleAccept(item.room)}
+              style={styles.addButton}
+              onPress={() => confirmAccept(item.room)}
               disabled={isProcessing}
               activeOpacity={0.7}
             >
-              <Text style={styles.acceptButtonText}>Accept</Text>
+              <Text style={styles.addButtonText}>Confirm</Text>
               {isProcessing ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : null}
@@ -195,16 +202,19 @@ const PendingInvitationsModal = ({
             >
               <Text style={styles.headerCloseButtonText}>✕</Text>
             </TouchableOpacity>
-            <Text style={styles.title}>Add DM</Text>
+            <Text style={styles.title}>Add Chat</Text>
 
             {/* Search Input */}
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by name..."
-              placeholderTextColor="#9CA3AF"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search..."
+                placeholderTextColor="#9CA3AF"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              <Search color="#9CA3AF" size={20} style={styles.searchIcon} />
+            </View>
 
             <FlatList
               data={filteredRooms}
@@ -260,16 +270,25 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  searchInput: {
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    marginBottom: 16,
+    paddingRight: 12,
+  },
+  searchInput: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 12,
     color: '#FFFFFF',
     fontSize: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  searchIcon: {
+    marginLeft: 8,
   },
   roomItem: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -316,28 +335,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  button: {
-    paddingHorizontal: 16,
+  addButton: {
+    borderColor: colors.border.light,
+    borderWidth: 1,
+    paddingHorizontal: 20,
     paddingVertical: 8,
-    borderRadius: 8,
-    minWidth: 70,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 12,
   },
-  acceptButton: {
-    backgroundColor: '#10B981',
-  },
-  rejectButton: {
-    backgroundColor: 'rgba(239, 68, 68, 0.8)',
-  },
-  acceptButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  rejectButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+  addButtonText: {
+    color: colors.accent.primary,
+    fontSize: 16,
     fontWeight: '600',
   },
   emptyContainer: {
