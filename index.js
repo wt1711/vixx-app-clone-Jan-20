@@ -5,7 +5,9 @@
 // Import ALL polyfills FIRST before any other imports
 // This is critical for matrix-js-sdk to work in React Native
 import './src/polyfills';
+import { install } from 'react-native-quick-crypto';
 
+install();
 
 // Polyfill for Promise.withResolvers (not available in React Native's JavaScriptCore)
 if (typeof Promise.withResolvers === 'undefined') {

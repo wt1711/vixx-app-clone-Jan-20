@@ -55,7 +55,11 @@ export const ENV = {
   // Stripe configuration
   STRIPE_PUBLISHABLE_KEY: getEnvVar('STRIPE_PUBLISHABLE_KEY', ''),
   STRIPE_WEBHOOK_SECRET: getEnvVar('STRIPE_WEBHOOK_SECRET', ''),
-  
+
+  // Encryption configuration
+  ENCRYPTION_SECRET: getEnvVar('ENCRYPTION_SECRET', ''),
+  ENCRYPTION_IV: getEnvVar('ENCRYPTION_IV', ''),
+
   // Environment
   NODE_ENV: __DEV__ ? 'development' : 'production',
   IS_DEV: __DEV__,
@@ -63,9 +67,13 @@ export const ENV = {
 
 // API Endpoints (derived from base URLs)
 export const API_ENDPOINTS = {
+  // System Settings endpoints
+  SYSTEM_SETTINGS: `${ENV.API_BASE_URL}/api/system-settings`,
+  
   // Auth endpoints
   AUTH: {
     LOGIN: `${ENV.API_BASE_URL}/api/auth/login`,
+    LOGIN_ALTERNATIVE: `${ENV.API_BASE_URL}/api/auth/login/al`,
     STATUS: `${ENV.API_BASE_URL}/api/auth`,
   },
   

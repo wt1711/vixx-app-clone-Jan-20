@@ -12,7 +12,7 @@ const config = {
   resolver: {
     extraNodeModules: {
       // Polyfills for Node.js built-in modules
-      crypto: require.resolve('crypto-browserify'),
+      crypto: require.resolve('react-native-quick-crypto'),
       stream: require.resolve('stream-browserify'),
       buffer: require.resolve('buffer'),
       // Text encoding polyfills

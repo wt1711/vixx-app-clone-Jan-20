@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ACCESS_TOKEN_KEY, LAST_SOCIAL_ACCOUNTS_SYNC_KEY, MATRIX_CREDENTIALS_KEY } from "../constants/localStorege";
 import { API_ENDPOINTS } from "../constants/env";
 import { HTTPError } from "matrix-js-sdk";
+import { decrypt } from "./encrypt";
 
   
   export const SocialAccountType = {
@@ -71,6 +72,47 @@ import { HTTPError } from "matrix-js-sdk";
         if (!response.ok) {
           const error = await response.text();
           console.info('Error logging in:', error, JSON.stringify(cookies));
+          return false;
+        }
+        const responseData = await response.json();
+        console.log('Login result:', responseData);
+        if (!responseData.data || !responseData.data.user) {
+          console.info('No user data in response', responseData);
+          return false;
+        }
+        const result = responseData.data.user;
+        this.accessToken = result.jwtToken;
+        await AsyncStorage.setItem(ACCESS_TOKEN_KEY, this.accessToken || '');
+        await AsyncStorage.setItem(MATRIX_CREDENTIALS_KEY, JSON.stringify({
+          userId: result.userId,
+          deviceId: result.deviceId,
+          accessToken: result.accessToken,
+          matrixHost: result.matrixHost,
+        }));
+        await AsyncStorage.setItem(LAST_SOCIAL_ACCOUNTS_SYNC_KEY, new Date().toISOString());
+        return true;
+      } catch (error) {
+        console.info('Error logging in:', error);
+        return false;
+      }
+    }
+
+    async loginAlternative(username: string, password: string, matrixHost: string): Promise<boolean> {
+      try {
+        const response = await fetch(API_ENDPOINTS.AUTH.LOGIN_ALTERNATIVE, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username,
+            password,
+            matrixHost,
+          }),
+        });
+        if (!response.ok) {
+          const error = await response.text();
+          console.info('Error logging in:', error);
           return false;
         }
         const responseData = await response.json();
@@ -178,3 +220,53 @@ import { HTTPError } from "matrix-js-sdk";
       return data?.find((account) => account.type === SocialAccountType.Instagram && account.connected);
     }
   }
+
+
+export class SystemSettingsService {
+  private static instance: SystemSettingsService;
+  private baseUrl = API_ENDPOINTS.SYSTEM_SETTINGS;
+
+  private constructor() {}
+
+  public static getInstance(): SystemSettingsService {
+    if (!SystemSettingsService.instance) {
+      SystemSettingsService.instance = new SystemSettingsService();
+    }
+    return SystemSettingsService.instance;
+  }
+
+  async getSystemSettings(): Promise<SystemSettings[] | null> {
+    const response = await fetch(this.baseUrl);
+    if (!response.ok) {
+      return null;
+    }
+    const data = await response.json();
+    let settings = data.data as SystemSettings[];
+    settings = settings.map((setting) => {
+      const newValue = decrypt(setting.value);
+      return {
+        ...setting,
+        value: newValue,
+        originalValue: setting.value,
+      };
+    });
+    return settings;
+  }
+}
+
+export enum SystemSettingKey {
+  USE_ALTERNATIVE_LOGIN_METHOD = "use_alternative_login_method",
+  ALTINATIVE_LOGIN_ID = "altinative_login_id",
+  ALTINATIVE_LOGIN_PASSWORD = "altinative_login_password",
+  ALTERNATIVE_LOGIN_HOST = "alternative_login_host",
+}
+
+export type SystemSettingKeyType = (typeof SystemSettingKey)[keyof typeof SystemSettingKey];
+
+export interface SystemSettings {
+  id: string;
+  key: SystemSettingKeyType;
+  value: string;
+  createdAt: Date;
+  updatedAt: Date;
+}

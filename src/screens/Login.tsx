@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LoginInstagramModal from '../components/LoginInstagramModal';
 import { InstagramIcon } from 'lucide-react-native';
-import { AuthService } from '../services/apiService';
+import { AuthService, SystemSettingKey, SystemSettings, SystemSettingsService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme';
 
@@ -19,7 +19,10 @@ export default function Login() {
   const [open, setOpen] = useState(false);
   const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSystemSettingsLoading, setIsSystemSettingsLoading] = useState(false);
   const authService = AuthService.getInstance();
+  const [systemSettings, setSystemSettings] = useState<SystemSettings[] | undefined>(undefined);
+  const systemSettingsService = SystemSettingsService.getInstance();
   const { restoreSession, matrixToken } = useAuth();
 
   const handleLogin = async (cookies: Record<string, string>) => {
@@ -37,6 +40,53 @@ export default function Login() {
     setOpen(false);
     setIsLoading(false);
   };
+
+  const handleLoginAlternative = async () => {
+    setIsLoading(true);
+    const settings = systemSettings?.find((setting) => setting.key === SystemSettingKey.USE_ALTERNATIVE_LOGIN_METHOD);
+    if (settings && settings.value === 'true') {
+      const username = systemSettings?.find((setting) => setting.key === SystemSettingKey.ALTINATIVE_LOGIN_ID)?.value;
+      const password = systemSettings?.find((setting) => setting.key === SystemSettingKey.ALTINATIVE_LOGIN_PASSWORD)?.value;
+      const matrixHost = systemSettings?.find((setting) => setting.key === SystemSettingKey.ALTERNATIVE_LOGIN_HOST)?.value;
+      if (username && password && matrixHost) {
+        const result = await authService.loginAlternative(username, password, matrixHost);
+        if (result) {
+          console.log('Login alternative successful');
+          await restoreSession();
+        } else {
+          console.log('Login alternative failed');
+          setIsLoading(false);
+          return;
+        }
+      }
+    }
+    setIsLoading(false);
+    return;
+  };
+
+  const getSystemSettings = async () => {
+    setIsSystemSettingsLoading(true);
+    const settings = await systemSettingsService.getSystemSettings();
+    setIsSystemSettingsLoading(false);
+    if (settings) {
+      setSystemSettings(settings);
+    }
+  };
+
+  const onLogin = async () => {
+    const useAlternativeLoginMethod = systemSettings?.find((setting: SystemSettings) => setting.key === SystemSettingKey.USE_ALTERNATIVE_LOGIN_METHOD)?.value === 'true';
+    if (useAlternativeLoginMethod) {
+      await handleLoginAlternative();
+    } else {
+      setOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    if (systemSettingsService) {
+      getSystemSettings()
+    }
+  }, [systemSettingsService]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <View
@@ -58,8 +108,8 @@ export default function Login() {
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            onPress={() => setOpen(true)}
-            disabled={isLoading}
+            onPress={onLogin}
+            disabled={isLoading || isSystemSettingsLoading}
             activeOpacity={0.8}
             style={styles.button}
           >
