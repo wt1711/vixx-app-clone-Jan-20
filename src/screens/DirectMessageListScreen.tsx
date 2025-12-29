@@ -11,10 +11,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { Settings } from 'lucide-react-native';
+import { Settings, Plus } from 'lucide-react-native';
 import { useDirectRooms } from '../hooks/room';
 import { getMatrixClient } from '../matrixClient';
-import { getRoomAvatarUrl, getLastRoomMessageAsync, isMessageFromMe } from '../utils/room';
+import {
+  getRoomAvatarUrl,
+  getLastRoomMessageAsync,
+  isMessageFromMe,
+} from '../utils/room';
 import { useAuth } from '../context/AuthContext';
 import { RoomListItem, RoomItemData } from '../components/room/RoomListItem';
 import { LoadingScreen } from '../components/common/LoadingScreen';
@@ -43,7 +47,8 @@ export function DirectMessageListScreen({
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [showForceLogOut, setShowForceLogOut] = useState(false);
-  const [showPendingInvitationsModal, setShowPendingInvitationsModal] = useState(false);
+  const [showPendingInvitationsModal, setShowPendingInvitationsModal] =
+    useState(false);
   const mx = getMatrixClient();
   const { logout } = useAuth();
   const socialAccountService = SocialAccountService.getInstance();
@@ -86,19 +91,24 @@ export function DirectMessageListScreen({
     // Second pass: fetch actual last messages (async)
     const myUserId = mx.getUserId();
     const updatedItems = await Promise.all(
-      items.map(async (item) => {
-        const { message, timestamp, senderId, senderName } = await getLastRoomMessageAsync(mx, item.room);
-        const isFromMe = senderId ? isMessageFromMe(senderId, myUserId, item.name, senderName || '') : false;
+      items.map(async item => {
+        const { message, timestamp, senderId, senderName } =
+          await getLastRoomMessageAsync(mx, item.room);
+        const isFromMe = senderId
+          ? isMessageFromMe(senderId, myUserId, item.name, senderName || '')
+          : false;
         return {
           ...item,
           lastMessage: message ? (isFromMe ? `You: ${message}` : message) : '',
           lastEventTime: timestamp || item.lastEventTime,
         };
-      })
+      }),
     );
 
     // Sort by actual message timestamp
-    updatedItems.sort((a, b) => (b.lastEventTime || 0) - (a.lastEventTime || 0));
+    updatedItems.sort(
+      (a, b) => (b.lastEventTime || 0) - (a.lastEventTime || 0),
+    );
     setRoomItems(updatedItems);
     loadingRef.current = false;
   }, [mx, directRooms]);
@@ -111,15 +121,20 @@ export function DirectMessageListScreen({
 
   const onForceLogout = () => {
     setShowForceLogOut(true);
-  }
+  };
 
   const handleCheckConnectedAccount = async () => {
     try {
       setSyncing(true);
-      const synced = await socialAccountService.syncSocialAccounts(onForceLogout);
+      const synced = await socialAccountService.syncSocialAccounts(
+        onForceLogout,
+      );
       if (synced) {
-        const result = await socialAccountService.getSocialAccounts(onForceLogout);
-        const isInstagramAccountConnected = socialAccountService.instagramAccountConnected(result);
+        const result = await socialAccountService.getSocialAccounts(
+          onForceLogout,
+        );
+        const isInstagramAccountConnected =
+          socialAccountService.instagramAccountConnected(result);
         if (!isInstagramAccountConnected) {
           onForceLogout();
           return;
@@ -129,7 +144,7 @@ export function DirectMessageListScreen({
     } catch (error) {
       console.info('Error syncing social accounts:', error);
     }
-  }
+  };
 
   useEffect(() => {
     if (showForceLogOut) {
@@ -190,16 +205,20 @@ export function DirectMessageListScreen({
       </View>
       {syncing ? (
         <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.accent.primary} />
-        <Text style={styles.loadingText}>Syncing your account...</Text>
-      </View>
+          <ActivityIndicator size="large" color={colors.accent.primary} />
+          <Text style={styles.loadingText}>Syncing your account...</Text>
+        </View>
       ) : null}
       {invitedRooms.length > 0 ? (
-        <View style={styles.invitedRoomsContainer}>
-          <TouchableOpacity onPress={() => setShowPendingInvitationsModal(true)} style={styles.invitedRoomsButton}>
-            <Text style={styles.invitedRoomsText}>You have {invitedRooms.length} pending invitation{invitedRooms.length > 1 ? 's' : ''}</Text>
+        <View style={styles.addChatContainer}>
+          <TouchableOpacity
+            onPress={() => setShowPendingInvitationsModal(true)}
+            style={styles.addChatButton}
+          >
+            <Plus color={colors.text.primary} size={32} />
           </TouchableOpacity>
-        </View>) : null }
+        </View>
+      ) : null}
       {roomItems.length === 0 ? (
         <EmptyState
           title="No direct messages yet"
@@ -223,8 +242,13 @@ export function DirectMessageListScreen({
           showsVerticalScrollIndicator={false}
         />
       )}
-      <ForceLogOutModal visible={showForceLogOut}/>
-      <PendingInvitationsModal visible={showPendingInvitationsModal} invitedRooms={invitedRooms} mx={mx} onClose={() => setShowPendingInvitationsModal(false)}/>
+      <ForceLogOutModal visible={showForceLogOut} />
+      <PendingInvitationsModal
+        visible={showPendingInvitationsModal}
+        invitedRooms={invitedRooms}
+        mx={mx}
+        onClose={() => setShowPendingInvitationsModal(false)}
+      />
     </View>
   );
 }
@@ -250,22 +274,16 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
   },
-  invitedRoomsContainer: {
+  addChatContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 12,
   },
-  invitedRoomsButton: {
-    backgroundColor: colors.accent.instagram,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  invitedRoomsText: {
-    fontSize: 16,
-    color: colors.text.white,
+  addChatButton: {
+    borderColor: colors.border.light,
+    borderWidth: 1,
+    borderRadius: '50%',
+    padding: 8,
   },
   loadingContainer: {
     justifyContent: 'center',
