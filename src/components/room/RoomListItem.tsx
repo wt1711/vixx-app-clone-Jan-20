@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { Room } from 'matrix-js-sdk';
 import { formatRelativeTimeWithRecent } from '../../utils/timeFormatter';
@@ -74,7 +68,10 @@ function LastMessage({
 
   return (
     <Text
-      style={[styles.roomLastMessage, hasUnread && styles.roomLastMessageUnread]}
+      style={[
+        styles.roomLastMessage,
+        hasUnread && styles.roomLastMessageUnread,
+      ]}
       numberOfLines={1}
     >
       {message}
@@ -97,6 +94,7 @@ export function RoomListItem({ item, isSelected, onPress }: RoomListItemProps) {
           blurType="dark"
           blurAmount={80}
           reducedTransparencyFallbackColor={colors.background.secondary}
+          pointerEvents="none"
         />
         <View style={styles.roomItemContent}>
           <View style={styles.avatarContainer}>
