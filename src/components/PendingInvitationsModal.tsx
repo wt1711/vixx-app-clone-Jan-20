@@ -12,9 +12,10 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { Search, Check } from 'lucide-react-native';
+import { BlurView } from '@react-native-community/blur';
+import { Search, Check, ChevronLeft } from 'lucide-react-native';
 import { colors, gradients } from '../theme';
 import { RoomItemData } from './room/RoomListItem';
 import { getRoomAvatarUrl } from '../utils/room';
@@ -38,6 +39,7 @@ const PendingInvitationsModal = ({
     action: 'accept' | 'reject';
   } | null>(null);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
 
   // Load room data with async message fetching
   const loadRoomItems = useCallback(async () => {
@@ -191,84 +193,105 @@ const PendingInvitationsModal = ({
       presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <SafeAreaProvider>
-        <SafeAreaView edges={['top', 'bottom']} style={styles.modalContainer}>
-          <LinearGradient
-            colors={[...gradients.screenBackground]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+      <View style={styles.container}>
+        <LinearGradient
+          colors={[...gradients.screenBackground]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <BlurView
             style={StyleSheet.absoluteFill}
+            blurType="dark"
+            blurAmount={80}
+            reducedTransparencyFallbackColor={colors.background.primary}
           />
-          <View style={styles.modalContent}>
-            <TouchableOpacity
-              style={styles.headerCloseButton}
-              onPress={onClose}
-            >
-              <Text style={styles.headerCloseButtonText}>✕</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>Add Chat</Text>
+          <Text style={styles.headerTitle}>Add Chat</Text>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <ChevronLeft color={colors.text.primary} size={28} />
+          </TouchableOpacity>
+        </View>
 
-            {/* Success Toast */}
-            {successBanner ? (
-              <View style={styles.successfullyAddedToast}>
-                <Check color="#22C55E" size={24} />
-                <View style={styles.toastContent}>
-                  <Text style={styles.toastTitle}>{successBanner} added</Text>
-                </View>
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Success Toast */}
+          {successBanner ? (
+            <View style={styles.successfullyAddedToast}>
+              <Check color="#22C55E" size={24} />
+              <View style={styles.toastContent}>
+                <Text style={styles.toastTitle}>{successBanner} added</Text>
               </View>
-            ) : null}
-
-            {/* Search Input */}
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search..."
-                placeholderTextColor="#9CA3AF"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              <Search color="#9CA3AF" size={20} style={styles.searchIcon} />
             </View>
+          ) : null}
 
-            <FlatList
-              data={filteredRooms}
-              renderItem={renderItem}
-              keyExtractor={keyExtractor}
-              keyboardShouldPersistTaps="handled"
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>
-                    {searchQuery ? 'No rooms found' : 'No pending invitations'}
-                  </Text>
-                </View>
-              }
+          {/* Search Input */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search..."
+              placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
+            <Search color="#9CA3AF" size={20} style={styles.searchIcon} />
           </View>
-        </SafeAreaView>
-      </SafeAreaProvider>
+
+          <FlatList
+            data={filteredRooms}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  {searchQuery ? 'No rooms found' : 'No pending invitations'}
+                </Text>
+              </View>
+            }
+          />
+        </View>
+      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  headerCloseButton: {
+  container: {
+    flex: 1,
+    backgroundColor: colors.background.primary,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.transparent.white10,
+  },
+  headerTitle: {
     position: 'absolute',
-    top: 0,
+    left: 0,
     right: 0,
-    padding: 24,
-    zIndex: 10,
-    elevation: 10,
-  },
-  headerCloseButtonText: {
-    fontSize: 24,
-    color: 'white',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    bottom: 12,
     textAlign: 'center',
-    marginBottom: 30,
-    color: 'white',
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  backButton: {
+    padding: 8,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
   },
   successfullyAddedToast: {
     flexDirection: 'row',
@@ -293,25 +316,6 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     fontSize: 14,
     fontWeight: '500',
-  },
-  toastSubtitle: {
-    color: '#6B7280',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  description: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 10,
-    color: 'white',
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: colors.background.primary,
-  },
-  modalContent: {
-    flex: 1,
-    padding: 20,
   },
   searchContainer: {
     flexDirection: 'row',
