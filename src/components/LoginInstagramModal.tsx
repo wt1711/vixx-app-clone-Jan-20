@@ -194,83 +194,9 @@ export default function LoginInstagramModal({ open, onClose, onSubmit, isInstagr
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 30,
-    color: '#666',
-    lineHeight: 22,
-  },
-  button: {
-    backgroundColor: '#E4405F',
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 25,
-    marginBottom: 20,
-  },
   buttonDisabled: {
     opacity: 1,
     backgroundColor: '#BDBDBD',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  input: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 12,
-    color: '#000',
-  },
-  cookieInfo: {
-    backgroundColor: '#f0f0f0',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  cookieTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#333',
-  },
-  cookieCount: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 10,
-  },
-  smallButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 15,
-  },
-  smallButtonText: {
-    color: 'white',
-    fontSize: 14,
   },
   modalContainer: {
     flex: 1,
@@ -316,14 +242,5 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
-  },
-  cookieStatus: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 5,
-    textAlign: 'center',
-  },
-  loadingIndicator: {
-    marginTop: 8,
   },
 });
