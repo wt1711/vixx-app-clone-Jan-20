@@ -11,7 +11,8 @@ import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import CookieManager from '@react-native-cookies/cookies';
 import LinearGradient from 'react-native-linear-gradient';
-import { gradients } from '../theme';
+import { RefreshCw } from 'lucide-react-native';
+import { colors, gradients } from '../theme';
 
 interface LoginInstagramModalProps {
   open: boolean;
@@ -178,27 +179,39 @@ export default function LoginInstagramModal({
             style={StyleSheet.absoluteFill}
           />
           <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={handleCloseWebView}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
-            {syncReady ? (
+            <View style={styles.headerSpacer} />
+            <View style={styles.headerCenter}>
+              {syncReady ? (
+                <TouchableOpacity
+                  style={[
+                    styles.extractButton,
+                    isConnecting && styles.buttonDisabled,
+                  ]}
+                  onPress={handleConnectInstagram}
+                  disabled={isConnecting}
+                >
+                  <Text style={styles.extractButtonText}>
+                    {isConnecting ? 'Syncing…' : 'Sync'}
+                  </Text>
+                  {isConnecting ? null : (
+                    <RefreshCw
+                      color={colors.accent.primary}
+                      size={14}
+                      style={styles.syncIcon}
+                    />
+                  )}
+                </TouchableOpacity>
+              ) : null}
+            </View>
+            <View style={styles.headerRight}>
               <TouchableOpacity
-                style={[
-                  styles.extractButton,
-                  isConnecting && styles.buttonDisabled,
-                ]}
-                onPress={handleConnectInstagram}
-                disabled={isConnecting}
+                style={styles.closeButton}
+                onPress={handleCloseWebView}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Text style={styles.extractButtonText}>
-                  {isConnecting ? 'Syncing your instagram…' : 'Sync Instagram'}
-                </Text>
+                <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
-            ) : null}
+            </View>
           </View>
 
           <WebView
@@ -232,40 +245,51 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
+  headerSpacer: {
+    flex: 1,
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
   closeButton: {
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#ff4444',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    shadowColor: '#ff4444',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
+    borderColor: colors.border.light,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 9999,
   },
   closeButtonText: {
-    color: '#ff4444',
+    color: colors.text.primary,
     fontWeight: 'bold',
     fontSize: 16,
     lineHeight: 18,
   },
   extractButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: colors.border.light,
+    borderWidth: 1,
+    paddingHorizontal: 20,
     paddingVertical: 8,
-    borderRadius: 15,
+    borderRadius: 12,
+  },
+  syncIcon: {
+    marginLeft: 6,
   },
   extractButtonText: {
-    color: 'white',
+    color: colors.accent.primary,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   webview: {
