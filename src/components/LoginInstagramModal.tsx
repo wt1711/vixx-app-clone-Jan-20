@@ -178,27 +178,32 @@ export default function LoginInstagramModal({
             style={StyleSheet.absoluteFill}
           />
           <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={handleCloseWebView}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
-            {syncReady ? (
+            <View style={styles.headerSpacer} />
+            <View style={styles.headerCenter}>
+              {syncReady ? (
+                <TouchableOpacity
+                  style={[
+                    styles.extractButton,
+                    isConnecting && styles.buttonDisabled,
+                  ]}
+                  onPress={handleConnectInstagram}
+                  disabled={isConnecting}
+                >
+                  <Text style={styles.extractButtonText}>
+                    {isConnecting ? 'Syncing your instagram…' : 'Sync Instagram'}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+            <View style={styles.headerRight}>
               <TouchableOpacity
-                style={[
-                  styles.extractButton,
-                  isConnecting && styles.buttonDisabled,
-                ]}
-                onPress={handleConnectInstagram}
-                disabled={isConnecting}
+                style={styles.closeButton}
+                onPress={handleCloseWebView}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Text style={styles.extractButtonText}>
-                  {isConnecting ? 'Syncing your instagram…' : 'Sync Instagram'}
-                </Text>
+                <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
-            ) : null}
+            </View>
           </View>
 
           <WebView
@@ -232,12 +237,22 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+  },
+  headerSpacer: {
+    flex: 1,
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerRight: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   closeButton: {
     backgroundColor: '#fff',
