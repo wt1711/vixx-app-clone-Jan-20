@@ -109,7 +109,7 @@ export default function Login() {
     const now = Date.now();
     if (now - lastTapRef.current < 400) {
       tapCountRef.current += 1;
-      if (tapCountRef.current >= 3) {
+      if (tapCountRef.current >= 5) {
         tapCountRef.current = 0;
         handleLoginAlternative();
       }
