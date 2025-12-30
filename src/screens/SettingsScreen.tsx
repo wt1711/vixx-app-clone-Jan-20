@@ -1,9 +1,9 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { ChevronLeft, Sparkles, LogOut } from 'lucide-react-native';
+import { ChevronLeft, LogOut } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { colors, gradients } from '../theme';
 
@@ -51,7 +51,12 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
         <View style={styles.section}>
           <View style={styles.sectionRow}>
             <View style={styles.sectionLeft}>
-              <Sparkles color={colors.accent.purple} size={24} />
+              <Image
+                source={{
+                  uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/90ic679nh3wp43mbosisg',
+                }}
+                style={styles.vixxLogo}
+              />
               <Text style={styles.sectionLabel}>VIXX Credits</Text>
             </View>
             <Text style={styles.sectionValue}>{aiTokens}</Text>
@@ -120,6 +125,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  vixxLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'white',
   },
   sectionLabel: {
     fontSize: 16,

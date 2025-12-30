@@ -1,25 +1,33 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  TouchableOpacity, 
-  Modal, 
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Modal,
   Alert,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import CookieManager from '@react-native-cookies/cookies';
+import LinearGradient from 'react-native-linear-gradient';
+import { gradients } from '../theme';
 
 interface LoginInstagramModalProps {
-    open: boolean;
-    onClose: () => void;
-    onSubmit: (cookies: any) => void;
-    isInstagramConnected: boolean;
-    isConnecting: boolean;
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (cookies: any) => void;
+  isInstagramConnected: boolean;
+  isConnecting: boolean;
 }
 
-export default function LoginInstagramModal({ open, onClose, onSubmit, isInstagramConnected, isConnecting }: LoginInstagramModalProps) {
+export default function LoginInstagramModal({
+  open,
+  onClose,
+  onSubmit,
+  isInstagramConnected,
+  isConnecting,
+}: LoginInstagramModalProps) {
   const [cookies, setCookies] = useState<any>(null);
   const webViewRef = useRef<WebView>(null);
   const [syncReady, setSyncReady] = useState(false);
@@ -30,33 +38,32 @@ export default function LoginInstagramModal({ open, onClose, onSubmit, isInstagr
   };
 
   const validateCookiesToSync = (newCookies?: any) => {
-     const payload = {
-        rur: getCookieVal('rur', newCookies) || '',
-        ps_n: getCookieVal('ps_n', newCookies) || '',
-        ps_l: getCookieVal('ps_l', newCookies) || '',
-        ds_user_id: getCookieVal('ds_user_id', newCookies) || '',
-        mid: getCookieVal('mid', newCookies) || '',
-        ig_did: getCookieVal('ig_did', newCookies) || '',
-        sessionid: getCookieVal('sessionid', newCookies) || '',
-        datr: getCookieVal('datr', newCookies) || '',
-        dpr: getCookieVal('dpr', newCookies) || '',
-        wd: getCookieVal('wd', newCookies) || '',
-        csrftoken: getCookieVal('csrftoken', newCookies) || '',
-      };
-      return {
-        payload,
-        isValidCookies: (
-          payload.ds_user_id &&
-          payload.sessionid &&
-          payload.rur &&
-          payload.mid &&
-          payload.ig_did &&
-          payload.csrftoken &&
-          payload.wd &&
-          payload.datr
-        ),
-      };
-  }
+    const payload = {
+      rur: getCookieVal('rur', newCookies) || '',
+      ps_n: getCookieVal('ps_n', newCookies) || '',
+      ps_l: getCookieVal('ps_l', newCookies) || '',
+      ds_user_id: getCookieVal('ds_user_id', newCookies) || '',
+      mid: getCookieVal('mid', newCookies) || '',
+      ig_did: getCookieVal('ig_did', newCookies) || '',
+      sessionid: getCookieVal('sessionid', newCookies) || '',
+      datr: getCookieVal('datr', newCookies) || '',
+      dpr: getCookieVal('dpr', newCookies) || '',
+      wd: getCookieVal('wd', newCookies) || '',
+      csrftoken: getCookieVal('csrftoken', newCookies) || '',
+    };
+    return {
+      payload,
+      isValidCookies:
+        payload.ds_user_id &&
+        payload.sessionid &&
+        payload.rur &&
+        payload.mid &&
+        payload.ig_did &&
+        payload.csrftoken &&
+        payload.wd &&
+        payload.datr,
+    };
+  };
 
   // Request cookies from the WebView via injected JavaScript (Expo Go compatible)
   const extractCookies = async () => {
@@ -79,14 +86,17 @@ export default function LoginInstagramModal({ open, onClose, onSubmit, isInstagr
         console.log('All Instagram Cookies (including HttpOnly):', allCookies);
 
         const newCookies = Object.fromEntries(
-          Object.entries(allCookies).map(([key, value]) => [key, value.value])
+          Object.entries(allCookies).map(([key, value]) => [key, value.value]),
         );
 
-        console.log('All Instagram Cookies (including HttpOnly) after parsed:', newCookies);
-        
+        console.log(
+          'All Instagram Cookies (including HttpOnly) after parsed:',
+          newCookies,
+        );
+
         // Update cookies state with all cookies
-        const {isValidCookies} = validateCookiesToSync(newCookies);
-        if (isValidCookies && !autoConnectAttemptedRef.current){
+        const { isValidCookies } = validateCookiesToSync(newCookies);
+        if (isValidCookies && !autoConnectAttemptedRef.current) {
           autoConnectAttemptedRef.current = true;
           setCookies(newCookies);
         }
@@ -101,7 +111,10 @@ export default function LoginInstagramModal({ open, onClose, onSubmit, isInstagr
 
   const onNavigationStateChange = (navState: any) => {
     // Check if user is logged in by looking at the URL
-    if (navState.url.includes('instagram.com') && !navState.url.includes('login')) {
+    if (
+      navState.url.includes('instagram.com') &&
+      !navState.url.includes('login')
+    ) {
       console.log('User might be logged in, URL:', navState.url);
       extractCookies();
     }
@@ -124,7 +137,7 @@ export default function LoginInstagramModal({ open, onClose, onSubmit, isInstagr
     // if (payload?.type === 'COOKIES') {
     //   const parsed = parseCookieString(payload.cookies || '');
     //   console.log('Instagram Cookies (document.cookie):', parsed);
-      
+
     //   // Merge with existing cookies from CookieManager if available
     //   if (cookies && typeof cookies === 'object') {
     //     setCookies({ ...cookies, ...parsed });
@@ -149,47 +162,62 @@ export default function LoginInstagramModal({ open, onClose, onSubmit, isInstagr
   useEffect(() => {
     if (cookies && !syncReady) {
       console.log('handleConnectInstagram');
-        handleConnectInstagram();
+      handleConnectInstagram();
       setSyncReady(true);
     }
-  },[cookies]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [cookies]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Modal
-        visible={open}
-        animationType="slide"
-        presentationStyle="fullScreen"
-      >
-        <SafeAreaProvider>
-          <SafeAreaView edges={['top','bottom']} style={styles.modalContainer}>
-            <View style={styles.header}>
-              <TouchableOpacity style={styles.closeButton} onPress={handleCloseWebView} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Text style={styles.closeButtonText}>✕</Text>
+    <Modal visible={open} animationType="slide" presentationStyle="fullScreen">
+      <SafeAreaProvider>
+        <SafeAreaView edges={['top', 'bottom']} style={styles.modalContainer}>
+          <LinearGradient
+            colors={[...gradients.screenBackground]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={handleCloseWebView}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+            {syncReady ? (
+              <TouchableOpacity
+                style={[
+                  styles.extractButton,
+                  isConnecting && styles.buttonDisabled,
+                ]}
+                onPress={handleConnectInstagram}
+                disabled={isConnecting}
+              >
+                <Text style={styles.extractButtonText}>
+                  {isConnecting ? 'Syncing your instagram…' : 'Sync Instagram'}
+                </Text>
               </TouchableOpacity>
-              {syncReady ? (
-                <TouchableOpacity style={[styles.extractButton, isConnecting && styles.buttonDisabled]} onPress={handleConnectInstagram} disabled={isConnecting}>
-                  <Text style={styles.extractButtonText}>{isConnecting ? 'Syncing your instagram…' : 'Sync Instagram'}</Text>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-            
-            <WebView
-              ref={webViewRef}
-              source={{ uri: 'https://www.instagram.com/accounts/login/' }}
-              style={styles.webview}
-              onNavigationStateChange={onNavigationStateChange}
-              onMessage={onMessage}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              startInLoadingState={true}
-              scalesPageToFit={true}
-              sharedCookiesEnabled={true}
-              thirdPartyCookiesEnabled={true}
-              userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
-            />
-          </SafeAreaView>
-        </SafeAreaProvider>
-      </Modal>
+            ) : null}
+          </View>
+
+          <WebView
+            ref={webViewRef}
+            source={{ uri: 'https://www.instagram.com/accounts/login/' }}
+            style={styles.webview}
+            onNavigationStateChange={onNavigationStateChange}
+            onMessage={onMessage}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            scalesPageToFit={true}
+            sharedCookiesEnabled={true}
+            thirdPartyCookiesEnabled={true}
+            userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
+          />
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </Modal>
   );
 }
 
