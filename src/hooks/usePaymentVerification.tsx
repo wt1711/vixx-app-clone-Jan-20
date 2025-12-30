@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PaymentStorageService, PaymentStatusResponse } from '../services/paymentStorageService';
+import { PaymentStorageService, PaymentStatusResponse } from '../services/payment/paymentStorageService';
 
 interface PaymentVerificationState {
   isLoading: boolean;

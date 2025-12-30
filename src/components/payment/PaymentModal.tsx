@@ -9,8 +9,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { stripePaymentService } from '../../services/stripePaymentService';
-import { paymentStorageService } from '../../services/paymentStorageService';
+import { stripePaymentService } from '../../services/payment/stripePaymentService';
+import { paymentStorageService } from '../../services/payment/paymentStorageService';
 
 type PaymentModalProps = {
   visible: boolean;
