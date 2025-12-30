@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,8 +10,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LoginInstagramModal from '../components/LoginInstagramModal';
-import { InstagramIcon } from 'lucide-react-native';
-import { AuthService, SystemSettingKey, SystemSettings, SystemSettingsService } from '../services/apiService';
+import { InstagramIcon, SettingsIcon } from 'lucide-react-native';
+import {
+  AuthService,
+  SystemSettingKey,
+  SystemSettings,
+  SystemSettingsService,
+} from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme';
 
@@ -21,7 +26,9 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSystemSettingsLoading, setIsSystemSettingsLoading] = useState(false);
   const authService = AuthService.getInstance();
-  const [systemSettings, setSystemSettings] = useState<SystemSettings[] | undefined>(undefined);
+  const [systemSettings, setSystemSettings] = useState<
+    SystemSettings[] | undefined
+  >(undefined);
   const systemSettingsService = SystemSettingsService.getInstance();
   const { restoreSession, matrixToken } = useAuth();
 
@@ -43,13 +50,25 @@ export default function Login() {
 
   const handleLoginAlternative = async () => {
     setIsLoading(true);
-    const settings = systemSettings?.find((setting) => setting.key === SystemSettingKey.USE_ALTERNATIVE_LOGIN_METHOD);
+    const settings = systemSettings?.find(
+      setting => setting.key === SystemSettingKey.USE_ALTERNATIVE_LOGIN_METHOD,
+    );
     if (settings && settings.value === 'true') {
-      const username = systemSettings?.find((setting) => setting.key === SystemSettingKey.ALTINATIVE_LOGIN_ID)?.value;
-      const password = systemSettings?.find((setting) => setting.key === SystemSettingKey.ALTINATIVE_LOGIN_PASSWORD)?.value;
-      const matrixHost = systemSettings?.find((setting) => setting.key === SystemSettingKey.ALTERNATIVE_LOGIN_HOST)?.value;
+      const username = systemSettings?.find(
+        setting => setting.key === SystemSettingKey.ALTINATIVE_LOGIN_ID,
+      )?.value;
+      const password = systemSettings?.find(
+        setting => setting.key === SystemSettingKey.ALTINATIVE_LOGIN_PASSWORD,
+      )?.value;
+      const matrixHost = systemSettings?.find(
+        setting => setting.key === SystemSettingKey.ALTERNATIVE_LOGIN_HOST,
+      )?.value;
       if (username && password && matrixHost) {
-        const result = await authService.loginAlternative(username, password, matrixHost);
+        const result = await authService.loginAlternative(
+          username,
+          password,
+          matrixHost,
+        );
         if (result) {
           console.log('Login alternative successful');
           await restoreSession();
@@ -73,18 +92,36 @@ export default function Login() {
     }
   };
 
-  const onLogin = async () => {
-    const useAlternativeLoginMethod = systemSettings?.find((setting: SystemSettings) => setting.key === SystemSettingKey.USE_ALTERNATIVE_LOGIN_METHOD)?.value === 'true';
-    if (useAlternativeLoginMethod) {
-      await handleLoginAlternative();
+  const onLogin = () => {
+    setOpen(true);
+  };
+
+  const isAlternativeLoginEnabled =
+    systemSettings?.find(
+      (setting: SystemSettings) =>
+        setting.key === SystemSettingKey.USE_ALTERNATIVE_LOGIN_METHOD,
+    )?.value === 'true';
+
+  const tapCountRef = useRef(0);
+  const lastTapRef = useRef(0);
+
+  const handleTripleTap = () => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 400) {
+      tapCountRef.current += 1;
+      if (tapCountRef.current >= 5) {
+        tapCountRef.current = 0;
+        handleLoginAlternative();
+      }
     } else {
-      setOpen(true);
+      tapCountRef.current = 1;
     }
+    lastTapRef.current = now;
   };
 
   useEffect(() => {
     if (systemSettingsService) {
-      getSystemSettings()
+      getSystemSettings();
     }
   }, [systemSettingsService]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -131,6 +168,16 @@ export default function Login() {
         isInstagramConnected={matrixToken !== null}
         isConnecting={isLoading}
       />
+      {isAlternativeLoginEnabled && (
+        <TouchableOpacity
+          onPress={handleTripleTap}
+          disabled={isLoading}
+          activeOpacity={1}
+          style={styles.hiddenButton}
+        >
+          <SettingsIcon color={colors.transparent.white20} size={20} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -164,6 +211,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
+  },
+  hiddenButton: {
+    position: 'absolute',
+    bottom: 40,
+    right: 20,
+    padding: 12,
   },
   buttonContent: {
     flexDirection: 'row',
