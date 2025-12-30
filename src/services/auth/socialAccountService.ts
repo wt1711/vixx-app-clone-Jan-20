@@ -82,7 +82,7 @@ export class SocialAccountService {
         }
         return false;
       }
-      AsyncStorage.setItem(LAST_SOCIAL_ACCOUNTS_SYNC_KEY, new Date().toISOString());
+      await AsyncStorage.setItem(LAST_SOCIAL_ACCOUNTS_SYNC_KEY, new Date().toISOString());
       this.needSync = false;
       return true;
     }
