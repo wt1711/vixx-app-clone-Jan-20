@@ -11,7 +11,8 @@ import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import CookieManager from '@react-native-cookies/cookies';
 import LinearGradient from 'react-native-linear-gradient';
-import { gradients } from '../theme';
+import { RefreshCw } from 'lucide-react-native';
+import { colors, gradients } from '../theme';
 
 interface LoginInstagramModalProps {
   open: boolean;
@@ -190,8 +191,15 @@ export default function LoginInstagramModal({
                   disabled={isConnecting}
                 >
                   <Text style={styles.extractButtonText}>
-                    {isConnecting ? 'Syncing your instagram…' : 'Sync Instagram'}
+                    {isConnecting ? 'Syncing…' : 'Sync'}
                   </Text>
+                  {isConnecting ? null : (
+                    <RefreshCw
+                      color={colors.accent.primary}
+                      size={14}
+                      style={styles.syncIcon}
+                    />
+                  )}
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -255,32 +263,33 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   closeButton: {
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#ff4444',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    shadowColor: '#ff4444',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
+    borderColor: colors.border.light,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 9999,
   },
   closeButtonText: {
-    color: '#ff4444',
+    color: colors.text.primary,
     fontWeight: 'bold',
     fontSize: 16,
     lineHeight: 18,
   },
   extractButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: colors.border.light,
+    borderWidth: 1,
+    paddingHorizontal: 20,
     paddingVertical: 8,
-    borderRadius: 15,
+    borderRadius: 12,
+  },
+  syncIcon: {
+    marginLeft: 6,
   },
   extractButtonText: {
-    color: 'white',
+    color: colors.accent.primary,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   webview: {
