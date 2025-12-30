@@ -10,6 +10,8 @@ import {
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import CookieManager from '@react-native-cookies/cookies';
+import LinearGradient from 'react-native-linear-gradient';
+import { gradients } from '../theme';
 
 interface LoginInstagramModalProps {
   open: boolean;
@@ -169,6 +171,12 @@ export default function LoginInstagramModal({
     <Modal visible={open} animationType="slide" presentationStyle="fullScreen">
       <SafeAreaProvider>
         <SafeAreaView edges={['top', 'bottom']} style={styles.modalContainer}>
+          <LinearGradient
+            colors={[...gradients.screenBackground]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={styles.header}>
             <TouchableOpacity
               style={styles.closeButton}
