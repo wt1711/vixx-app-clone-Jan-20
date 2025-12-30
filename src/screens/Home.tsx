@@ -24,6 +24,14 @@ export default function Home() {
     ? 'detail'
     : 'list';
 
+  // Reset navigation state on logout
+  useEffect(() => {
+    if (!matrixToken) {
+      setShowSettings(false);
+      setSelectedRoomId(null);
+    }
+  }, [matrixToken]);
+
   // Handle Android back button
   useEffect(() => {
     if (Platform.OS !== 'android') return;
