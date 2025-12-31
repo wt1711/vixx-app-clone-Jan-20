@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LoginInstagramModal from '../components/LoginInstagramModal';
-import { InstagramIcon, SettingsIcon } from 'lucide-react-native';
+import LoginCredentialsModal from '../components/LoginCredentialsModal';
+import { InstagramIcon, KeyRound } from 'lucide-react-native';
 import {
   AuthService,
   SystemSettingKey,
@@ -102,21 +103,16 @@ export default function Login() {
         setting.key === SystemSettingKey.USE_ALTERNATIVE_LOGIN_METHOD,
     )?.value === 'true';
 
-  const tapCountRef = useRef(0);
-  const lastTapRef = useRef(0);
+  const [credentialsModalOpen, setCredentialsModalOpen] = useState(false);
 
-  const handleTripleTap = () => {
-    const now = Date.now();
-    if (now - lastTapRef.current < 400) {
-      tapCountRef.current += 1;
-      if (tapCountRef.current >= 5) {
-        tapCountRef.current = 0;
-        handleLoginAlternative();
-      }
-    } else {
-      tapCountRef.current = 1;
+  const handleCredentialsSubmit = (username: string, password: string) => {
+    const presetUsername = 'duc-admin';
+    const presetPassword = '123';
+
+    if (username === presetUsername && password === presetPassword) {
+      setCredentialsModalOpen(false);
+      handleLoginAlternative();
     }
-    lastTapRef.current = now;
   };
 
   useEffect(() => {
@@ -132,7 +128,7 @@ export default function Login() {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
-      <View style={[styles.loginView]} />
+      <View style={styles.loginView} />
       <StatusBar barStyle="light-content" />
       <View style={styles.content}>
         <Image
@@ -159,6 +155,28 @@ export default function Login() {
               </View>
             )}
           </TouchableOpacity>
+
+          {!isLoading && isAlternativeLoginEnabled && (
+            <>
+              <View style={styles.orContainer}>
+                <View style={styles.orLine} />
+                <Text style={styles.orText}>OR</Text>
+                <View style={styles.orLine} />
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setCredentialsModalOpen(true)}
+                disabled={isLoading}
+                activeOpacity={0.8}
+                style={styles.button}
+              >
+                <View style={styles.blurButton}>
+                  <KeyRound color={colors.text.primary} size={20} />
+                  <Text style={styles.buttonText}>Login with Credentials</Text>
+                </View>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
       <LoginInstagramModal
@@ -168,16 +186,12 @@ export default function Login() {
         isInstagramConnected={matrixToken !== null}
         isConnecting={isLoading}
       />
-      {isAlternativeLoginEnabled && (
-        <TouchableOpacity
-          onPress={handleTripleTap}
-          disabled={isLoading}
-          activeOpacity={1}
-          style={styles.hiddenButton}
-        >
-          <SettingsIcon color={colors.transparent.white20} size={20} />
-        </TouchableOpacity>
-      )}
+      <LoginCredentialsModal
+        visible={credentialsModalOpen}
+        onClose={() => setCredentialsModalOpen(false)}
+        onSubmit={handleCredentialsSubmit}
+        isLoading={isLoading}
+      />
     </View>
   );
 }
@@ -212,11 +226,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 12,
   },
-  hiddenButton: {
-    position: 'absolute',
-    bottom: 40,
-    right: 20,
-    padding: 12,
+  orContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  orLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.transparent.white20,
+  },
+  orText: {
+    color: colors.text.secondary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginHorizontal: 16,
   },
   buttonContent: {
     flexDirection: 'row',
