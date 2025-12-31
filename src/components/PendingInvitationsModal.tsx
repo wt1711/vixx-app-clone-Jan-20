@@ -106,30 +106,30 @@ const PendingInvitationsModal = ({
     ]);
   };
 
-  const handleReject = async (room: Room) => {
-    if (!mx || processingRoomId) return;
+  // const handleReject = async (room: Room) => {
+  //   if (!mx || processingRoomId) return;
 
-    setProcessingRoomId({ roomId: room.roomId, action: 'reject' });
-    try {
-      await mx.leave(room.roomId);
-      Alert.alert('Success', 'Invitation rejected');
-      // Remove from list after successful leave
-      setRoomItems(prev => prev.filter(item => item.roomId !== room.roomId));
-    } catch (error: any) {
-      console.error('Failed to reject invitation:', error);
-      Alert.alert('Error', error.message || 'Failed to reject invitation');
-    } finally {
-      setProcessingRoomId(null);
-    }
-  };
+  //   setProcessingRoomId({ roomId: room.roomId, action: 'reject' });
+  //   try {
+  //     await mx.leave(room.roomId);
+  //     Alert.alert('Success', 'Invitation rejected');
+  //     // Remove from list after successful leave
+  //     setRoomItems(prev => prev.filter(item => item.roomId !== room.roomId));
+  //   } catch (error: any) {
+  //     console.error('Failed to reject invitation:', error);
+  //     Alert.alert('Error', error.message || 'Failed to reject invitation');
+  //   } finally {
+  //     setProcessingRoomId(null);
+  //   }
+  // };
 
   const renderItem = ({ item }: { item: RoomItemData }) => {
     const isProcessing =
       processingRoomId?.roomId === item.roomId &&
       processingRoomId.action === 'accept';
-    const isRejecting =
-      processingRoomId?.roomId === item.roomId &&
-      processingRoomId.action === 'reject';
+    // const isRejecting =
+    //   processingRoomId?.roomId === item.roomId &&
+    //   processingRoomId.action === 'reject';
 
     return (
       <View style={styles.roomItem}>
@@ -188,7 +188,6 @@ const PendingInvitationsModal = ({
   return (
     <Modal
       visible={visible}
-      transparent
       animationType="fade"
       presentationStyle="fullScreen"
       onRequestClose={onClose}
