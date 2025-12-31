@@ -44,7 +44,6 @@ const LoginCredentialsModal = ({
       visible={visible}
       transparent
       animationType="fade"
-      presentationStyle="fullScreen"
       onRequestClose={handleClose}
     >
       <SafeAreaProvider>
