@@ -13,6 +13,7 @@ import CookieManager from '@react-native-cookies/cookies';
 import LinearGradient from 'react-native-linear-gradient';
 import { RefreshCw } from 'lucide-react-native';
 import { colors, gradients } from '../theme';
+import SyncingInstagramModal from './SyncingInstagramModal';
 
 interface LoginInstagramModalProps {
   open: boolean;
@@ -167,6 +168,10 @@ export default function LoginInstagramModal({
       setSyncReady(true);
     }
   }, [cookies]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (syncReady && isConnecting) {
+    return <SyncingInstagramModal visible={open} />;
+  }
 
   return (
     <Modal visible={open} animationType="slide" presentationStyle="fullScreen">
