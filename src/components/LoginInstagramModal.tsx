@@ -23,6 +23,9 @@ interface LoginInstagramModalProps {
   isConnecting: boolean;
 }
 
+const INSTAGRAM_LOGIN_URL = 'https://www.instagram.com/accounts/login/';
+const INSTAGRAM_HOME_URL = 'https://www.instagram.com';
+
 export default function LoginInstagramModal({
   open,
   onClose,
@@ -34,9 +37,17 @@ export default function LoginInstagramModal({
   const webViewRef = useRef<WebView>(null);
   const [syncReady, setSyncReady] = useState(false);
   const autoConnectAttemptedRef = useRef(false);
+  const [showConnectOptions, setShowConnectOptions] = useState(false);
+  const [lastParsedCookies, setLastParsedCookies] = useState('');
+  const jsCookiesRef = useRef<Record<string, string>>({});
 
   const handleCloseWebView = () => {
     onClose();
+    setSyncReady(false);
+    setCookies(null);
+    autoConnectAttemptedRef.current = false;
+    jsCookiesRef.current = {}; // Clear JavaScript cookies ref
+    setShowConnectOptions(false);
   };
 
   const validateCookiesToSync = (newCookies?: any) => {
@@ -72,36 +83,56 @@ export default function LoginInstagramModal({
     try {
       if (isInstagramConnected || !open) return;
       // First, get cookies via JavaScript (non-HttpOnly)
+      // Wait for document to be ready before injecting
       webViewRef.current?.injectJavaScript(`
         (function() {
-          try {
-            var cookieStr = document.cookie || '';
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'COOKIES', cookies: cookieStr }));
-          } catch (e) {}
+          function extractCookies() {
+            try {
+              var cookieStr = document.cookie || '';
+              if (cookieStr) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'COOKIES', cookies: cookieStr }));
+              }
+            } catch (e) {
+              console.error('Error extracting cookies:', e);
+            }
+          }
+          
+          if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            extractCookies();
+          } else {
+            document.addEventListener('DOMContentLoaded', extractCookies);
+            window.addEventListener('load', extractCookies);
+          }
           true;
         })();
       `);
 
       // Also try to get all cookies including HttpOnly ones using CookieManager
       try {
-        const allCookies = await CookieManager.get('https://www.instagram.com');
+        const allCookies = await CookieManager.get(INSTAGRAM_HOME_URL, true);
         console.log('All Instagram Cookies (including HttpOnly):', allCookies);
 
-        const newCookies = Object.fromEntries(
+        const cookieManagerCookies = Object.fromEntries(
           Object.entries(allCookies).map(([key, value]) => [key, value.value]),
         );
 
         console.log(
           'All Instagram Cookies (including HttpOnly) after parsed:',
-          newCookies,
+          cookieManagerCookies,
         );
 
+        // Merge with JavaScript cookies from document.cookie (stored in ref)
+        const mergedCookies = { ...cookieManagerCookies, ...jsCookiesRef.current };
+
         // Update cookies state with all cookies
-        const { isValidCookies } = validateCookiesToSync(newCookies);
+        const { isValidCookies } = validateCookiesToSync(mergedCookies);
+        console.log('Merged cookies (CookieManager + JavaScript):', mergedCookies);
+        console.log('isValidCookies', isValidCookies, !autoConnectAttemptedRef.current);
+
         if (isValidCookies && !autoConnectAttemptedRef.current) {
           autoConnectAttemptedRef.current = true;
-          setCookies(newCookies);
-        }
+          setCookies(mergedCookies);
+        } 
       } catch (cookieError) {
         console.error('Error getting cookies with CookieManager:', cookieError);
       }
@@ -136,17 +167,35 @@ export default function LoginInstagramModal({
       return;
     }
 
-    // if (payload?.type === 'COOKIES') {
-    //   const parsed = parseCookieString(payload.cookies || '');
-    //   console.log('Instagram Cookies (document.cookie):', parsed);
+    if (payload?.type === 'LOGOUT_COMPLETE') {
+      console.log('Logout completed from Instagram');
+      return;
+    }
 
-    //   // Merge with existing cookies from CookieManager if available
-    //   if (cookies && typeof cookies === 'object') {
-    //     setCookies({ ...cookies, ...parsed });
-    //   } else {
-    //     setCookies(parsed);
-    //   }
-    // }
+    if (payload?.type === 'COOKIES' && lastParsedCookies !== payload.cookies) {
+      const parsed = parseCookieString(payload.cookies || '');
+      setLastParsedCookies(payload.cookies || '');
+      console.log('Instagram Cookies (document.cookie):', parsed);
+      
+      // Store JavaScript cookies in ref for merging
+      jsCookiesRef.current = parsed;
+
+      // Merge with existing cookies from CookieManager if available
+      let newCookies = parsed;
+      if (cookies && typeof cookies === 'object') {
+        newCookies = { ...cookies, ...parsed };
+      }
+      const { isValidCookies } = validateCookiesToSync(newCookies);
+      if (isValidCookies) {
+        setCookies(newCookies);
+      }
+
+      
+      // Also trigger cookie extraction from CookieManager to merge HttpOnly cookies
+      setTimeout(() => {
+        extractCookies();
+      }, 100);
+    }
   };
 
   const getCookieVal = (name: string, newCookies: any) => {
@@ -157,15 +206,121 @@ export default function LoginInstagramModal({
     return typeof val === 'string' ? val : val?.value;
   };
 
-  const handleConnectInstagram = () => {
-    onSubmit(cookies);
+  const parseCookieString = (cookieStr: string): Record<string, string> => {
+    const parsedCookies: Record<string, string> = {};
+    if (!cookieStr) return parsedCookies;
+    
+    cookieStr.split(';').forEach((cookie) => {
+      const [name, ...valueParts] = cookie.trim().split('=');
+      if (name && valueParts.length > 0) {
+        parsedCookies[name] = valueParts.join('=');
+      }
+    });
+    
+    return parsedCookies;
   };
 
+  const handleConnectInstagram = () => {
+    onSubmit(cookies);
+    setSyncReady(true);
+  };
+
+  const handleClearCacheAndLoginNewSession = async () => {
+    try {
+      const csrftoken = getCookieVal('csrftoken', cookies);
+      
+      // Step 1: Logout from Instagram servers first (detach session via WebView)
+      // This ensures Instagram knows the session is ended before we clear cookies
+      if (csrftoken && webViewRef.current) {
+        // Use WebView to call logout endpoint so it uses the correct cookies
+        webViewRef.current.injectJavaScript(`
+          (function() {
+            const csrftoken = '${csrftoken}';
+            // Call Instagram logout endpoint to properly detach the session
+            fetch('https://www.instagram.com/accounts/logout/', {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Referer': 'https://www.instagram.com/',
+              },
+              credentials: 'include',
+            })
+            .then(() => {
+              // After logout, clear cookies and redirect
+              document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+              });
+              // Signal that logout is complete
+              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOGOUT_COMPLETE' }));
+            })
+            .catch(() => {
+              // Even if logout fails, proceed with clearing
+              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOGOUT_COMPLETE' }));
+            });
+            true;
+          })();
+        `);
+        
+        // Wait a moment for logout to complete, then proceed with clearing
+        await new Promise<void>(resolve => setTimeout(() => resolve(), 500));
+      }
+
+      // Step 2: Clear cookies from WebView via JavaScript (if not already done)
+      if (!csrftoken) {
+        webViewRef.current?.injectJavaScript(`
+          (function() {
+            document.cookie.split(";").forEach(function(c) { 
+              document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            true;
+          })();
+        `);
+      }
+
+      // Step 3: Clear cookies using NitroCookies (including WebKit cookies)
+      console.log('cookies', cookies)
+      await Promise.all(
+        Object.keys(cookies || {}).map(el => 
+          CookieManager.clearByName(INSTAGRAM_HOME_URL, el, true)
+        )
+      );
+      await CookieManager.clearAll(true);
+      await CookieManager.flush();
+
+      // Step 4: Clear WebView cache and history
+      webViewRef.current?.clearCache(true);
+      webViewRef.current?.clearHistory?.();
+
+      // Step 5: Reset state
+      setShowConnectOptions(false);
+      setCookies(null);
+      setSyncReady(false);
+      autoConnectAttemptedRef.current = false;
+      jsCookiesRef.current = {}; // Clear JavaScript cookies ref
+      setLastParsedCookies(''); // Reset parsed cookies state
+
+      // Step 6: Navigate to login page
+      webViewRef.current?.injectJavaScript(`window.location.href = "${INSTAGRAM_LOGIN_URL}";`);
+    } catch (error) {
+      console.error('Error during logout and cache clear:', error);
+      // Even if logout fails, still try to clear and redirect
+      await CookieManager.clearAll(true);
+      webViewRef.current?.clearCache(true);
+      webViewRef.current?.injectJavaScript(`window.location.href = "${INSTAGRAM_LOGIN_URL}";`);
+      setShowConnectOptions(false);
+      setCookies(null);
+      setSyncReady(false);
+      autoConnectAttemptedRef.current = false;
+      jsCookiesRef.current = {};
+    }
+  }
+
+  console.log('syncReady', syncReady, 'cookies', cookies, 'jsCookiesRef', jsCookiesRef, 'cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0', cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0)
+
   useEffect(() => {
-    if (cookies && !syncReady) {
-      console.log('handleConnectInstagram');
-      handleConnectInstagram();
-      setSyncReady(true);
+    if (cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0) {
+      setShowConnectOptions(true);
     }
   }, [cookies]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -219,9 +374,23 @@ export default function LoginInstagramModal({
             </View>
           </View>
 
+          {showConnectOptions ? (
+            <View style={styles.connectOptionsContainer}>
+              <Text style={styles.connectOptionsTitle}> Account detected, please choose an option</Text>
+              <View style={styles.connectOptionsButtonsContainer}>
+              <TouchableOpacity onPress={handleConnectInstagram} style={styles.connectOptionsButton}>
+                <Text style={styles.connectOptionsButtonText}>Connect by this account</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleClearCacheAndLoginNewSession} style={styles.connectOptionsWarningButton}>
+                <Text style={styles.connectOptionsButtonText}>Logout and login new instagram account</Text>
+              </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
+
           <WebView
             ref={webViewRef}
-            source={{ uri: 'https://www.instagram.com/accounts/login/' }}
+            source={{ uri: INSTAGRAM_LOGIN_URL }}
             style={styles.webview}
             onNavigationStateChange={onNavigationStateChange}
             onMessage={onMessage}
@@ -299,5 +468,45 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
+  },
+  connectOptionsContainer: {
+    padding: 24,
+    gap: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  connectOptionsButtonsContainer: {
+    flexDirection: 'column',
+    gap: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  connectOptionsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+    color: colors.text.primary,
+  },
+  connectOptionsButton: {
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  connectOptionsWarningButton: {
+    backgroundColor: colors.status.error,
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  connectOptionsButtonText: {
+    color: colors.text.primary,
+  },
+  connectOptionsButtonTextActive: {
+    color: colors.accent.primary,
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
