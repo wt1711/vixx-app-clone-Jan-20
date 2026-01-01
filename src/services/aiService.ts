@@ -44,10 +44,12 @@ export async function getOpenAIConsultation({
 
 export async function generateResponseFromMessage({
   message,
+  lastMsgTimeStamp,
   context,
   spec,
 }: {
   message: string;
+  lastMsgTimeStamp: string;
   context: Message[];
   spec: object;
 }): Promise<string> {
@@ -61,6 +63,7 @@ export async function generateResponseFromMessage({
       },
       body: JSON.stringify({
         message,
+        lastMsgTimeStamp,
         context,
         spec,
       }),

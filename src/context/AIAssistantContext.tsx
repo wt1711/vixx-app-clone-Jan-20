@@ -1,7 +1,18 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+  useMemo,
+} from 'react';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../matrixClient';
-import { getOpenAIConsultation, generateResponseFromMessage, gradeMessage } from '../services/aiService';
+import {
+  getOpenAIConsultation,
+  generateResponseFromMessage,
+  gradeMessage,
+} from '../services/aiService';
 import { isMessageFromMe, getLastReceivedMessageBatch } from '../utils/room';
 
 type ChatMessage = {
@@ -32,7 +43,9 @@ type AIAssistantContextType = {
   gradeEditorText: (text: string) => void;
 };
 
-const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
+const AIAssistantContext = createContext<AIAssistantContextType | undefined>(
+  undefined,
+);
 
 type AIAssistantProviderProps = {
   children: ReactNode;
@@ -40,7 +53,11 @@ type AIAssistantProviderProps = {
   isMobile: boolean;
 };
 
-export function AIAssistantProvider({ children, room, isMobile }: AIAssistantProviderProps) {
+export function AIAssistantProvider({
+  children,
+  room,
+  isMobile,
+}: AIAssistantProviderProps) {
   const [inputValue, setInputValue] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +74,7 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
   const myUserId = mx?.getUserId();
 
   const toggleAIAssistant = useCallback((isOpen?: boolean) => {
-    setIsAIAssistantOpen((prev) => {
+    setIsAIAssistantOpen(prev => {
       const newIsOpen = isOpen ?? !prev;
       if (!newIsOpen) {
         setGeneratedResponse('');
@@ -74,7 +91,10 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
           (cleanedResponse.startsWith('"') && cleanedResponse.endsWith('"')) ||
           (cleanedResponse.startsWith("'") && cleanedResponse.endsWith("'"))
         ) {
-          cleanedResponse = cleanedResponse.substring(1, cleanedResponse.length - 1);
+          cleanedResponse = cleanedResponse.substring(
+            1,
+            cleanedResponse.length - 1,
+          );
         }
         // In React Native, we would insert this into the message input
         // For now, we'll just set it as input value
@@ -84,7 +104,7 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
         }
       }
     },
-    [isMobile]
+    [isMobile],
   );
 
   const generateInitialResponse = useCallback(async () => {
@@ -104,23 +124,37 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
         const timeline = room.getLiveTimeline().getEvents();
         const roomName = room.name || 'Unknown';
         const roomContext = timeline
-          .filter((event) => event.getSender() && event.getContent().body)
-          .map((event) => {
+          .filter(event => event.getSender() && event.getContent().body)
+          .map(event => {
             const sender = event.getSender() as string;
             const senderMember = room.getMember(sender);
-            const senderName = senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
+            const senderName =
+              senderMember?.name ||
+              sender.split('@')[0]?.split(':')[0] ||
+              'Unknown';
             return {
               sender,
               text: event.getContent().body as string,
               timestamp: new Date(event.getTs()).toISOString(),
-              is_from_me: isMessageFromMe(sender, myUserId, roomName, senderName),
+              is_from_me: isMessageFromMe(
+                sender,
+                myUserId,
+                roomName,
+                senderName,
+              ),
             };
           });
 
-        const message = getLastReceivedMessageBatch(roomContext, 'Nói gì cũng được');
+        const { messageBatch, timestampStr } =
+          getLastReceivedMessageBatch(roomContext);
 
         console.log('Calling generateResponseFromMessage API...');
-        const response = await generateResponseFromMessage({ message, context: roomContext, spec });
+        const response = await generateResponseFromMessage({
+          message: messageBatch,
+          lastMsgTimeStamp: timestampStr,
+          context: roomContext,
+          spec,
+        });
         console.log('API response:', response);
         setGeneratedResponse(response);
         handleUseSuggestion(response);
@@ -131,7 +165,7 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
         setIsGeneratingResponse(false);
       }
     },
-    [room, mx, myUserId, handleUseSuggestion]
+    [room, mx, myUserId, handleUseSuggestion],
   );
 
   const handleSend = useCallback(async () => {
@@ -142,7 +176,7 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
       text: inputValue,
       timestamp: Date.now(),
     };
-    setChatHistory((prev) => [...prev, newUserMessage]);
+    setChatHistory(prev => [...prev, newUserMessage]);
     const question = inputValue;
     setInputValue('');
     setIsLoading(true);
@@ -152,11 +186,14 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
       const timeline = room.getLiveTimeline().getEvents();
       const roomName = room.name || 'Unknown';
       const roomContext = timeline
-        .filter((event) => event.getSender() && event.getContent().body)
-        .map((event) => {
+        .filter(event => event.getSender() && event.getContent().body)
+        .map(event => {
           const sender = event.getSender() as string;
           const senderMember = room.getMember(sender);
-          const senderName = senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
+          const senderName =
+            senderMember?.name ||
+            sender.split('@')[0]?.split(':')[0] ||
+            'Unknown';
           return {
             sender,
             text: event.getContent().body as string,
@@ -165,7 +202,9 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
           };
         });
 
-      const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
+      const lastNonUserMsg = [...roomContext]
+        .reverse()
+        .find(msg => !msg.is_from_me);
       const msgToGetResponse = lastNonUserMsg || {
         sender: 'system',
         text: 'Nói gì cũng được',
@@ -184,7 +223,7 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
         text: response,
         timestamp: Date.now(),
       };
-      setChatHistory((prev) => [...prev, aiResponse]);
+      setChatHistory(prev => [...prev, aiResponse]);
     } catch (error) {
       console.info('Error in handleSend:', error);
       const errorResponse: ChatMessage = {
@@ -192,7 +231,7 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
         text: 'Sorry, there was an error processing your request.',
         timestamp: Date.now(),
       };
-      setChatHistory((prev) => [...prev, errorResponse]);
+      setChatHistory(prev => [...prev, errorResponse]);
     } finally {
       setIsLoading(false);
     }
@@ -208,20 +247,31 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
         const timeline = room.getLiveTimeline().getEvents();
         const roomName = room.name || 'Unknown';
         const roomContext = timeline
-          .filter((event) => event.getSender() && event.getContent().body)
-          .map((event) => {
+          .filter(event => event.getSender() && event.getContent().body)
+          .map(event => {
             const sender = event.getSender() as string;
             const senderMember = room.getMember(sender);
-            const senderName = senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
+            const senderName =
+              senderMember?.name ||
+              sender.split('@')[0]?.split(':')[0] ||
+              'Unknown';
             return {
               sender,
               text: event.getContent().body as string,
               timestamp: new Date(event.getTs()).toISOString(),
-              is_from_me: isMessageFromMe(sender, myUserId, roomName, senderName),
+              is_from_me: isMessageFromMe(
+                sender,
+                myUserId,
+                roomName,
+                senderName,
+              ),
             };
           });
 
-        const score = await gradeMessage({ message: text, context: roomContext });
+        const score = await gradeMessage({
+          message: text,
+          context: roomContext,
+        });
         // Simple grade mapping
         const getReactionGrade = (newScore: number) => {
           if (newScore >= 80) return { emoji: '😊', grade: 'Excellent' };
@@ -235,7 +285,7 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
         setPrediction(null);
       }
     },
-    [room, mx, myUserId]
+    [room, mx, myUserId],
   );
 
   const value: AIAssistantContextType = useMemo(
@@ -273,18 +323,22 @@ export function AIAssistantProvider({ children, room, isMobile }: AIAssistantPro
       handleUseSuggestion,
       toggleAIAssistant,
       gradeEditorText,
-    ]
+    ],
   );
 
-  return <AIAssistantContext.Provider value={value}>{children}</AIAssistantContext.Provider>;
+  return (
+    <AIAssistantContext.Provider value={value}>
+      {children}
+    </AIAssistantContext.Provider>
+  );
 }
 
 export function useAIAssistant() {
   const context = useContext(AIAssistantContext);
   if (context === undefined) {
-    throw new Error('useAIAssistant must be used within an AIAssistantProvider');
+    throw new Error(
+      'useAIAssistant must be used within an AIAssistantProvider',
+    );
   }
   return context;
 }
-
-
