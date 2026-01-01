@@ -287,8 +287,8 @@ export const getLastRoomMessageAsync = async (
    */
   export const getLastReceivedMessageBatch = (
     roomContext: RoomContextMessage[],
-    fallback: string = ''
-  ): string => {
+    fallback: {messageBatch: string, timestampStr: string} = {messageBatch: '', timestampStr: ''}
+  ): {messageBatch: string, timestampStr: string} => {
     const reversed = [...roomContext].reverse();
     const batch: string[] = [];
 
@@ -297,7 +297,7 @@ export const getLastRoomMessageAsync = async (
 
     if (startIndex === -1) {
       // No received messages at all
-      return fallback;
+      return fallback || {messageBatch: '', timestampStr: ''};
     }
 
     // Collect consecutive non-user messages starting from startIndex
@@ -308,5 +308,7 @@ export const getLastRoomMessageAsync = async (
       batch.unshift(reversed[i].text);
     }
 
-    return batch.length > 0 ? batch.join('\n') : fallback;
+    const messageBatch = batch.length > 0 ? batch.join('\n') : fallback.messageBatch;
+    const timestampStr = batch.length > 0 ? reversed[startIndex].timestamp : fallback.timestampStr;
+    return {messageBatch, timestampStr};
   };
