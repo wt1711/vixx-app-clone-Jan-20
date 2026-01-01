@@ -122,17 +122,27 @@ export default function LoginInstagramModal({
         );
 
         // Merge with JavaScript cookies from document.cookie (stored in ref)
-        const mergedCookies = { ...cookieManagerCookies, ...jsCookiesRef.current };
+        const mergedCookies = {
+          ...cookieManagerCookies,
+          ...jsCookiesRef.current,
+        };
 
         // Update cookies state with all cookies
         const { isValidCookies } = validateCookiesToSync(mergedCookies);
-        console.log('Merged cookies (CookieManager + JavaScript):', mergedCookies);
-        console.log('isValidCookies', isValidCookies, !autoConnectAttemptedRef.current);
+        console.log(
+          'Merged cookies (CookieManager + JavaScript):',
+          mergedCookies,
+        );
+        console.log(
+          'isValidCookies',
+          isValidCookies,
+          !autoConnectAttemptedRef.current,
+        );
 
         if (isValidCookies && !autoConnectAttemptedRef.current) {
           autoConnectAttemptedRef.current = true;
           setCookies(mergedCookies);
-        } 
+        }
       } catch (cookieError) {
         console.error('Error getting cookies with CookieManager:', cookieError);
       }
@@ -176,7 +186,7 @@ export default function LoginInstagramModal({
       const parsed = parseCookieString(payload.cookies || '');
       setLastParsedCookies(payload.cookies || '');
       console.log('Instagram Cookies (document.cookie):', parsed);
-      
+
       // Store JavaScript cookies in ref for merging
       jsCookiesRef.current = parsed;
 
@@ -190,7 +200,6 @@ export default function LoginInstagramModal({
         setCookies(newCookies);
       }
 
-      
       // Also trigger cookie extraction from CookieManager to merge HttpOnly cookies
       setTimeout(() => {
         extractCookies();
@@ -209,14 +218,14 @@ export default function LoginInstagramModal({
   const parseCookieString = (cookieStr: string): Record<string, string> => {
     const parsedCookies: Record<string, string> = {};
     if (!cookieStr) return parsedCookies;
-    
-    cookieStr.split(';').forEach((cookie) => {
+
+    cookieStr.split(';').forEach(cookie => {
       const [name, ...valueParts] = cookie.trim().split('=');
       if (name && valueParts.length > 0) {
         parsedCookies[name] = valueParts.join('=');
       }
     });
-    
+
     return parsedCookies;
   };
 
@@ -228,7 +237,7 @@ export default function LoginInstagramModal({
   const handleClearCacheAndLoginNewSession = async () => {
     try {
       const csrftoken = getCookieVal('csrftoken', cookies);
-      
+
       // Step 1: Logout from Instagram servers first (detach session via WebView)
       // This ensures Instagram knows the session is ended before we clear cookies
       if (csrftoken && webViewRef.current) {
@@ -261,7 +270,7 @@ export default function LoginInstagramModal({
             true;
           })();
         `);
-        
+
         // Wait a moment for logout to complete, then proceed with clearing
         await new Promise<void>(resolve => setTimeout(() => resolve(), 500));
       }
@@ -279,11 +288,11 @@ export default function LoginInstagramModal({
       }
 
       // Step 3: Clear cookies using NitroCookies (including WebKit cookies)
-      console.log('cookies', cookies)
+      console.log('cookies', cookies);
       await Promise.all(
-        Object.keys(cookies || {}).map(el => 
-          CookieManager.clearByName(INSTAGRAM_HOME_URL, el, true)
-        )
+        Object.keys(cookies || {}).map(el =>
+          CookieManager.clearByName(INSTAGRAM_HOME_URL, el, true),
+        ),
       );
       await CookieManager.clearAll(true);
       await CookieManager.flush();
@@ -301,25 +310,42 @@ export default function LoginInstagramModal({
       setLastParsedCookies(''); // Reset parsed cookies state
 
       // Step 6: Navigate to login page
-      webViewRef.current?.injectJavaScript(`window.location.href = "${INSTAGRAM_LOGIN_URL}";`);
+      webViewRef.current?.injectJavaScript(
+        `window.location.href = "${INSTAGRAM_LOGIN_URL}";`,
+      );
     } catch (error) {
       console.error('Error during logout and cache clear:', error);
       // Even if logout fails, still try to clear and redirect
       await CookieManager.clearAll(true);
       webViewRef.current?.clearCache(true);
-      webViewRef.current?.injectJavaScript(`window.location.href = "${INSTAGRAM_LOGIN_URL}";`);
+      webViewRef.current?.injectJavaScript(
+        `window.location.href = "${INSTAGRAM_LOGIN_URL}";`,
+      );
       setShowConnectOptions(false);
       setCookies(null);
       setSyncReady(false);
       autoConnectAttemptedRef.current = false;
       jsCookiesRef.current = {};
     }
-  }
+  };
 
-  console.log('syncReady', syncReady, 'cookies', cookies, 'jsCookiesRef', jsCookiesRef, 'cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0', cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0)
+  console.log(
+    'syncReady',
+    syncReady,
+    'cookies',
+    cookies,
+    'jsCookiesRef',
+    jsCookiesRef,
+    'cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0',
+    cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0,
+  );
 
   useEffect(() => {
-    if (cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0) {
+    if (
+      cookies &&
+      !syncReady &&
+      Object.keys(jsCookiesRef.current || {}).length > 0
+    ) {
       setShowConnectOptions(true);
     }
   }, [cookies]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -376,14 +402,27 @@ export default function LoginInstagramModal({
 
           {showConnectOptions ? (
             <View style={styles.connectOptionsContainer}>
-              <Text style={styles.connectOptionsTitle}> Account detected, please choose an option</Text>
+              <Text style={styles.connectOptionsTitle}>
+                {' '}
+                Account detected, please choose an option
+              </Text>
               <View style={styles.connectOptionsButtonsContainer}>
-              <TouchableOpacity onPress={handleConnectInstagram} style={styles.connectOptionsButton}>
-                <Text style={styles.connectOptionsButtonText}>Connect by this account</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleClearCacheAndLoginNewSession} style={styles.connectOptionsWarningButton}>
-                <Text style={styles.connectOptionsButtonText}>Logout and login new instagram account</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleConnectInstagram}
+                  style={styles.connectOptionsButton}
+                >
+                  <Text style={styles.connectOptionsButtonText}>
+                    Connect by this account
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleClearCacheAndLoginNewSession}
+                  style={styles.connectOptionsWarningButton}
+                >
+                  <Text style={styles.connectOptionsButtonText}>
+                    Logout and login new instagram account
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
           ) : null}
