@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -9,6 +9,8 @@ import {
 } from 'lucide-react-native';
 // import { useAuth } from '../context/AuthContext';
 import { colors, gradients } from '../theme';
+import { getMatrixClient } from '../matrixClient';
+import { getCreditsRemaining } from '../services/aiService';
 
 type SettingsScreenProps = {
   onBack: () => void;
@@ -18,8 +20,19 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   const insets = useSafeAreaInsets();
   // const { logout } = useAuth();
 
-  // Mock AI tokens count
-  const aiTokens = 0;
+  const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchCredits = async () => {
+      const mx = getMatrixClient();
+      const userId = mx?.getUserId();
+      if (userId) {
+        const remaining = await getCreditsRemaining(userId);
+        setCredits(remaining);
+      }
+    };
+    fetchCredits();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -62,7 +75,7 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
               />
               <Text style={styles.sectionLabel}>VIXX Credits</Text>
             </View>
-            <Text style={styles.sectionValue}>{aiTokens}</Text>
+            <Text style={styles.sectionValue}>{credits ?? '—'}</Text>
           </View>
         </View>
 
