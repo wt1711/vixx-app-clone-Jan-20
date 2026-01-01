@@ -32,8 +32,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
+    padding: 40,
   },
   title: {
     fontSize: 18,

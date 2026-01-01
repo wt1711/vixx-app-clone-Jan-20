@@ -222,8 +222,8 @@ export function DirectMessageListScreen({
       ) : null}
       {roomItems.length === 0 ? (
         <EmptyState
-          title="No direct messages yet"
-          subtitle="Start a conversation to see it here"
+          title="Welcome to VIXX"
+          subtitle="Click + to add conversation"
           actionLabel={onCreateChat ? 'Create Chat' : undefined}
           onAction={onCreateChat}
         />
