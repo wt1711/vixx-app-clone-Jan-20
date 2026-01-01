@@ -355,7 +355,7 @@ export default function LoginInstagramModal({
   }
 
   return (
-    <Modal visible={open} animationType="slide" presentationStyle="fullScreen">
+    <Modal visible={open} animationType="slide">
       <SafeAreaProvider>
         <SafeAreaView edges={['top', 'bottom']} style={styles.modalContainer}>
           <LinearGradient
@@ -401,7 +401,32 @@ export default function LoginInstagramModal({
           </View>
 
           {/* Hide those options */}
-          {showConnectOptions ? (
+          {showConnectOptions && (
+            <Modal
+              visible={showConnectOptions}
+              animationType="slide"
+              presentationStyle="fullScreen"
+            >
+              <View style={styles.loggedInModalOverlay}>
+                <View style={styles.loggedInModalContent}>
+                  <LinearGradient
+                    colors={[...gradients.screenBackground]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <Text style={styles.loggedInTitle}>Instagram Logged In</Text>
+                  <TouchableOpacity
+                    style={styles.continueButton}
+                    onPress={handleConnectInstagram}
+                  >
+                    <Text style={styles.continueButtonText}>Continue</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+          )}
+          {showConnectOptions && false ? (
             <View style={styles.connectOptionsContainer}>
               <Text style={styles.connectOptionsTitle}>
                 {' '}
@@ -416,17 +441,16 @@ export default function LoginInstagramModal({
                     Connect by this account
                   </Text>
                 </TouchableOpacity>
-                {/** don't show logout button for now */}
-                {false && (
-                  <TouchableOpacity
-                    onPress={handleClearCacheAndLoginNewSession}
-                    style={styles.connectOptionsWarningButton}
-                  >
-                    <Text style={styles.connectOptionsButtonText}>
-                      Logout and login new instagram account
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                {/** don't show logout button for now */}(
+                <TouchableOpacity
+                  onPress={handleClearCacheAndLoginNewSession}
+                  style={styles.connectOptionsWarningButton}
+                >
+                  <Text style={styles.connectOptionsButtonText}>
+                    Logout and login new instagram account
+                  </Text>
+                </TouchableOpacity>
+                )
               </View>
             </View>
           ) : null}
@@ -550,6 +574,31 @@ const styles = StyleSheet.create({
   connectOptionsButtonTextActive: {
     color: colors.accent.primary,
     fontSize: 14,
+    fontWeight: 'bold',
+  },
+  loggedInModalOverlay: {
+    flex: 1,
+  },
+  loggedInModalContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loggedInTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.text.primary,
+    marginBottom: 24,
+  },
+  continueButton: {
+    backgroundColor: colors.accent.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  continueButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
