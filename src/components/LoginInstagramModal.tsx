@@ -329,16 +329,16 @@ export default function LoginInstagramModal({
     }
   };
 
-  // console.log(
-  //   'syncReady',
-  //   syncReady,
-  //   'cookies',
-  //   cookies,
-  //   'jsCookiesRef',
-  //   jsCookiesRef,
-  //   'cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0',
-  //   cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0,
-  // );
+  console.log(
+    'syncReady',
+    syncReady,
+    'cookies',
+    cookies,
+    'jsCookiesRef',
+    jsCookiesRef,
+    'cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0',
+    cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0,
+  );
 
   useEffect(() => {
     if (
@@ -401,7 +401,7 @@ export default function LoginInstagramModal({
           </View>
 
           {/* Hide those options */}
-          {showConnectOptions && false ? (
+          {showConnectOptions ? (
             <View style={styles.connectOptionsContainer}>
               <Text style={styles.connectOptionsTitle}>
                 {' '}
@@ -416,14 +416,17 @@ export default function LoginInstagramModal({
                     Connect by this account
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleClearCacheAndLoginNewSession}
-                  style={styles.connectOptionsWarningButton}
-                >
-                  <Text style={styles.connectOptionsButtonText}>
-                    Logout and login new instagram account
-                  </Text>
-                </TouchableOpacity>
+                {/** don't show logout button for now */}
+                {false && (
+                  <TouchableOpacity
+                    onPress={handleClearCacheAndLoginNewSession}
+                    style={styles.connectOptionsWarningButton}
+                  >
+                    <Text style={styles.connectOptionsButtonText}>
+                      Logout and login new instagram account
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           ) : null}
