@@ -110,16 +110,16 @@ export default function LoginInstagramModal({
       // Also try to get all cookies including HttpOnly ones using CookieManager
       try {
         const allCookies = await CookieManager.get(INSTAGRAM_HOME_URL, true);
-        console.log('All Instagram Cookies (including HttpOnly):', allCookies);
+        // console.log('All Instagram Cookies (including HttpOnly):', allCookies);
 
         const cookieManagerCookies = Object.fromEntries(
           Object.entries(allCookies).map(([key, value]) => [key, value.value]),
         );
 
-        console.log(
-          'All Instagram Cookies (including HttpOnly) after parsed:',
-          cookieManagerCookies,
-        );
+        // console.log(
+        //   'All Instagram Cookies (including HttpOnly) after parsed:',
+        //   cookieManagerCookies,
+        // );
 
         // Merge with JavaScript cookies from document.cookie (stored in ref)
         const mergedCookies = {
@@ -129,15 +129,13 @@ export default function LoginInstagramModal({
 
         // Update cookies state with all cookies
         const { isValidCookies } = validateCookiesToSync(mergedCookies);
-        console.log(
-          'Merged cookies (CookieManager + JavaScript):',
-          mergedCookies,
-        );
-        console.log(
-          'isValidCookies',
-          isValidCookies,
-          !autoConnectAttemptedRef.current,
-        );
+        // console.log(
+        //   'Merged cookies (CookieManager + JavaScript):',
+        //   mergedCookies,
+        //   'isValidCookies',
+        //   isValidCookies,
+        //   !autoConnectAttemptedRef.current,
+        // );
 
         if (isValidCookies && !autoConnectAttemptedRef.current) {
           autoConnectAttemptedRef.current = true;
@@ -158,7 +156,7 @@ export default function LoginInstagramModal({
       navState.url.includes('instagram.com') &&
       !navState.url.includes('login')
     ) {
-      console.log('User might be logged in, URL:', navState.url);
+      // console.log('User might be logged in, URL:', navState.url);
       extractCookies();
     }
   };
@@ -173,19 +171,19 @@ export default function LoginInstagramModal({
     }
 
     if (raw === 'LOGIN_SUCCESS' || payload?.type === 'LOGIN_SUCCESS') {
-      console.log('Login detected!');
+      // console.log('Login detected!');
       return;
     }
 
     if (payload?.type === 'LOGOUT_COMPLETE') {
-      console.log('Logout completed from Instagram');
+      // console.log('Logout completed from Instagram');
       return;
     }
 
     if (payload?.type === 'COOKIES' && lastParsedCookies !== payload.cookies) {
       const parsed = parseCookieString(payload.cookies || '');
       setLastParsedCookies(payload.cookies || '');
-      console.log('Instagram Cookies (document.cookie):', parsed);
+      // console.log('Instagram Cookies (document.cookie):', parsed);
 
       // Store JavaScript cookies in ref for merging
       jsCookiesRef.current = parsed;
@@ -288,7 +286,7 @@ export default function LoginInstagramModal({
       }
 
       // Step 3: Clear cookies using NitroCookies (including WebKit cookies)
-      console.log('cookies', cookies);
+      // console.log('cookies', cookies);
       await Promise.all(
         Object.keys(cookies || {}).map(el =>
           CookieManager.clearByName(INSTAGRAM_HOME_URL, el, true),
@@ -329,16 +327,16 @@ export default function LoginInstagramModal({
     }
   };
 
-  console.log(
-    'syncReady',
-    syncReady,
-    'cookies',
-    cookies,
-    'jsCookiesRef',
-    jsCookiesRef,
-    'cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0',
-    cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0,
-  );
+  // console.log(
+  //   'syncReady',
+  //   syncReady,
+  //   'cookies',
+  //   cookies,
+  //   'jsCookiesRef',
+  //   jsCookiesRef,
+  //   'cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0',
+  //   cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0,
+  // );
 
   useEffect(() => {
     if (
