@@ -110,16 +110,16 @@ export default function LoginInstagramModal({
       // Also try to get all cookies including HttpOnly ones using CookieManager
       try {
         const allCookies = await CookieManager.get(INSTAGRAM_HOME_URL, true);
-        console.log('All Instagram Cookies (including HttpOnly):', allCookies);
+        // console.log('All Instagram Cookies (including HttpOnly):', allCookies);
 
         const cookieManagerCookies = Object.fromEntries(
           Object.entries(allCookies).map(([key, value]) => [key, value.value]),
         );
 
-        console.log(
-          'All Instagram Cookies (including HttpOnly) after parsed:',
-          cookieManagerCookies,
-        );
+        // console.log(
+        //   'All Instagram Cookies (including HttpOnly) after parsed:',
+        //   cookieManagerCookies,
+        // );
 
         // Merge with JavaScript cookies from document.cookie (stored in ref)
         const mergedCookies = {
@@ -129,15 +129,13 @@ export default function LoginInstagramModal({
 
         // Update cookies state with all cookies
         const { isValidCookies } = validateCookiesToSync(mergedCookies);
-        console.log(
-          'Merged cookies (CookieManager + JavaScript):',
-          mergedCookies,
-        );
-        console.log(
-          'isValidCookies',
-          isValidCookies,
-          !autoConnectAttemptedRef.current,
-        );
+        // console.log(
+        //   'Merged cookies (CookieManager + JavaScript):',
+        //   mergedCookies,
+        //   'isValidCookies',
+        //   isValidCookies,
+        //   !autoConnectAttemptedRef.current,
+        // );
 
         if (isValidCookies && !autoConnectAttemptedRef.current) {
           autoConnectAttemptedRef.current = true;
@@ -158,7 +156,7 @@ export default function LoginInstagramModal({
       navState.url.includes('instagram.com') &&
       !navState.url.includes('login')
     ) {
-      console.log('User might be logged in, URL:', navState.url);
+      // console.log('User might be logged in, URL:', navState.url);
       extractCookies();
     }
   };
@@ -173,19 +171,19 @@ export default function LoginInstagramModal({
     }
 
     if (raw === 'LOGIN_SUCCESS' || payload?.type === 'LOGIN_SUCCESS') {
-      console.log('Login detected!');
+      // console.log('Login detected!');
       return;
     }
 
     if (payload?.type === 'LOGOUT_COMPLETE') {
-      console.log('Logout completed from Instagram');
+      // console.log('Logout completed from Instagram');
       return;
     }
 
     if (payload?.type === 'COOKIES' && lastParsedCookies !== payload.cookies) {
       const parsed = parseCookieString(payload.cookies || '');
       setLastParsedCookies(payload.cookies || '');
-      console.log('Instagram Cookies (document.cookie):', parsed);
+      // console.log('Instagram Cookies (document.cookie):', parsed);
 
       // Store JavaScript cookies in ref for merging
       jsCookiesRef.current = parsed;
@@ -288,7 +286,7 @@ export default function LoginInstagramModal({
       }
 
       // Step 3: Clear cookies using NitroCookies (including WebKit cookies)
-      console.log('cookies', cookies);
+      // console.log('cookies', cookies);
       await Promise.all(
         Object.keys(cookies || {}).map(el =>
           CookieManager.clearByName(INSTAGRAM_HOME_URL, el, true),
@@ -355,7 +353,7 @@ export default function LoginInstagramModal({
   }
 
   return (
-    <Modal visible={open} animationType="slide" presentationStyle="fullScreen">
+    <Modal visible={open} animationType="slide">
       <SafeAreaProvider>
         <SafeAreaView edges={['top', 'bottom']} style={styles.modalContainer}>
           <LinearGradient
@@ -400,7 +398,32 @@ export default function LoginInstagramModal({
             </View>
           </View>
 
-          {/* Hide those options */}
+          {showConnectOptions && (
+            <Modal
+              visible={showConnectOptions}
+              animationType="slide"
+              presentationStyle="fullScreen"
+            >
+              <View style={styles.loggedInModalOverlay}>
+                <View style={styles.loggedInModalContent}>
+                  <LinearGradient
+                    colors={[...gradients.screenBackground]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <Text style={styles.loggedInTitle}>Instagram Logged In</Text>
+                  <TouchableOpacity
+                    style={styles.continueButton}
+                    onPress={handleConnectInstagram}
+                  >
+                    <Text style={styles.continueButtonText}>Continue</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+          )}
+          {/* Hide those options for now */}
           {showConnectOptions && false ? (
             <View style={styles.connectOptionsContainer}>
               <Text style={styles.connectOptionsTitle}>
@@ -416,6 +439,7 @@ export default function LoginInstagramModal({
                     Connect by this account
                   </Text>
                 </TouchableOpacity>
+                {/** don't show logout button for now */}(
                 <TouchableOpacity
                   onPress={handleClearCacheAndLoginNewSession}
                   style={styles.connectOptionsWarningButton}
@@ -424,6 +448,7 @@ export default function LoginInstagramModal({
                     Logout and login new instagram account
                   </Text>
                 </TouchableOpacity>
+                )
               </View>
             </View>
           ) : null}
@@ -547,6 +572,31 @@ const styles = StyleSheet.create({
   connectOptionsButtonTextActive: {
     color: colors.accent.primary,
     fontSize: 14,
+    fontWeight: 'bold',
+  },
+  loggedInModalOverlay: {
+    flex: 1,
+  },
+  loggedInModalContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loggedInTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.text.primary,
+    marginBottom: 24,
+  },
+  continueButton: {
+    backgroundColor: colors.accent.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  continueButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
