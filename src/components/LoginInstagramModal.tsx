@@ -329,16 +329,16 @@ export default function LoginInstagramModal({
     }
   };
 
-  console.log(
-    'syncReady',
-    syncReady,
-    'cookies',
-    cookies,
-    'jsCookiesRef',
-    jsCookiesRef,
-    'cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0',
-    cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0,
-  );
+  // console.log(
+  //   'syncReady',
+  //   syncReady,
+  //   'cookies',
+  //   cookies,
+  //   'jsCookiesRef',
+  //   jsCookiesRef,
+  //   'cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0',
+  //   cookies && !syncReady && Object.keys(jsCookiesRef.current || {}).length > 0,
+  // );
 
   useEffect(() => {
     if (
@@ -400,7 +400,8 @@ export default function LoginInstagramModal({
             </View>
           </View>
 
-          {showConnectOptions ? (
+          {/* Hide those options */}
+          {showConnectOptions && false ? (
             <View style={styles.connectOptionsContainer}>
               <Text style={styles.connectOptionsTitle}>
                 {' '}
