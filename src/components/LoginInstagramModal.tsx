@@ -398,7 +398,6 @@ export default function LoginInstagramModal({
             </View>
           </View>
 
-          {/* Hide those options */}
           {showConnectOptions && (
             <Modal
               visible={showConnectOptions}
@@ -424,6 +423,7 @@ export default function LoginInstagramModal({
               </View>
             </Modal>
           )}
+          {/* Hide those options for now */}
           {showConnectOptions && false ? (
             <View style={styles.connectOptionsContainer}>
               <Text style={styles.connectOptionsTitle}>
