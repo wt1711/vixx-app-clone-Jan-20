@@ -3,8 +3,11 @@ import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { ChevronLeft, LogOut } from 'lucide-react-native';
-import { useAuth } from '../context/AuthContext';
+import {
+  ChevronLeft,
+  // LogOut
+} from 'lucide-react-native';
+// import { useAuth } from '../context/AuthContext';
 import { colors, gradients } from '../theme';
 
 type SettingsScreenProps = {
@@ -13,7 +16,7 @@ type SettingsScreenProps = {
 
 export function SettingsScreen({ onBack }: SettingsScreenProps) {
   const insets = useSafeAreaInsets();
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
 
   // Mock AI tokens count
   const aiTokens = 0;
@@ -64,14 +67,14 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.logoutButton}
           onPress={logout}
           activeOpacity={0.7}
         >
           <LogOut color={colors.status.error} size={20} />
           <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
