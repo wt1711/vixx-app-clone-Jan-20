@@ -213,13 +213,13 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     position: 'absolute',
-    top: '30%',
+    top: '20%',
   },
   buttonContainer: {
     width: '70%',
     maxWidth: 400,
     position: 'absolute',
-    top: '55%',
+    top: '50%',
   },
   button: {
     borderRadius: 20,
