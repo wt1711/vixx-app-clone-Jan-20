@@ -114,7 +114,6 @@ export function AIAssistantProvider({
 
   const regenerateResponse = useCallback(
     async (spec = {}) => {
-      console.log('regenerateResponse called with spec:', spec);
       setIsGeneratingResponse(true);
 
       try {
@@ -148,14 +147,13 @@ export function AIAssistantProvider({
         const { messageBatch, timestampStr } =
           getLastReceivedMessageBatch(roomContext);
 
-        console.log('Calling generateResponseFromMessage API...');
         const response = await generateResponseFromMessage({
           message: messageBatch,
           lastMsgTimeStamp: timestampStr,
           context: roomContext,
           spec,
+          userId: myUserId,
         });
-        console.log('API response:', response);
         setGeneratedResponse(response);
         handleUseSuggestion(response);
       } catch (error) {

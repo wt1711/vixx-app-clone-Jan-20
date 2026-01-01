@@ -47,15 +47,15 @@ export async function generateResponseFromMessage({
   lastMsgTimeStamp,
   context,
   spec,
+  userId,
 }: {
   message: string;
   lastMsgTimeStamp: string;
   context: Message[];
   spec: object;
+  userId?: string;
 }): Promise<string> {
   try {
-    console.log('generateResponseFromMessage called with:', { message, context, spec });
-
     const response = await fetch(API_ENDPOINTS.AI.GENERATE_RESPONSE, {
       method: 'POST',
       headers: {
@@ -66,6 +66,7 @@ export async function generateResponseFromMessage({
         lastMsgTimeStamp,
         context,
         spec,
+        userId,
       }),
     });
 
@@ -114,4 +115,27 @@ export async function gradeMessage({
   }
 }
 
+export async function getCreditsRemaining(userId: string): Promise<number> {
+  try {
+    const response = await fetch(
+      `${API_ENDPOINTS.AI.CREDITS_REMAINING}?userId=${encodeURIComponent(userId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    );
 
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch credits remaining.');
+    }
+
+    const data = await response.json();
+    return data.creditsRemaining ?? 0;
+  } catch (error) {
+    console.error('Error in getCreditsRemaining:', error);
+    return 0;
+  }
+}
