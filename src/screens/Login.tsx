@@ -97,22 +97,25 @@ export default function Login() {
     setOpen(true);
   };
 
-  const isAlternativeLoginEnabled =
-    systemSettings?.find(
-      (setting: SystemSettings) =>
-        setting.key === SystemSettingKey.USE_ALTERNATIVE_LOGIN_METHOD,
-    )?.value === 'true';
-
   const [credentialsModalOpen, setCredentialsModalOpen] = useState(false);
+  const [credentialsError, setCredentialsError] = useState<string | null>(null);
 
   const handleCredentialsSubmit = (username: string, password: string) => {
     const presetUsername = 'duc-admin';
     const presetPassword = '123';
 
     if (username === presetUsername && password === presetPassword) {
+      setCredentialsError(null);
       setCredentialsModalOpen(false);
       handleLoginAlternative();
+    } else {
+      setCredentialsError('Invalid username or password');
     }
+  };
+
+  const handleCredentialsClose = () => {
+    setCredentialsError(null);
+    setCredentialsModalOpen(false);
   };
 
   useEffect(() => {
@@ -156,7 +159,7 @@ export default function Login() {
             )}
           </TouchableOpacity>
 
-          {!isLoading && isAlternativeLoginEnabled && (
+          {!isLoading && (
             <>
               <View style={styles.orContainer}>
                 <View style={styles.orLine} />
@@ -188,9 +191,10 @@ export default function Login() {
       />
       <LoginCredentialsModal
         visible={credentialsModalOpen}
-        onClose={() => setCredentialsModalOpen(false)}
+        onClose={handleCredentialsClose}
         onSubmit={handleCredentialsSubmit}
         isLoading={isLoading}
+        error={credentialsError}
       />
     </View>
   );

@@ -18,6 +18,7 @@ interface LoginCredentialsModalProps {
   onClose: () => void;
   onSubmit: (username: string, password: string) => void;
   isLoading?: boolean;
+  error?: string | null;
 }
 
 const LoginCredentialsModal = ({
@@ -25,6 +26,7 @@ const LoginCredentialsModal = ({
   onClose,
   onSubmit,
   isLoading = false,
+  error,
 }: LoginCredentialsModalProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -83,6 +85,8 @@ const LoginCredentialsModal = ({
               autoCorrect={false}
               editable={!isLoading}
             />
+
+            {error && <Text style={styles.errorText}>{error}</Text>}
 
             <TouchableOpacity
               style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
@@ -153,6 +157,12 @@ const styles = StyleSheet.create({
     color: colors.text.white,
     fontSize: 16,
     fontWeight: '600',
+  },
+  errorText: {
+    color: colors.status.error,
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 8,
   },
 });
 
