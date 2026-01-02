@@ -4,6 +4,7 @@ import { createMatrixClient, getMatrixClient, initMatrixClient, stopMatrixClient
 import { MatrixClient } from 'matrix-js-sdk';
 import { ENV } from '../constants/env';
 import { MATRIX_CREDENTIALS_KEY } from '../constants/localStorege';
+import { LoginType } from '../types/matrix/room';
 
 type MatrixSession = {
   accessToken: string;
@@ -74,7 +75,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       
       // Step 1: Matrix Auth
-      const mSession = await matrixClient.login('m.login.password', {
+      const mSession = await matrixClient.login(LoginType.Password, {
         user: username,
         password,
       });

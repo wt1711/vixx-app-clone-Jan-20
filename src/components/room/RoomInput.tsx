@@ -16,7 +16,7 @@ import { Send, ImageIcon, X } from 'lucide-react-native';
 import { useAIAssistant } from '../../context/AIAssistantContext';
 import { useReply } from '../../context/ReplyContext';
 import { EventType, Room } from 'matrix-js-sdk';
-import { MsgType } from '../../types/matrix/room';
+import { MsgType, ContentKey } from '../../types/matrix/room';
 import { getMatrixClient } from '../../matrixClient';
 import { useImageSender } from '../../hooks/message/useImageSender';
 import { colors } from '../../theme';
@@ -83,8 +83,8 @@ export function RoomInput({ room }: RoomInputProps) {
         ? {
             msgtype: MsgType.Text,
             body: text,
-            'm.relates_to': {
-              'm.in_reply_to': {
+            [ContentKey.RelatesTo]: {
+              [ContentKey.InReplyTo]: {
                 event_id: replyingTo.eventId,
               },
             },

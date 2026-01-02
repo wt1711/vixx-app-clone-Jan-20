@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { MatrixEvent, Room, RoomEvent, Direction, ReceiptType } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
-import { MsgType } from '../../types/matrix/room';
+import { MsgType, MessageEvent, ContentKey } from '../../types/matrix/room';
 import {
   getMemberAvatarMxc,
   getRoomAvatarUrl,
@@ -71,7 +71,7 @@ export function useRoomTimeline({
    */
   const mapEventToMessage = useCallback(
     (event: MatrixEvent): MessageItem | null => {
-      if (!mx || event.getType() !== 'm.room.message') return null;
+      if (!mx || event.getType() !== MessageEvent.RoomMessage) return null;
       if (!messageEventOnly(event)) return null;
 
       const content = event.getContent();
@@ -90,7 +90,7 @@ export function useRoomTimeline({
       let imageUrl: string | undefined;
       let imageInfo: { w?: number; h?: number; mimetype?: string } | undefined;
 
-      if (content.msgtype === 'm.text') {
+      if (content.msgtype === MsgType.Text) {
         contentText = content.body || '';
       } else if (content.msgtype === MsgType.Image) {
         const mxcUrl = content.file?.url || content.url;
@@ -102,9 +102,9 @@ export function useRoomTimeline({
           imageInfo = content.info || content.file?.info;
         }
         contentText = content.body || '📷 Image';
-      } else if (content.msgtype === 'm.video') {
+      } else if (content.msgtype === MsgType.Video) {
         contentText = '🎥 Video';
-      } else if (content.msgtype === 'm.file') {
+      } else if (content.msgtype === MsgType.File) {
         contentText = '📎 File';
       } else {
         contentText = 'Message';
@@ -119,8 +119,8 @@ export function useRoomTimeline({
 
       // Extract reply-to data if present
       let replyTo: ReplyToData | undefined;
-      const relatesTo = content['m.relates_to'];
-      const inReplyToEventId = relatesTo?.['m.in_reply_to']?.event_id;
+      const relatesTo = content[ContentKey.RelatesTo];
+      const inReplyToEventId = relatesTo?.[ContentKey.InReplyTo]?.event_id;
 
       if (inReplyToEventId) {
         // Try to find the event in all loaded timelines
@@ -136,13 +136,13 @@ export function useRoomTimeline({
             'Unknown';
 
           let replyContentText = '';
-          if (replyContent.msgtype === 'm.text') {
+          if (replyContent.msgtype === MsgType.Text) {
             replyContentText = replyContent.body || '';
           } else if (replyContent.msgtype === MsgType.Image) {
             replyContentText = '📷 Image';
-          } else if (replyContent.msgtype === 'm.video') {
+          } else if (replyContent.msgtype === MsgType.Video) {
             replyContentText = '🎥 Video';
-          } else if (replyContent.msgtype === 'm.file') {
+          } else if (replyContent.msgtype === MsgType.File) {
             replyContentText = '📎 File';
           } else {
             replyContentText = 'Message';

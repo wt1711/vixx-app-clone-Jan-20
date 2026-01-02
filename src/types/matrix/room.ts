@@ -70,6 +70,17 @@ export enum Membership {
     Replace = 'm.replace',
     Thread = 'm.thread',
   }
+
+  export enum ContentKey {
+    RelatesTo = 'm.relates_to',
+    InReplyTo = 'm.in_reply_to',
+  }
+
+  export enum LoginType {
+    Password = 'm.login.password',
+    Token = 'm.login.token',
+    SSO = 'm.login.sso',
+  }
   
   export type MSpaceChildContent = {
     via: string[];
