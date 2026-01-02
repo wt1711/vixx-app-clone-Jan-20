@@ -16,8 +16,8 @@ type RoomViewHeaderProps = {
 export function RoomViewHeader({
   room,
   onBack,
-  onAIAssistantClick,
-}: RoomViewHeaderProps) {
+}: // onAIAssistantClick,
+RoomViewHeaderProps) {
   const mx = getMatrixClient();
 
   // Use room.name directly - Matrix SDK handles the display name correctly
@@ -36,11 +36,11 @@ export function RoomViewHeader({
         blurAmount={80}
         reducedTransparencyFallbackColor={colors.background.primary}
       />
-      <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <ArrowLeft color={colors.text.primary} size={24} />
-      </TouchableOpacity>
+      <View style={styles.headerLeft}>
+        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <ArrowLeft color={colors.text.primary} size={24} />
+        </TouchableOpacity>
 
-      <View style={styles.headerCenter}>
         {avatarUrl ? (
           <Image source={{ uri: avatarUrl }} style={styles.avatar} />
         ) : (
@@ -76,14 +76,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.transparent.black30,
   },
   backButton: {
-    padding: 8,
+    padding: 4,
   },
-  headerCenter: {
+  headerLeft: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    gap: 12,
   },
   avatar: {
     width: 40,
