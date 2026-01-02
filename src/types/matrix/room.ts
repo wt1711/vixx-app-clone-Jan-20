@@ -45,7 +45,18 @@ export enum Membership {
     RoomRedaction = 'm.room.redaction',
     Reaction = 'm.reaction',
   }
-  
+
+  export enum MsgType {
+    Text = 'm.text',
+    Image = 'm.image',
+    Audio = 'm.audio',
+    Video = 'm.video',
+    File = 'm.file',
+    Location = 'm.location',
+    Notice = 'm.notice',
+    Emote = 'm.emote',
+  }
+
   export enum RoomType {
     Space = 'm.space',
   }
@@ -58,6 +69,17 @@ export enum Membership {
     Annotation = 'm.annotation',
     Replace = 'm.replace',
     Thread = 'm.thread',
+  }
+
+  export enum ContentKey {
+    RelatesTo = 'm.relates_to',
+    InReplyTo = 'm.in_reply_to',
+  }
+
+  export enum LoginType {
+    Password = 'm.login.password',
+    Token = 'm.login.token',
+    SSO = 'm.login.sso',
   }
   
   export type MSpaceChildContent = {

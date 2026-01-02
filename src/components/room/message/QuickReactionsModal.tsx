@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,10 +10,12 @@ import {
   Dimensions,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { Reply } from 'lucide-react-native';
+import { Reply, Plus } from 'lucide-react-native';
+import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { MessageItem } from '../types';
 import { ReplyPreview } from './ReplyPreview';
 import { colors } from '../../../theme';
+import { MsgType } from '../../../types/matrix/room';
 
 const QUICK_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
@@ -41,23 +43,7 @@ export function QuickReactionsModal({
   onSelectEmoji,
   onReply,
 }: QuickReactionsModalProps) {
-  if (!messageItem) return null;
-
-  const handleEmojiPress = (emoji: string) => {
-    onSelectEmoji(emoji, messageItem.eventId);
-  };
-
-  const handleReplyPress = () => {
-    if (onReply) {
-      onReply();
-    }
-  };
-
-  const isImageMessage =
-    messageItem.msgtype === 'm.image' && messageItem.imageUrl;
-  const blurFallbackColor = messageItem.isOwn
-    ? colors.message.own
-    : colors.message.other;
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Calculate vertical position based on message position
   // Reactions row is ~64px, gap is 8px, so we position above the message
@@ -73,6 +59,33 @@ export function QuickReactionsModal({
     // Clamp to keep within screen bounds
     return Math.max(MIN_TOP, Math.min(desiredTop, screenHeight - 300));
   }, [position, screenHeight]);
+
+  if (!messageItem) return null;
+
+  const handleEmojiPress = (emoji: string) => {
+    onSelectEmoji(emoji, messageItem.eventId);
+  };
+
+  const handleMoreEmojisPress = () => {
+    setShowEmojiPicker(true);
+  };
+
+  const handleEmojiPickerSelect = (emoji: string) => {
+    onSelectEmoji(emoji, messageItem.eventId);
+    setShowEmojiPicker(false);
+  };
+
+  const handleReplyPress = () => {
+    if (onReply) {
+      onReply();
+    }
+  };
+
+  const isImageMessage =
+    messageItem.msgtype === MsgType.Image && messageItem.imageUrl;
+  const blurFallbackColor = messageItem.isOwn
+    ? colors.message.own
+    : colors.message.other;
 
   return (
     <Modal
@@ -117,6 +130,13 @@ export function QuickReactionsModal({
                 <Text style={styles.quickReactionEmoji}>{emoji}</Text>
               </TouchableOpacity>
             ))}
+            <TouchableOpacity
+              style={styles.moreEmojisButton}
+              onPress={handleMoreEmojisPress}
+              activeOpacity={0.7}
+            >
+              <Plus size={24} color={colors.text.primary} />
+            </TouchableOpacity>
           </View>
 
           {/* Message Section - mirrors original MessageItem layout */}
@@ -208,6 +228,37 @@ export function QuickReactionsModal({
             </TouchableOpacity>
           </View>
         </View>
+
+        <EmojiPicker
+          open={showEmojiPicker}
+          onClose={() => setShowEmojiPicker(false)}
+          onEmojiSelected={(emoji: EmojiType) =>
+            handleEmojiPickerSelect(emoji.emoji)
+          }
+          enableSearchBar
+          categoryPosition="top"
+          enableRecentlyUsed
+          defaultHeight="60%"
+          expandedHeight="85%"
+          theme={{
+            backdrop: colors.transparent.black60,
+            knob: colors.transparent.white30,
+            container: colors.background.secondary,
+            header: colors.text.secondary,
+            category: {
+              icon: colors.text.secondary,
+              iconActive: colors.text.primary,
+              container: colors.background.secondary,
+              containerActive: colors.transparent.white15,
+            },
+            search: {
+              text: colors.text.primary,
+              placeholder: colors.text.placeholder,
+              icon: colors.text.secondary,
+              background: colors.transparent.white10,
+            },
+          }}
+        />
       </View>
     </Modal>
   );
@@ -251,6 +302,14 @@ const styles = StyleSheet.create({
   },
   quickReactionEmoji: {
     fontSize: 28,
+  },
+  moreEmojisButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.transparent.white15,
   },
   // Message styles - mirroring MessageItem.styles.ts
   replyPreviewContainer: {

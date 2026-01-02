@@ -1,5 +1,5 @@
 import { EventTimeline, MatrixClient, MatrixEvent, MsgType, Room, RoomMember, RoomType, Direction } from "matrix-js-sdk";
-import { MessageEvent, StateEvent, RelationType } from "../types/matrix/room";
+import { MessageEvent, StateEvent, RelationType, ContentKey } from "../types/matrix/room";
 
 
 export const getStateEvent = (
@@ -122,7 +122,7 @@ export const getRoomAvatarUrl = (
 
   // Reaction utilities
   export const getReactionContent = (eventId: string, key: string, shortcode?: string) => ({
-    'm.relates_to': {
+    [ContentKey.RelatesTo]: {
       event_id: eventId,
       key,
       rel_type: RelationType.Annotation,
@@ -168,7 +168,7 @@ const formatMessagePreview = (content: Record<string, any>): string => {
  * Formats a reaction event into a preview string
  */
 const formatReactionPreview = (content: Record<string, any>): string => {
-  const reactionKey = content['m.relates_to']?.key;
+  const reactionKey = content[ContentKey.RelatesTo]?.key;
   if (reactionKey) {
     return `Reacted ${reactionKey} to a message`;
   }

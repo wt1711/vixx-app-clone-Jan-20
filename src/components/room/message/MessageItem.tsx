@@ -18,6 +18,7 @@ import { ReactionsList } from './Reactions';
 import { ReplyPreview } from './ReplyPreview';
 import { styles } from './MessageItem.styles';
 import { colors } from '../../../theme';
+import { MsgType } from '../../../types/matrix/room';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -90,23 +91,27 @@ const MessageContent = ({
   item,
   imageStyle,
   onImagePress,
+  onLongPress,
 }: {
   item: MessageItem;
   imageStyle: StyleProp<ImageStyle>;
   onImagePress?: (imageUrl: string) => void;
+  onLongPress?: () => void;
 }) => {
   const textStyle = [
     styles.messageText,
     item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
   ];
 
-  const isImageMessage = item.msgtype === 'm.image' && item.imageUrl;
+  const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
 
   if (isImageMessage) {
     return (
       <Pressable
         style={styles.imageContainer}
         onPress={() => onImagePress?.(item.imageUrl!)}
+        onLongPress={onLongPress}
+        delayLongPress={500}
       >
         <Image
           source={{ uri: item.imageUrl }}
@@ -175,7 +180,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     ];
 
     const blurFallbackColor = item.isOwn ? colors.message.own : colors.message.other;
-    const isImageMessage = item.msgtype === 'm.image' && item.imageUrl;
+    const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
@@ -252,7 +257,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
                   reducedTransparencyFallbackColor={blurFallbackColor}
                 />
                 <View style={contentStyle}>
-                  <MessageContent item={item} imageStyle={imageStyle} onImagePress={onImagePress} />
+                  <MessageContent item={item} imageStyle={imageStyle} onImagePress={onImagePress} onLongPress={handleLongPress} />
                 </View>
               </View>
             </Pressable>
