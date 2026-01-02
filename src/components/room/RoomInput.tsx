@@ -15,7 +15,8 @@ import { Send, ImageIcon, X } from 'lucide-react-native';
 // import { Camera } from 'lucide-react-native';
 import { useAIAssistant } from '../../context/AIAssistantContext';
 import { useReply } from '../../context/ReplyContext';
-import { EventType, MsgType, Room } from 'matrix-js-sdk';
+import { EventType, Room } from 'matrix-js-sdk';
+import { MsgType } from '../../types/matrix/room';
 import { getMatrixClient } from '../../matrixClient';
 import { useImageSender } from '../../hooks/message/useImageSender';
 import { colors } from '../../theme';
@@ -121,7 +122,9 @@ export function RoomInput({ room }: RoomInputProps) {
                 {/* {replyingTo.senderName} */}
               </Text>
               <Text style={styles.replyBarMessage} numberOfLines={1}>
-                {replyingTo.content}
+                {replyingTo.msgtype === MsgType.Image
+                  ? 'Photo'
+                  : replyingTo.content}
               </Text>
             </View>
           </View>

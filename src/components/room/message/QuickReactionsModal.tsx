@@ -14,6 +14,7 @@ import { Reply } from 'lucide-react-native';
 import { MessageItem } from '../types';
 import { ReplyPreview } from './ReplyPreview';
 import { colors } from '../../../theme';
+import { MsgType } from '../../../types/matrix/room';
 
 const QUICK_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
@@ -54,7 +55,7 @@ export function QuickReactionsModal({
   };
 
   const isImageMessage =
-    messageItem.msgtype === 'm.image' && messageItem.imageUrl;
+    messageItem.msgtype === MsgType.Image && messageItem.imageUrl;
   const blurFallbackColor = messageItem.isOwn
     ? colors.message.own
     : colors.message.other;

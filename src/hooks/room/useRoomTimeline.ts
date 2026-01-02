@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { MatrixEvent, Room, RoomEvent, Direction, ReceiptType } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
+import { MsgType } from '../../types/matrix/room';
 import {
   getMemberAvatarMxc,
   getRoomAvatarUrl,
@@ -91,7 +92,7 @@ export function useRoomTimeline({
 
       if (content.msgtype === 'm.text') {
         contentText = content.body || '';
-      } else if (content.msgtype === 'm.image') {
+      } else if (content.msgtype === MsgType.Image) {
         const mxcUrl = content.file?.url || content.url;
         if (mxcUrl && typeof mxcUrl === 'string') {
           imageUrl =
@@ -137,7 +138,7 @@ export function useRoomTimeline({
           let replyContentText = '';
           if (replyContent.msgtype === 'm.text') {
             replyContentText = replyContent.body || '';
-          } else if (replyContent.msgtype === 'm.image') {
+          } else if (replyContent.msgtype === MsgType.Image) {
             replyContentText = '📷 Image';
           } else if (replyContent.msgtype === 'm.video') {
             replyContentText = '🎥 Video';

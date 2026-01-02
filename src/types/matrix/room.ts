@@ -45,7 +45,18 @@ export enum Membership {
     RoomRedaction = 'm.room.redaction',
     Reaction = 'm.reaction',
   }
-  
+
+  export enum MsgType {
+    Text = 'm.text',
+    Image = 'm.image',
+    Audio = 'm.audio',
+    Video = 'm.video',
+    File = 'm.file',
+    Location = 'm.location',
+    Notice = 'm.notice',
+    Emote = 'm.emote',
+  }
+
   export enum RoomType {
     Space = 'm.space',
   }
