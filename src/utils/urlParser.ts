@@ -37,3 +37,15 @@ export function getFirstUrl(text: string): string | null {
   const urls = extractUrls(text);
   return urls.length > 0 ? urls[0] : null;
 }
+
+const INSTAGRAM_URL_REGEX =
+  /https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|reels|tv)\/[\w-]+\/?/i;
+
+export function isInstagramUrl(url: string): boolean {
+  return INSTAGRAM_URL_REGEX.test(url);
+}
+
+export function getInstagramUrl(text: string): string | null {
+  const match = text.match(INSTAGRAM_URL_REGEX);
+  return match ? match[0] : null;
+}

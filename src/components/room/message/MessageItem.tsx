@@ -21,7 +21,8 @@ import { LinkPreview } from './LinkPreview';
 import { styles } from './MessageItem.styles';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
-import { parseTextWithUrls, getFirstUrl } from '../../../utils/urlParser';
+import { parseTextWithUrls, getFirstUrl, getInstagramUrl } from '../../../utils/urlParser';
+import { InstagramImageMessage } from './InstagramImageMessage';
 import { isVideoUrl } from '../../../hooks/useLinkPreview';
 
 export type MessageItemProps = {
@@ -169,6 +170,21 @@ const MessageContent = ({
   ];
 
   const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
+  const instagramUrl = isImageMessage ? getInstagramUrl(item.content) : null;
+
+  // Instagram image: show clickable URL above the image
+  if (isImageMessage && instagramUrl) {
+    return (
+      <InstagramImageMessage
+        instagramUrl={instagramUrl}
+        imageUrl={item.imageUrl!}
+        imageStyle={imageStyle}
+        isOwn={item.isOwn}
+        onImagePress={onImagePress}
+        onLongPress={onLongPress}
+      />
+    );
+  }
 
   if (isImageMessage) {
     return (
