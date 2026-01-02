@@ -238,6 +238,8 @@ export function QuickReactionsModal({
           enableSearchBar
           categoryPosition="top"
           enableRecentlyUsed
+          defaultHeight="60%"
+          expandedHeight="85%"
           theme={{
             backdrop: colors.transparent.black60,
             knob: colors.transparent.white30,
