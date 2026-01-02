@@ -15,6 +15,7 @@ import { colors } from '../../../theme';
 type LinkPreviewProps = {
   url: string;
   isOwn: boolean;
+  onLongPress?: () => void;
 };
 
 function getDomain(url: string): string {
@@ -49,7 +50,7 @@ function getVideoThumbnail(url: string): string | null {
   return null;
 }
 
-export const LinkPreview = React.memo<LinkPreviewProps>(({ url, isOwn }) => {
+export const LinkPreview = React.memo<LinkPreviewProps>(({ url, isOwn, onLongPress }) => {
   const { preview, loading, error } = useLinkPreview(url);
 
   const handlePress = () => {
@@ -78,6 +79,8 @@ export const LinkPreview = React.memo<LinkPreviewProps>(({ url, isOwn }) => {
     <TouchableOpacity
       style={[styles.container, isOwn ? styles.containerOwn : styles.containerOther]}
       onPress={handlePress}
+      onLongPress={onLongPress}
+      delayLongPress={500}
       activeOpacity={0.7}
     >
       {imageUrl && (

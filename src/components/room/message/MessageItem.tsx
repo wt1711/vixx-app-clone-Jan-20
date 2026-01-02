@@ -94,9 +94,11 @@ function isMessageItemEqual(
 const MessageTextWithLinks = ({
   content,
   isOwn,
+  onLongPress,
 }: {
   content: string;
   isOwn: boolean;
+  onLongPress?: () => void;
 }) => {
   const textStyle = [
     styles.messageText,
@@ -121,7 +123,7 @@ const MessageTextWithLinks = ({
 
   // For video-only messages, just show the preview
   if (isVideoOnly && firstUrl) {
-    return <LinkPreview url={firstUrl} isOwn={isOwn} />;
+    return <LinkPreview url={firstUrl} isOwn={isOwn} onLongPress={onLongPress} />;
   }
 
   return (
@@ -145,7 +147,7 @@ const MessageTextWithLinks = ({
           );
         })}
       </Text>
-      {firstUrl && <LinkPreview url={firstUrl} isOwn={isOwn} />}
+      {firstUrl && <LinkPreview url={firstUrl} isOwn={isOwn} onLongPress={onLongPress} />}
     </View>
   );
 };
@@ -188,7 +190,7 @@ const MessageContent = ({
     );
   }
 
-  return <MessageTextWithLinks content={item.content} isOwn={item.isOwn} />;
+  return <MessageTextWithLinks content={item.content} isOwn={item.isOwn} onLongPress={onLongPress} />;
 };
 
 export const MessageItemComponent = React.memo<MessageItemProps>(
