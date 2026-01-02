@@ -86,6 +86,9 @@ export const styles = StyleSheet.create({
   messageTextOther: {
     color: colors.text.messageOther,
   },
+  linkText: {
+    textDecorationLine: 'underline',
+  },
   replyPreviewContainer: {
     marginBottom: 4,
     maxWidth: '75%',

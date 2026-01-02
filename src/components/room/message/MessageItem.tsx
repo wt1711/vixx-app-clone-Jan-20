@@ -9,6 +9,7 @@ import {
   StyleProp,
   ViewStyle,
   ImageStyle,
+  Linking,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { MessageItem } from '../types';
@@ -16,9 +17,11 @@ import { formatTimeWithDay } from '../../../utils/timeFormatter';
 import { Avatar } from '../../common/Avatar';
 import { ReactionsList } from './Reactions';
 import { ReplyPreview } from './ReplyPreview';
+import { LinkPreview } from './LinkPreview';
 import { styles } from './MessageItem.styles';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
+import { parseTextWithUrls, getFirstUrl } from '../../../utils/urlParser';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -87,6 +90,52 @@ function isMessageItemEqual(
   return areReactionsEqual(prevItem.reactions, nextItem.reactions);
 }
 
+const MessageTextWithLinks = ({
+  content,
+  isOwn,
+}: {
+  content: string;
+  isOwn: boolean;
+}) => {
+  const textStyle = [
+    styles.messageText,
+    isOwn ? styles.messageTextOwn : styles.messageTextOther,
+  ];
+  const linkStyle = [
+    styles.messageText,
+    isOwn ? styles.messageTextOwn : styles.messageTextOther,
+    styles.linkText,
+  ];
+
+  const parts = useMemo(() => parseTextWithUrls(content), [content]);
+  const firstUrl = useMemo(() => getFirstUrl(content), [content]);
+
+  const handleLinkPress = (url: string) => {
+    Linking.openURL(url).catch(() => {});
+  };
+
+  return (
+    <View>
+      <Text style={textStyle}>
+        {parts.map((part, index) =>
+          part.type === 'url' ? (
+            <Text
+              key={index}
+              style={linkStyle}
+              onPress={() => handleLinkPress(part.content)}
+            >
+              {part.content}
+            </Text>
+          ) : (
+            <Text key={index}>{part.content}</Text>
+          ),
+        )}
+      </Text>
+      {firstUrl && <LinkPreview url={firstUrl} isOwn={isOwn} />}
+    </View>
+  );
+};
+
 const MessageContent = ({
   item,
   imageStyle,
@@ -125,7 +174,7 @@ const MessageContent = ({
     );
   }
 
-  return <Text style={textStyle}>{item.content}</Text>;
+  return <MessageTextWithLinks content={item.content} isOwn={item.isOwn} />;
 };
 
 export const MessageItemComponent = React.memo<MessageItemProps>(
