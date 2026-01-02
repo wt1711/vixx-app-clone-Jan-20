@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, ActivityIndicator, Text, StyleSheet, BackHandler, Platform } from 'react-native';
+import {
+  View,
+  ActivityIndicator,
+  Text,
+  StyleSheet,
+  BackHandler,
+  Platform,
+} from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { DirectMessageListScreen } from './DirectMessageListScreen';
 import { DirectMessageDetailScreen } from './DirectMessageDetailScreen';
@@ -36,20 +43,23 @@ export default function Home() {
   useEffect(() => {
     if (Platform.OS !== 'android') return;
 
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      // If on settings screen, go back to list
-      if (currentScreen === 'settings') {
-        setShowSettings(false);
-        return true;
-      }
-      // If on detail screen, go back to list
-      if (currentScreen === 'detail' && selectedRoomId) {
-        setSelectedRoomId(null);
-        return true; // Prevent default back behavior
-      }
-      // If on list screen, allow default back behavior (exit app)
-      return false;
-    });
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        // If on settings screen, go back to list
+        if (currentScreen === 'settings') {
+          setShowSettings(false);
+          return true;
+        }
+        // If on detail screen, go back to list
+        if (currentScreen === 'detail' && selectedRoomId) {
+          setSelectedRoomId(null);
+          return true; // Prevent default back behavior
+        }
+        // If on list screen, allow default back behavior (exit app)
+        return false;
+      },
+    );
 
     return () => backHandler.remove();
   }, [currentScreen, selectedRoomId]);
@@ -75,7 +85,7 @@ export default function Home() {
       <SafeAreaProvider>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.accent.instagram} />
-          <Text style={styles.loadingText}>Loading session…</Text>
+          <Text style={styles.loadingText}>Loading…</Text>
         </View>
       </SafeAreaProvider>
     );
