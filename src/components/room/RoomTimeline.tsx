@@ -6,6 +6,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
+import ImageViewing from 'react-native-image-viewing';
 import { getMatrixClient } from '../../matrixClient';
 import { getEventReactions, getReactionContent } from '../../utils/room';
 import { MessageEvent } from '../../types/matrix/room';
@@ -105,6 +106,17 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
 
   const handleBubblePress = useCallback((msgEventId: string) => {
     setSelectedMessageId(prev => (prev === msgEventId ? null : msgEventId));
+  }, []);
+
+  // ─── Image Viewer ──────────────────────────────────────────────────────────
+  const [viewingImageUrl, setViewingImageUrl] = useState<string | null>(null);
+
+  const handleImagePress = useCallback((imageUrl: string) => {
+    setViewingImageUrl(imageUrl);
+  }, []);
+
+  const closeImageViewer = useCallback(() => {
+    setViewingImageUrl(null);
   }, []);
 
   // ─── Reply ─────────────────────────────────────────────────────────────────
@@ -214,11 +226,12 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         }}
         onBubblePress={() => handleBubblePress(item.eventId)}
         onReplyPreviewPress={scrollToMessage}
+        onImagePress={handleImagePress}
         showTimestamp={selectedMessageId === item.eventId}
         isFirstOfHour={firstOfHourIds.has(item.eventId)}
       />
     ),
-    [toggleReaction, openQuickReactions, handleBubblePress, handleReply, scrollToMessage, selectedMessageId, firstOfHourIds],
+    [toggleReaction, openQuickReactions, handleBubblePress, scrollToMessage, handleImagePress, selectedMessageId, firstOfHourIds],
   );
 
   // ─── Loading State ──────────────────────────────────────────────────────────
@@ -262,6 +275,13 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         onClose={closeQuickReactions}
         onSelectEmoji={handleQuickReactionSelect}
         onReply={handleReplyFromModal}
+      />
+
+      <ImageViewing
+        images={viewingImageUrl ? [{ uri: viewingImageUrl }] : []}
+        imageIndex={0}
+        visible={viewingImageUrl !== null}
+        onRequestClose={closeImageViewer}
       />
     </>
   );
