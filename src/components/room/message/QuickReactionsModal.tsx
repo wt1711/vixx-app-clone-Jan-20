@@ -11,11 +11,11 @@ import {
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { Reply, Plus } from 'lucide-react-native';
+import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { MessageItem } from '../types';
 import { ReplyPreview } from './ReplyPreview';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
-import { EmojiPickerSheet } from './EmojiPickerSheet';
 
 const QUICK_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
@@ -229,13 +229,34 @@ export function QuickReactionsModal({
           </View>
         </View>
 
-        {showEmojiPicker && (
-          <EmojiPickerSheet
-            visible={showEmojiPicker}
-            onClose={() => setShowEmojiPicker(false)}
-            onSelectEmoji={handleEmojiPickerSelect}
-          />
-        )}
+        <EmojiPicker
+          open={showEmojiPicker}
+          onClose={() => setShowEmojiPicker(false)}
+          onEmojiSelected={(emoji: EmojiType) =>
+            handleEmojiPickerSelect(emoji.emoji)
+          }
+          enableSearchBar
+          categoryPosition="top"
+          enableRecentlyUsed
+          theme={{
+            backdrop: colors.transparent.black60,
+            knob: colors.transparent.white30,
+            container: colors.background.secondary,
+            header: colors.text.secondary,
+            category: {
+              icon: colors.text.secondary,
+              iconActive: colors.text.primary,
+              container: colors.background.secondary,
+              containerActive: colors.transparent.white15,
+            },
+            search: {
+              text: colors.text.primary,
+              placeholder: colors.text.placeholder,
+              icon: colors.text.secondary,
+              background: colors.transparent.white10,
+            },
+          }}
+        />
       </View>
     </Modal>
   );
