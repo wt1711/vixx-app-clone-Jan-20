@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUrlPreview } from 'react-native-preview-url';
 
 export type LinkPreviewData = {
@@ -15,8 +15,85 @@ type CacheEntry = {
   timestamp: number;
 };
 
+type OEmbedResponse = {
+  title?: string;
+  author_name?: string;
+  provider_name?: string;
+  thumbnail_url?: string;
+  html?: string;
+};
+
 const previewCache = new Map<string, CacheEntry>();
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+// Platform detection patterns (for oEmbed)
+const PLATFORM_PATTERNS = {
+  tiktok: /tiktok\.com/i,
+  twitter: /(?:twitter\.com|x\.com)/i,
+  vimeo: /vimeo\.com/i,
+} as const;
+
+// Video URL patterns - used to determine if we should hide the link text
+// Note: Instagram/Facebook excluded - require Graph API auth, show as regular links
+const VIDEO_URL_PATTERNS = [
+  /youtube\.com\/(?:watch|shorts|embed)/i,
+  /youtu\.be\//i,
+  /tiktok\.com/i,
+  /vimeo\.com/i,
+];
+
+type Platform = keyof typeof PLATFORM_PATTERNS;
+
+export function isVideoUrl(url: string): boolean {
+  return VIDEO_URL_PATTERNS.some((pattern) => pattern.test(url));
+}
+
+function detectPlatform(url: string): Platform | null {
+  for (const [platform, pattern] of Object.entries(PLATFORM_PATTERNS)) {
+    if (pattern.test(url)) {
+      return platform as Platform;
+    }
+  }
+  return null;
+}
+
+function getOEmbedEndpoint(platform: Platform, url: string): string {
+  const encodedUrl = encodeURIComponent(url);
+  switch (platform) {
+    case 'tiktok':
+      return `https://www.tiktok.com/oembed?url=${encodedUrl}`;
+    case 'twitter':
+      return `https://publish.twitter.com/oembed?url=${encodedUrl}`;
+    case 'vimeo':
+      return `https://vimeo.com/api/oembed.json?url=${encodedUrl}`;
+  }
+}
+
+async function fetchOEmbed(url: string): Promise<LinkPreviewData | null> {
+  const platform = detectPlatform(url);
+  if (!platform) return null;
+
+  try {
+    const endpoint = getOEmbedEndpoint(platform, url);
+    const response = await fetch(endpoint, {
+      headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) return null;
+
+    const data: OEmbedResponse = await response.json();
+
+    return {
+      url,
+      title: data.title || data.author_name,
+      description: data.author_name ? `by ${data.author_name}` : undefined,
+      images: data.thumbnail_url ? [data.thumbnail_url] : undefined,
+      siteName: data.provider_name,
+    };
+  } catch {
+    return null;
+  }
+}
 
 function getCachedPreview(url: string): LinkPreviewData | null | undefined {
   const entry = previewCache.get(url);
@@ -39,73 +116,89 @@ export function useLinkPreview(url: string | null): {
   loading: boolean;
   error: Error | null;
 } {
-  const [cachedPreview, setCachedPreviewState] = useState<LinkPreviewData | null | undefined>(() =>
-    url ? getCachedPreview(url) : null,
-  );
-  const prevUrlRef = useRef(url);
+  const [preview, setPreview] = useState<LinkPreviewData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  // Use the library hook - it only accepts string, so pass empty string when null
-  const { loading: libLoading, data, error: libError } = useUrlPreview(url || '', 5000);
+  // Check if this URL needs oEmbed (for platforms the library doesn't handle well)
+  const platform = url ? detectPlatform(url) : null;
 
-  // Check cache when URL changes
+  // Use the library hook for non-oEmbed URLs
+  const {
+    loading: libLoading,
+    data: libData,
+    error: libError,
+  } = useUrlPreview(url && !platform ? url : '', 5000);
+
+  // Handle URL changes and oEmbed fetching
   useEffect(() => {
-    if (url !== prevUrlRef.current) {
-      prevUrlRef.current = url;
-      if (url) {
-        const cached = getCachedPreview(url);
-        setCachedPreviewState(cached);
-      } else {
-        setCachedPreviewState(null);
-      }
+    if (!url) {
+      setPreview(null);
+      setLoading(false);
+      setError(null);
+      return;
     }
-  }, [url]);
 
-  // When library returns data, cache it
+    // Check cache first
+    const cached = getCachedPreview(url);
+    if (cached !== undefined) {
+      setPreview(cached);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    // If it's a platform that needs oEmbed, fetch it
+    if (platform) {
+      setLoading(true);
+      setError(null);
+
+      fetchOEmbed(url)
+        .then((data) => {
+          setCachedPreview(url, data);
+          setPreview(data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setCachedPreview(url, null);
+          setError(err);
+          setPreview(null);
+          setLoading(false);
+        });
+    }
+  }, [url, platform]);
+
+  // Handle library data for non-oEmbed URLs
   useEffect(() => {
-    if (data && url) {
+    if (!url || platform) return;
+
+    if (libData) {
       const previewData: LinkPreviewData = {
-        url: data.url,
-        title: data.title,
-        description: data.description,
-        images: data.images,
-        siteName: data.siteName,
-        favicon: data.favicons?.[0],
+        url: libData.url,
+        title: libData.title,
+        description: libData.description,
+        images: libData.images,
+        siteName: libData.siteName,
+        favicon: libData.favicons?.[0],
       };
       setCachedPreview(url, previewData);
-      setCachedPreviewState(previewData);
-    } else if (libError && url) {
+      setPreview(previewData);
+      setError(null);
+    } else if (libError) {
       setCachedPreview(url, null);
-      setCachedPreviewState(null);
+      setError(new Error(libError));
+      setPreview(null);
     }
-  }, [data, libError, url]);
+  }, [url, platform, libData, libError]);
 
-  // If we have cached data, return it immediately
-  if (cachedPreview !== undefined && cachedPreview !== null) {
-    return { preview: cachedPreview, loading: false, error: null };
-  }
+  // Update loading state from library
+  useEffect(() => {
+    if (!platform && url) {
+      setLoading(libLoading);
+    }
+  }, [libLoading, platform, url]);
 
-  // No URL provided
-  if (!url) {
-    return { preview: null, loading: false, error: null };
-  }
-
-  // Return library state
-  const preview: LinkPreviewData | null = data
-    ? {
-        url: data.url,
-        title: data.title,
-        description: data.description,
-        images: data.images,
-        siteName: data.siteName,
-        favicon: data.favicons?.[0],
-      }
-    : null;
-
-  return {
-    preview,
-    loading: libLoading,
-    error: libError ? new Error(libError) : null,
-  };
+  return { preview, loading, error };
 }
 
 export function clearLinkPreviewCache(): void {

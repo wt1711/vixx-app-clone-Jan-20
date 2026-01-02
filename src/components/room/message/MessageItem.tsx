@@ -22,6 +22,7 @@ import { styles } from './MessageItem.styles';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
 import { parseTextWithUrls, getFirstUrl } from '../../../utils/urlParser';
+import { isVideoUrl } from '../../../hooks/useLinkPreview';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -109,16 +110,29 @@ const MessageTextWithLinks = ({
 
   const parts = useMemo(() => parseTextWithUrls(content), [content]);
   const firstUrl = useMemo(() => getFirstUrl(content), [content]);
+  const isVideo = firstUrl ? isVideoUrl(firstUrl) : false;
 
   const handleLinkPress = (url: string) => {
     Linking.openURL(url).catch(() => {});
   };
 
+  // Check if message is only a video URL (with optional whitespace)
+  const isVideoOnly = isVideo && content.trim() === firstUrl;
+
+  // For video-only messages, just show the preview
+  if (isVideoOnly && firstUrl) {
+    return <LinkPreview url={firstUrl} isOwn={isOwn} />;
+  }
+
   return (
     <View>
       <Text style={textStyle}>
-        {parts.map((part, index) =>
-          part.type === 'url' ? (
+        {parts.map((part, index) => {
+          // Hide video URLs in text, only show preview
+          if (part.type === 'url' && isVideoUrl(part.content)) {
+            return null;
+          }
+          return part.type === 'url' ? (
             <Text
               key={index}
               style={linkStyle}
@@ -128,8 +142,8 @@ const MessageTextWithLinks = ({
             </Text>
           ) : (
             <Text key={index}>{part.content}</Text>
-          ),
-        )}
+          );
+        })}
       </Text>
       {firstUrl && <LinkPreview url={firstUrl} isOwn={isOwn} />}
     </View>
