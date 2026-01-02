@@ -27,6 +27,7 @@ export type MessageItemProps = {
   ) => void;
   onBubblePress?: () => void;
   onReplyPreviewPress?: (eventId: string) => void;
+  onImagePress?: (imageUrl: string) => void;
   showTimestamp?: boolean;
   isFirstOfHour?: boolean;
 };
@@ -88,9 +89,11 @@ function isMessageItemEqual(
 const MessageContent = ({
   item,
   imageStyle,
+  onImagePress,
 }: {
   item: MessageItem;
   imageStyle: StyleProp<ImageStyle>;
+  onImagePress?: (imageUrl: string) => void;
 }) => {
   const textStyle = [
     styles.messageText,
@@ -101,7 +104,10 @@ const MessageContent = ({
 
   if (isImageMessage) {
     return (
-      <View style={styles.imageContainer}>
+      <Pressable
+        style={styles.imageContainer}
+        onPress={() => onImagePress?.(item.imageUrl!)}
+      >
         <Image
           source={{ uri: item.imageUrl }}
           style={imageStyle}
@@ -110,7 +116,7 @@ const MessageContent = ({
         {item.content === '📷 Image' && (
           <Text style={[textStyle, styles.imageCaption]}>{item.content}</Text>
         )}
-      </View>
+      </Pressable>
     );
   }
 
@@ -124,6 +130,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     onLongPress,
     onBubblePress,
     onReplyPreviewPress,
+    onImagePress,
     showTimestamp,
     isFirstOfHour,
   }) => {
@@ -245,7 +252,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
                   reducedTransparencyFallbackColor={blurFallbackColor}
                 />
                 <View style={contentStyle}>
-                  <MessageContent item={item} imageStyle={imageStyle} />
+                  <MessageContent item={item} imageStyle={imageStyle} onImagePress={onImagePress} />
                 </View>
               </View>
             </Pressable>
