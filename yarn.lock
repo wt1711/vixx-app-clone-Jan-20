@@ -5883,6 +5883,11 @@ react-native-nitro-modules@^0.32.0:
   resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.32.0.tgz#383e888646e379cfe0b19358ba147420b5948950"
   integrity sha512-nLDsmi/H9/cLcYxArYxcTDL641JiWnAH3u2LmsFETgyqSEHvukswDTdmX6AHBRIAwXu/iUDppZyjsaRpTG6WMg==
 
+react-native-preview-url@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/react-native-preview-url/-/react-native-preview-url-0.1.4.tgz#d4f6bf76b4c213824955d3c9653bfbbd3c206450"
+  integrity sha512-rDKbtcHQEjy7hvUt2Ro6VanejN9zrNGu0wz/rtkL3UVi5xBkjqyOyzlyqQRYbWveh3HjT4Mww9WkGg/7z6Xbew==
+
 react-native-quick-base64@2.2.2, react-native-quick-base64@^2.0.5:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/react-native-quick-base64/-/react-native-quick-base64-2.2.2.tgz#52005a0b455b04acc1c6ff3eb8fa220401656aae"

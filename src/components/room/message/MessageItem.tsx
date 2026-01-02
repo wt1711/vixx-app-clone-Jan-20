@@ -9,6 +9,7 @@ import {
   StyleProp,
   ViewStyle,
   ImageStyle,
+  Linking,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { MessageItem } from '../types';
@@ -16,9 +17,12 @@ import { formatTimeWithDay } from '../../../utils/timeFormatter';
 import { Avatar } from '../../common/Avatar';
 import { ReactionsList } from './Reactions';
 import { ReplyPreview } from './ReplyPreview';
+import { LinkPreview } from './LinkPreview';
 import { styles } from './MessageItem.styles';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
+import { parseTextWithUrls, getFirstUrl } from '../../../utils/urlParser';
+import { isVideoUrl } from '../../../hooks/useLinkPreview';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -87,6 +91,67 @@ function isMessageItemEqual(
   return areReactionsEqual(prevItem.reactions, nextItem.reactions);
 }
 
+const MessageTextWithLinks = ({
+  content,
+  isOwn,
+  onLongPress,
+}: {
+  content: string;
+  isOwn: boolean;
+  onLongPress?: () => void;
+}) => {
+  const textStyle = [
+    styles.messageText,
+    isOwn ? styles.messageTextOwn : styles.messageTextOther,
+  ];
+  const linkStyle = [
+    styles.messageText,
+    isOwn ? styles.messageTextOwn : styles.messageTextOther,
+    styles.linkText,
+  ];
+
+  const parts = useMemo(() => parseTextWithUrls(content), [content]);
+  const firstUrl = useMemo(() => getFirstUrl(content), [content]);
+  const isVideo = firstUrl ? isVideoUrl(firstUrl) : false;
+
+  const handleLinkPress = (url: string) => {
+    Linking.openURL(url).catch(() => {});
+  };
+
+  // Check if message is only a video URL (with optional whitespace)
+  const isVideoOnly = isVideo && content.trim() === firstUrl;
+
+  // For video-only messages, just show the preview
+  if (isVideoOnly && firstUrl) {
+    return <LinkPreview url={firstUrl} isOwn={isOwn} onLongPress={onLongPress} />;
+  }
+
+  return (
+    <View>
+      <Text style={textStyle}>
+        {parts.map((part, index) => {
+          // Hide video URLs in text, only show preview
+          if (part.type === 'url' && isVideoUrl(part.content)) {
+            return null;
+          }
+          return part.type === 'url' ? (
+            <Text
+              key={index}
+              style={linkStyle}
+              onPress={() => handleLinkPress(part.content)}
+            >
+              {part.content}
+            </Text>
+          ) : (
+            <Text key={index}>{part.content}</Text>
+          );
+        })}
+      </Text>
+      {firstUrl && <LinkPreview url={firstUrl} isOwn={isOwn} onLongPress={onLongPress} />}
+    </View>
+  );
+};
+
 const MessageContent = ({
   item,
   imageStyle,
@@ -125,7 +190,7 @@ const MessageContent = ({
     );
   }
 
-  return <Text style={textStyle}>{item.content}</Text>;
+  return <MessageTextWithLinks content={item.content} isOwn={item.isOwn} onLongPress={onLongPress} />;
 };
 
 export const MessageItemComponent = React.memo<MessageItemProps>(
