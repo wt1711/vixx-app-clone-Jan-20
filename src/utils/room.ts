@@ -1,5 +1,6 @@
 import { EventTimeline, MatrixClient, MatrixEvent, MsgType, Room, RoomMember, RoomType, Direction } from "matrix-js-sdk";
 import { MessageEvent, StateEvent, RelationType, ContentKey } from "../types/matrix/room";
+import { FOUNDER_MATRIX_ID, FOUNDER_ROOM_NAME } from "../constants/founder";
 
 
 export const getStateEvent = (
@@ -270,6 +271,10 @@ export const getLastRoomMessageAsync = async (
     roomName: string,
     senderName: string
   ): boolean => {
+    // Messages from founder in VIXX Founder room are not from me
+    if (roomName === FOUNDER_ROOM_NAME && sender === FOUNDER_MATRIX_ID) {
+      return false;
+    }
     return sender === myUserId || roomName !== senderName;
   };
 

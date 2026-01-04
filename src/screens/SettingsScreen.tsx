@@ -3,28 +3,29 @@ import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import {
-  ChevronLeft,
-  // LogOut
-} from 'lucide-react-native';
+import { ChevronLeft, MessageCircle } from 'lucide-react-native';
 // import { useAuth } from '../context/AuthContext';
 import { colors, gradients } from '../theme';
 import { getMatrixClient } from '../matrixClient';
 import { getCreditsRemaining } from '../services/aiService';
+import { useChatWithFounder } from '../hooks/useChatWithFounder';
 
 type SettingsScreenProps = {
   onBack: () => void;
+  onSelectRoom: (roomId: string) => void;
 };
 
-export function SettingsScreen({ onBack }: SettingsScreenProps) {
+export function SettingsScreen({ onBack, onSelectRoom }: SettingsScreenProps) {
   const insets = useSafeAreaInsets();
   // const { logout } = useAuth();
+  const mx = getMatrixClient();
+  const { handleChatWithFounder, founderAvatar } =
+    useChatWithFounder(onSelectRoom);
 
   const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchCredits = async () => {
-      const mx = getMatrixClient();
       const userId = mx?.getUserId();
       if (userId) {
         const remaining = await getCreditsRemaining(userId);
@@ -32,7 +33,7 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       }
     };
     fetchCredits();
-  }, []);
+  }, [mx]);
 
   return (
     <View style={styles.container}>
@@ -78,6 +79,21 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
             <Text style={styles.sectionValue}>{credits ?? '—'}</Text>
           </View>
         </View>
+
+        {/* Chat with Founder */}
+        <TouchableOpacity
+          style={styles.section}
+          onPress={handleChatWithFounder}
+          activeOpacity={0.7}
+        >
+          <View style={styles.sectionRow}>
+            <View style={styles.sectionLeft}>
+              <Image source={founderAvatar} style={styles.founderAvatar} />
+              <Text style={styles.sectionLabel}>Chat with Founder</Text>
+            </View>
+            <MessageCircle color={colors.text.secondary} size={20} />
+          </View>
+        </TouchableOpacity>
 
         {/* Logout Button */}
         {/* <TouchableOpacity
@@ -147,6 +163,11 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     backgroundColor: 'white',
+  },
+  founderAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   sectionLabel: {
     fontSize: 16,
