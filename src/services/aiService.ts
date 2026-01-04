@@ -83,6 +83,47 @@ export async function generateResponseFromMessage({
   }
 }
 
+export async function generateResponseWithIdea({
+  message,
+  lastMsgTimeStamp,
+  context,
+  spec,
+  userId,
+}: {
+  message: string;
+  lastMsgTimeStamp: string;
+  context: Message[];
+  spec: object;
+  userId?: string;
+}): Promise<string> {
+  try {
+    const response = await fetch(API_ENDPOINTS.AI.GENERATE_RESPONSE_WITH_IDEA, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message,
+        lastMsgTimeStamp,
+        context,
+        spec,
+        userId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to generate response with idea from server.');
+    }
+
+    const data = await response.json();
+    return data.response;
+  } catch (error) {
+    console.error('Error in generateResponseWithIdea:', error);
+    return 'Xin lỗi, đã có lỗi khi tạo phản hồi.';
+  }
+}
+
 export async function gradeMessage({
   message,
   context,
