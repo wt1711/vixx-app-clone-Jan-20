@@ -65,7 +65,7 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                 <Text style={styles.emptyStateText}>Ask me anything about this conversation</Text>
                 <TouchableOpacity
                   style={styles.generateButton}
-                  onPress={generateInitialResponse}
+                  onPress={() => generateInitialResponse()}
                   disabled={isGeneratingResponse}
                 >
                   {isGeneratingResponse ? (
