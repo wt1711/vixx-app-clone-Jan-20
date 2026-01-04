@@ -35,7 +35,7 @@ type AIAssistantContextType = {
   // Actions
   setInputValue: (value: string) => void;
   handleSend: () => void;
-  generateInitialResponse: () => void;
+  generateInitialResponse: (idea?: string) => void;
   regenerateResponse: (spec?: object) => void;
   handleUseSuggestion: (response: string) => void;
   clearChatHistory: () => void;
@@ -107,9 +107,10 @@ export function AIAssistantProvider({
     [isMobile],
   );
 
-  const generateInitialResponse = useCallback(async () => {
+  const generateInitialResponse = useCallback(async (idea?: string) => {
     toggleAIAssistant(true);
-    await regenerateResponse();
+    const spec = idea ? { idea } : {};
+    await regenerateResponse(spec);
   }, [toggleAIAssistant]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const regenerateResponse = useCallback(
