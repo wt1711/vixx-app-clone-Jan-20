@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import CookieManager from '@react-native-cookies/cookies';
 import LinearGradient from 'react-native-linear-gradient';
-import { RefreshCw } from 'lucide-react-native';
+import { RefreshCw, ArrowRight, Instagram } from 'lucide-react-native';
 import { colors, gradients } from '../theme';
 import SyncingInstagramModal from './SyncingInstagramModal';
 
@@ -40,6 +41,26 @@ export default function LoginInstagramModal({
   const [showConnectOptions, setShowConnectOptions] = useState(false);
   const [lastParsedCookies, setLastParsedCookies] = useState('');
   const jsCookiesRef = useRef<Record<string, string>>({});
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.02,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [pulseAnim]);
 
   const handleCloseWebView = () => {
     onClose();
@@ -412,13 +433,51 @@ export default function LoginInstagramModal({
                     end={{ x: 1, y: 1 }}
                     style={StyleSheet.absoluteFill}
                   />
-                  <Text style={styles.loggedInTitle}>Instagram Logged In</Text>
-                  <TouchableOpacity
-                    style={styles.continueButton}
-                    onPress={handleConnectInstagram}
+                  <View style={styles.instagramIconContainer}>
+                    <LinearGradient
+                      colors={[
+                        '#f09433',
+                        '#e6683c',
+                        '#dc2743',
+                        '#cc2366',
+                        '#bc1888',
+                      ]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.instagramIconGradient}
+                    >
+                      <Instagram color="#FFFFFF" size={32} />
+                    </LinearGradient>
+                  </View>
+                  <Text style={styles.loggedInTitle}>Account connected</Text>
+                  <Animated.View
+                    style={[
+                      styles.continueButtonAnimated,
+                      { transform: [{ scale: pulseAnim }] },
+                    ]}
                   >
-                    <Text style={styles.continueButtonText}>Continue</Text>
-                  </TouchableOpacity>
+                    <LinearGradient
+                      colors={['#f97316', '#f59e0b']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.continueButtonGradient}
+                    >
+                      <TouchableOpacity
+                        style={styles.continueButton}
+                        onPress={handleConnectInstagram}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.continueButtonText}>
+                          Continue setup
+                        </Text>
+                        <ArrowRight
+                          color="#FFFFFF"
+                          size={20}
+                          style={styles.continueButtonIcon}
+                        />
+                      </TouchableOpacity>
+                    </LinearGradient>
+                  </Animated.View>
                 </View>
               </View>
             </Modal>
@@ -582,21 +641,47 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  instagramIconContainer: {
+    marginBottom: 20,
+  },
+  instagramIconGradient: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   loggedInTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: colors.text.primary,
     marginBottom: 24,
   },
+  continueButtonAnimated: {
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    borderRadius: 16,
+  },
+  continueButtonGradient: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
   continueButton: {
-    backgroundColor: colors.accent.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 16,
   },
   continueButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  continueButtonIcon: {
+    marginLeft: 4,
   },
 });
