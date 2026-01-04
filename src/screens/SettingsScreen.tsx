@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
-import { ChevronLeft, MessageCircle } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
 // import { useAuth } from '../context/AuthContext';
 import { colors, gradients } from '../theme';
 import { getMatrixClient } from '../matrixClient';
@@ -82,17 +82,12 @@ export function SettingsScreen({ onBack, onSelectRoom }: SettingsScreenProps) {
 
         {/* Chat with Founder */}
         <TouchableOpacity
-          style={styles.section}
+          style={styles.founderButton}
           onPress={handleChatWithFounder}
           activeOpacity={0.7}
         >
-          <View style={styles.sectionRow}>
-            <View style={styles.sectionLeft}>
-              <Image source={founderAvatar} style={styles.founderAvatar} />
-              <Text style={styles.sectionLabel}>Chat with Founder</Text>
-            </View>
-            <MessageCircle color={colors.text.secondary} size={20} />
-          </View>
+          <Image source={founderAvatar} style={styles.founderAvatar} />
+          <Text style={styles.founderButtonText}>Chat with Founder</Text>
         </TouchableOpacity>
 
         {/* Logout Button */}
@@ -168,6 +163,28 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
+  },
+  founderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    backgroundColor: 'transparent',
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: colors.accent.primary,
+    paddingVertical: 14,
+    marginBottom: 24,
+    shadowColor: colors.text.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  founderButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text.primary,
   },
   sectionLabel: {
     fontSize: 16,
