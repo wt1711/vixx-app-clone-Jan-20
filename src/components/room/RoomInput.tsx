@@ -245,16 +245,25 @@ export function RoomInput({ room }: RoomInputProps) {
 
       {/* Idea Options Dropdown */}
       {showIdeaModal && (
-        <View style={styles.ideaDropdownContainer}>
+        <LinearGradient
+          colors={['#3D4259', '#2D3250']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.ideaDropdownContainer}
+        >
           {inputText.trim() ? (
             <>
               <TouchableOpacity
                 style={styles.ideaOption}
                 onPress={handleGenerateWithIdea}
               >
-                <Text style={styles.ideaOptionText}>Based on the idea</Text>
+                <Text style={styles.ideaOptionText}>Use my idea</Text>
                 <Text style={styles.ideaOptionSubtext} numberOfLines={1}>
-                  "{inputText.trim()}"
+                  "
+                  {inputText.trim().length > 15
+                    ? `${inputText.trim().slice(0, 15)}...`
+                    : inputText.trim()}
+                  "
                 </Text>
               </TouchableOpacity>
               <View style={styles.ideaOptionDivider} />
@@ -264,12 +273,12 @@ export function RoomInput({ room }: RoomInputProps) {
             style={styles.ideaOption}
             onPress={handleGenerateWithoutIdea}
           >
-            <Text style={styles.ideaOptionText}>Generate freely</Text>
-            {inputText.trim() ? (
+            <Text style={styles.ideaOptionText}>Surprise me 🎁</Text>
+            {/* {inputText.trim() ? (
               <Text style={styles.ideaOptionSubtext}>Ignore my input</Text>
-            ) : null}
+            ) : null} */}
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
       )}
     </View>
   );
@@ -398,10 +407,8 @@ const styles = StyleSheet.create({
     bottom: '100%',
     right: 12,
     marginBottom: 8,
-    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     overflow: 'hidden',
-    minWidth: 200,
     shadowColor: colors.background.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
