@@ -9,6 +9,7 @@ import {
   Animated,
   Easing,
   Keyboard,
+  Image,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
@@ -28,7 +29,6 @@ type RoomInputProps = {
 
 export function RoomInput({ room }: RoomInputProps) {
   const [sending, setSending] = useState(false);
-  const [showIdeaModal, setShowIdeaModal] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const mx = getMatrixClient();
   const {
@@ -71,7 +71,6 @@ export function RoomInput({ room }: RoomInputProps) {
     });
     const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
       setIsKeyboardVisible(false);
-      setShowIdeaModal(false);
     });
 
     return () => {
@@ -89,24 +88,12 @@ export function RoomInput({ room }: RoomInputProps) {
   const inputText = inputValue;
   const setInputText = setInputValue;
 
-  const handleAIButtonPress = useCallback(() => {
-    if (isKeyboardVisible) {
-      // If keyboard is open, show the dropdown with options
-      setShowIdeaModal(true);
-    } else {
-      // If keyboard is closed, generate directly
-      generateInitialResponse();
-    }
-  }, [isKeyboardVisible, generateInitialResponse]);
-
   const handleGenerateWithIdea = useCallback(() => {
     const idea = inputText.trim();
-    setShowIdeaModal(false);
     generateInitialResponse(idea);
   }, [inputText, generateInitialResponse]);
 
   const handleGenerateWithoutIdea = useCallback(() => {
-    setShowIdeaModal(false);
     generateInitialResponse();
   }, [generateInitialResponse]);
 
@@ -180,27 +167,39 @@ export function RoomInput({ room }: RoomInputProps) {
           blurAmount={80}
           reducedTransparencyFallbackColor={colors.background.primary}
         />
-        <TouchableOpacity
-          style={[
-            styles.mediaButton,
-            isUploading && styles.mediaButtonDisabled,
-          ]}
-          onPress={pickAndSendImage}
-          disabled={isUploading}
-        >
-          <LinearGradient
-            colors={['#1A1D24', '#22262E', '#2A2F38']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.mediaButtonGradient}
+        {inputText.trim() && isKeyboardVisible ? (
+          <TouchableOpacity
+            style={styles.useIdeaButton}
+            onPress={handleGenerateWithIdea}
+            disabled={isGeneratingResponse}
           >
-            {isUploading ? (
-              <ActivityIndicator size="small" color={colors.text.white} />
-            ) : (
-              <ImageIcon color={colors.text.white} size={22} />
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+            <Animated.View style={{ transform: [{ rotate: spin }] }}>
+              <Text style={styles.useIdeaIcon}>✍️</Text>
+            </Animated.View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.mediaButton,
+              isUploading && styles.mediaButtonDisabled,
+            ]}
+            onPress={pickAndSendImage}
+            disabled={isUploading}
+          >
+            <LinearGradient
+              colors={['#1A1D24', '#22262E', '#2A2F38']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.mediaButtonGradient}
+            >
+              {isUploading ? (
+                <ActivityIndicator size="small" color={colors.text.white} />
+              ) : (
+                <ImageIcon color={colors.text.white} size={22} />
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
         <TextInput
           style={styles.input}
           placeholder="flirt with her..."
@@ -214,12 +213,12 @@ export function RoomInput({ room }: RoomInputProps) {
         />
         <TouchableOpacity
           style={styles.aiButton}
-          onPress={handleAIButtonPress}
+          onPress={handleGenerateWithoutIdea}
           disabled={isGeneratingResponse}
         >
-          <Animated.Image
+          <Image
             source={require('../../../assets/logo.png')}
-            style={[styles.vixxLogo, { transform: [{ rotate: spin }] }]}
+            style={styles.vixxLogo}
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -242,44 +241,6 @@ export function RoomInput({ room }: RoomInputProps) {
           )}
         </TouchableOpacity>
       </View>
-
-      {/* Idea Options Dropdown */}
-      {showIdeaModal && (
-        <LinearGradient
-          colors={['#3D4259', '#2D3250']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.ideaDropdownContainer}
-        >
-          {inputText.trim() ? (
-            <>
-              <TouchableOpacity
-                style={styles.ideaOption}
-                onPress={handleGenerateWithIdea}
-              >
-                <Text style={styles.ideaOptionText}>Use my idea</Text>
-                <Text style={styles.ideaOptionSubtext} numberOfLines={1}>
-                  "
-                  {inputText.trim().length > 15
-                    ? `${inputText.trim().slice(0, 15)}...`
-                    : inputText.trim()}
-                  "
-                </Text>
-              </TouchableOpacity>
-              <View style={styles.ideaOptionDivider} />
-            </>
-          ) : null}
-          <TouchableOpacity
-            style={styles.ideaOption}
-            onPress={handleGenerateWithoutIdea}
-          >
-            <Text style={styles.ideaOptionText}>Surprise me 🎁</Text>
-            {/* {inputText.trim() ? (
-              <Text style={styles.ideaOptionSubtext}>Ignore my input</Text>
-            ) : null} */}
-          </TouchableOpacity>
-        </LinearGradient>
-      )}
     </View>
   );
 }
@@ -402,35 +363,15 @@ const styles = StyleSheet.create({
     padding: 4,
     marginLeft: 8,
   },
-  ideaDropdownContainer: {
-    position: 'absolute',
-    bottom: '100%',
-    right: 12,
-    marginBottom: 8,
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: colors.background.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+  useIdeaButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.transparent.white10,
+    borderRadius: 16,
   },
-  ideaOption: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  ideaOptionText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text.primary,
-    marginBottom: 4,
-  },
-  ideaOptionSubtext: {
-    fontSize: 13,
-    color: colors.text.secondary,
-  },
-  ideaOptionDivider: {
-    height: 1,
-    backgroundColor: colors.transparent.white15,
+  useIdeaIcon: {
+    fontSize: 20,
   },
 });
