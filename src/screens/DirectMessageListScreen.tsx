@@ -7,6 +7,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   Text,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -27,6 +28,7 @@ import { SocialAccountService } from '../services/apiService';
 import ForceLogOutModal from '../components/ForceLogOutModal';
 import PendingInvitationsModal from '../components/PendingInvitationsModal';
 import { colors, gradients } from '../theme';
+import { useChatWithFounder } from '../hooks/useChatWithFounder';
 
 type DirectMessageListScreenProps = {
   onSelectRoom: (roomId: string) => void;
@@ -54,6 +56,7 @@ export function DirectMessageListScreen({
   const socialAccountService = SocialAccountService.getInstance();
   const insets = useSafeAreaInsets();
   const loadingRef = useRef(false);
+  const { handleChatWithFounder, founderAvatar } = useChatWithFounder(onSelectRoom);
 
   // Load room data with async message fetching
   const loadRoomItems = useCallback(async () => {
@@ -195,10 +198,17 @@ export function DirectMessageListScreen({
           blurAmount={80}
           reducedTransparencyFallbackColor={colors.background.primary}
         />
+        <TouchableOpacity
+          onPress={handleChatWithFounder}
+          style={styles.headerButton}
+          activeOpacity={0.7}
+        >
+          <Image source={founderAvatar} style={styles.founderAvatar} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Messages</Text>
         <TouchableOpacity
           onPress={onOpenSettings}
-          style={styles.settingsButton}
+          style={styles.headerButton}
           activeOpacity={0.7}
         >
           <Settings color={colors.text.primary} size={24} />
@@ -261,7 +271,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 12,
@@ -269,17 +279,17 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.transparent.white10,
   },
   headerTitle: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 12,
-    textAlign: 'center',
     fontSize: 24,
     fontWeight: '700',
     color: colors.text.primary,
   },
-  settingsButton: {
+  headerButton: {
     padding: 8,
+  },
+  founderAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
   listContent: {
     paddingVertical: 16,

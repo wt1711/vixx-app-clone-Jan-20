@@ -70,6 +70,7 @@ export default function Home() {
 
   const handleSelectRoom = (roomId: string) => {
     setSelectedRoomId(roomId);
+    setShowSettings(false);
   };
 
   const handleOpenSettings = () => {
@@ -96,7 +97,7 @@ export default function Home() {
       {!matrixToken ? (
         <Login />
       ) : showSettings ? (
-        <SettingsScreen onBack={handleCloseSettings} />
+        <SettingsScreen onBack={handleCloseSettings} onSelectRoom={handleSelectRoom} />
       ) : selectedRoomId ? (
         <DirectMessageDetailScreen
           roomId={selectedRoomId}
