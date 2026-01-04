@@ -101,6 +101,7 @@ export const API_ENDPOINTS = {
   AI: {
     SUGGESTION: `${ENV.AI_SERVICE_BASE_URL}/suggestion`,
     GENERATE_RESPONSE: `${ENV.AI_SERVICE_BASE_URL}/generate-response`,
+    GENERATE_RESPONSE_WITH_IDEA: `${ENV.AI_SERVICE_BASE_URL}/generate-response-with-idea`,
     GRADE_RESPONSE: `${ENV.AI_SERVICE_BASE_URL}/grade-response`,
     CREDITS_REMAINING: `${ENV.AI_SERVICE_BASE_URL}/credits-remaining`,
   },

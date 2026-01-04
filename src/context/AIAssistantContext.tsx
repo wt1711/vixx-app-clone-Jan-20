@@ -11,6 +11,7 @@ import { getMatrixClient } from '../matrixClient';
 import {
   getOpenAIConsultation,
   generateResponseFromMessage,
+  generateResponseWithIdea,
   gradeMessage,
 } from '../services/aiService';
 import { isMessageFromMe, getLastReceivedMessageBatch } from '../utils/room';
@@ -148,7 +149,11 @@ export function AIAssistantProvider({
         const { messageBatch, timestampStr } =
           getLastReceivedMessageBatch(roomContext);
 
-        const response = await generateResponseFromMessage({
+        // Use different endpoint based on whether idea is provided
+        const hasIdea = spec && 'idea' in spec && (spec as { idea?: string }).idea;
+        const generateFn = hasIdea ? generateResponseWithIdea : generateResponseFromMessage;
+
+        const response = await generateFn({
           message: messageBatch,
           lastMsgTimeStamp: timestampStr,
           context: roomContext,
