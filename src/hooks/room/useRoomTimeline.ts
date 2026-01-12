@@ -89,6 +89,9 @@ export function useRoomTimeline({
       let contentText = '';
       let imageUrl: string | undefined;
       let imageInfo: { w?: number; h?: number; mimetype?: string } | undefined;
+      let videoUrl: string | undefined;
+      let videoInfo: { w?: number; h?: number; mimetype?: string; duration?: number; thumbnail_url?: string } | undefined;
+      let videoThumbnailUrl: string | undefined;
 
       if (content.msgtype === MsgType.Text) {
         contentText = content.body || '';
@@ -103,7 +106,26 @@ export function useRoomTimeline({
         }
         contentText = content.body || '📷 Image';
       } else if (content.msgtype === MsgType.Video) {
-        contentText = '🎥 Video';
+        const mxcUrl = content.file?.url || content.url;
+        if (mxcUrl && typeof mxcUrl === 'string') {
+          videoUrl =
+            mx.mxcUrlToHttp(mxcUrl, undefined, undefined, undefined, undefined, false, true) ||
+            undefined;
+          videoUrl = `${videoUrl}&access_token=${mx.getAccessToken()}`;
+          videoInfo = content.info || content.file?.info;
+          
+          // Extract thumbnail URL if available
+          const thumbnailMxc = videoInfo?.thumbnail_url || content.thumbnail_url;
+          if (thumbnailMxc && typeof thumbnailMxc === 'string') {
+            videoThumbnailUrl =
+              mx.mxcUrlToHttp(thumbnailMxc, 400, 400, 'scale', undefined, false, true) ||
+              undefined;
+            if (videoThumbnailUrl) {
+              videoThumbnailUrl = `${videoThumbnailUrl}&access_token=${mx.getAccessToken()}`;
+            }
+          }
+        }
+        contentText = content.body || '🎥 Video';
       } else if (content.msgtype === MsgType.File) {
         contentText = '📎 File';
       } else {
@@ -166,6 +188,10 @@ export function useRoomTimeline({
         }
       }
 
+      if (!content.msgtype) {
+        return null;
+      }
+
       return {
         eventId: currentEventId,
         sender,
@@ -177,6 +203,9 @@ export function useRoomTimeline({
         avatarUrl: avatarUrl || undefined,
         imageUrl,
         imageInfo,
+        videoUrl,
+        videoInfo,
+        videoThumbnailUrl,
         reactions,
         replyTo,
       };

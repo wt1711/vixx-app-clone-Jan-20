@@ -57,6 +57,7 @@ export const getRoomAvatarUrl = (
     const membership = room.getMyMembership();
     if (membership !== "invite") return false;
     if (event.getContent().type === RoomType.Space) return false
+    if (event.getType() !== StateEvent.RoomCreate) return false
     const inviter = room.getDMInviter();
     if (inviter) {
       // Common bot patterns
@@ -71,6 +72,7 @@ export const getRoomAvatarUrl = (
       ];
 
       const isBot = botPatterns.some((pattern) => pattern.test(inviter));
+      console.log('isInvite isBot', isBot);
       if (isBot) return false;
     }
 

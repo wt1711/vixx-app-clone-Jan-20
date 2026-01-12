@@ -30,6 +30,15 @@ export type MessageItem = {
     h?: number;
     mimetype?: string;
   };
+  videoUrl?: string;
+  videoInfo?: {
+    w?: number;
+    h?: number;
+    mimetype?: string;
+    duration?: number;
+    thumbnail_url?: string;
+  };
+  videoThumbnailUrl?: string;
   reactions?: ReactionData[];
   replyTo?: ReplyToData;
 };

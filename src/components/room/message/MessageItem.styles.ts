@@ -68,6 +68,11 @@ export const styles = StyleSheet.create({
     maxHeight: 300,
     width: '100%',
   },
+  messageVideoWithRatio: {
+    maxWidth: 250,
+    maxHeight: 400,
+    width: '100%',
+  },
   messageImageDefault: {
     width: 250,
     height: 200,

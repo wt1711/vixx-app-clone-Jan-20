@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,8 +9,10 @@ import {
   StyleProp,
   ViewStyle,
   ImageStyle,
+  TextStyle,
   Linking,
 } from 'react-native';
+import Video from 'react-native-video';
 import { BlurView } from '@react-native-community/blur';
 import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
@@ -34,6 +36,7 @@ export type MessageItemProps = {
   onBubblePress?: () => void;
   onReplyPreviewPress?: (eventId: string) => void;
   onImagePress?: (imageUrl: string) => void;
+  onVideoPress?: (videoUrl: string) => void;
   showTimestamp?: boolean;
   isFirstOfHour?: boolean;
 };
@@ -153,15 +156,70 @@ const MessageTextWithLinks = ({
   );
 };
 
+const VideoMessageComponent = ({
+  item,
+  onLongPress,
+  textStyle,
+}: {
+  item: MessageItem;
+  onVideoPress?: (videoUrl: string) => void;
+  onLongPress?: () => void;
+  textStyle: StyleProp<TextStyle>;
+}) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  
+  const videoStyle = useMemo<StyleProp<ViewStyle>>(() => {
+    const { w, h } = item.videoInfo ?? {};
+    if (w && h) {
+      return [
+        styles.messageImage,
+        styles.messageVideoWithRatio,
+        { aspectRatio: w / h, maxWidth: 250 },
+      ];
+    }
+    return [styles.messageImage, styles.messageImageDefault];
+  }, [item.videoInfo]);
+
+    return (
+      <Pressable
+        style={styles.imageContainer}
+        onLongPress={onLongPress}
+        delayLongPress={500}
+      >
+        <View style={videoStyle}>
+          <Video
+            source={{ uri: item.videoUrl }}
+            style={StyleSheet.absoluteFill}
+            controls
+            paused={!isPlaying}
+            resizeMode="contain"
+            onError={(error: any) => {
+              console.error('Video playback error:', error);
+              setIsPlaying(false);
+            }}
+            onEnd={() => {
+              setIsPlaying(false);
+            }}
+          />
+        </View>
+        {item.content === '🎥 Video' && (
+          <Text style={[textStyle, styles.imageCaption]}>{item.content}</Text>
+        )}
+      </Pressable>
+    );
+};
+
 const MessageContent = ({
   item,
   imageStyle,
   onImagePress,
+  onVideoPress,
   onLongPress,
 }: {
   item: MessageItem;
   imageStyle: StyleProp<ImageStyle>;
   onImagePress?: (imageUrl: string) => void;
+  onVideoPress?: (videoUrl: string) => void;
   onLongPress?: () => void;
 }) => {
   const textStyle = [
@@ -170,6 +228,7 @@ const MessageContent = ({
   ];
 
   const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
+  const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
   const instagramUrl = isImageMessage ? getInstagramUrl(item.content) : null;
 
   // Instagram image: show clickable URL above the image
@@ -203,6 +262,17 @@ const MessageContent = ({
           <Text style={[textStyle, styles.imageCaption]}>{item.content}</Text>
         )}
       </Pressable>
+    );
+  }
+
+  if (isVideoMessage) {
+    return (
+      <VideoMessageComponent
+        item={item}
+        onVideoPress={onVideoPress}
+        onLongPress={onLongPress}
+        textStyle={textStyle}
+      />
     );
   }
 
