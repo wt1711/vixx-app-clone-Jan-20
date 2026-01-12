@@ -44,6 +44,7 @@ export function DirectMessageListScreen({
   selectedRoomId,
 }: DirectMessageListScreenProps) {
   const { directRooms, isLoading, invitedRooms } = useDirectRooms();
+
   const [refreshing, setRefreshing] = useState(false);
   const [roomItems, setRoomItems] = useState<RoomItemData[]>([]);
   const [loading, setLoading] = useState(true);

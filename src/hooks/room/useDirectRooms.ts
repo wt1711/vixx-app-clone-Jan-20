@@ -27,6 +27,7 @@ export const useDirectRooms = () => {
     // This matches the NextJS implementation exactly
     const directs = allRooms.filter((room) => isRoom(room) && !isInvite(room) && !mDirects.has(room.roomId) && !IsBotPrivateChat(room?.name));
     const invited = allRooms.filter((room) => isRoom(room) && isInvite(room) && !mDirects.has(room.roomId) && !IsBotPrivateChat(room?.name));
+    console.log(invited);
 
     // Sort by last active timestamp (most recent first)
     const sorted = directs.sort((a, b) => {

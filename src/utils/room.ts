@@ -47,6 +47,7 @@ export const getRoomAvatarUrl = (
     if (!room) return false;
     const event = getStateEvent(room, StateEvent.RoomCreate);
     if (!event) return true;
+    if (room?.name && room.name.startsWith('@metabot')) return false;
     return event.getContent().type !== RoomType.Space;
   };
 
@@ -56,7 +57,7 @@ export const getRoomAvatarUrl = (
     if (!event) return false;
     const membership = room.getMyMembership();
     if (membership !== "invite") return false;
-    if (event.getContent().type === RoomType.Space) return false
+    if (event.getContent().type === RoomType.Space) return false;
     if (event.getType() !== StateEvent.RoomCreate) return false
     const inviter = room.getDMInviter();
     if (inviter) {
@@ -72,9 +73,11 @@ export const getRoomAvatarUrl = (
       ];
 
       const isBot = botPatterns.some((pattern) => pattern.test(inviter));
-      console.log('isInvite isBot', isBot);
+
       if (isBot) return false;
     }
+
+    if (room?.name && room.name.startsWith('@metabot')) return false;
 
     return true;
   };
