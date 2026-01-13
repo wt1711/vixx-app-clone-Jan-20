@@ -90,6 +90,7 @@ export function useRoomTimeline({
       let imageUrl: string | undefined;
       let imageInfo: { w?: number; h?: number; mimetype?: string } | undefined;
       let videoUrl: string | undefined;
+      let videoSource: {uri: string, accessToken: string | null} | undefined;
       let videoInfo: { w?: number; h?: number; mimetype?: string; duration?: number; thumbnail_url?: string } | undefined;
       let videoThumbnailUrl: string | undefined;
 
@@ -111,6 +112,7 @@ export function useRoomTimeline({
           videoUrl =
             mx.mxcUrlToHttp(mxcUrl, undefined, undefined, undefined, undefined, false, true) ||
             undefined;
+          videoSource = { uri: videoUrl || '', accessToken: mx.getAccessToken() };
           videoUrl = `${videoUrl}&access_token=${mx.getAccessToken()}`;
           videoInfo = content.info || content.file?.info;
           
@@ -204,6 +206,7 @@ export function useRoomTimeline({
         imageUrl,
         imageInfo,
         videoUrl,
+        videoSource,
         videoInfo,
         videoThumbnailUrl,
         reactions,

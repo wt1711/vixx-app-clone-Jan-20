@@ -146,4 +146,23 @@ export const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     color: colors.accent.instagram,
   },
+  videoDownloadingOverlay: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  videoDownloadingText: {
+    color: '#fff',
+    marginTop: 10,
+  },
+  videoErrorOverlay: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  videoErrorText: {
+    color: '#fff',
+    textAlign: 'center',
+    padding: 20,
+  },
 });

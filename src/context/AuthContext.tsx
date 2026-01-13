@@ -34,7 +34,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const restoreSession = async () => {
     try {
       const values = await AsyncStorage.getItem(MATRIX_CREDENTIALS_KEY);
-      console.log('values:', values);
       if (!values) {
         setIsLoading(false);
         return;

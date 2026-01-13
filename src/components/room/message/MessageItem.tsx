@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useState } from 'react';
+import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,8 +11,11 @@ import {
   ImageStyle,
   TextStyle,
   Linking,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import Video from 'react-native-video';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import { BlurView } from '@react-native-community/blur';
 import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
@@ -157,6 +160,9 @@ const MessageTextWithLinks = ({
   );
 };
 
+// Cache map: videoUrl -> localVideoUri (only for iOS)
+const videoCache = new Map<string, string>();
+
 const VideoMessageComponent = ({
   item,
   onLongPress,
@@ -169,13 +175,10 @@ const VideoMessageComponent = ({
   textStyle: StyleProp<TextStyle>;
   isGift?: boolean;
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  
-  useEffect(() => {
-    if (isGift) {
-      setIsPlaying(true);
-    }
-  }, [isGift]);
+  const [isPlaying, setIsPlaying] = useState<boolean | undefined>(undefined);
+  const [localVideoUri, setLocalVideoUri] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const videoStyle = useMemo<StyleProp<ViewStyle>>(() => {
     const { w, h } = item.videoInfo ?? {};
@@ -189,8 +192,167 @@ const VideoMessageComponent = ({
     return [styles.messageImage, styles.messageImageDefault];
   }, [item.videoInfo]);
 
-  const handlePress = () => {
-    setIsPlaying(!isPlaying);
+  // Download video from item.videoUrl (iOS only)
+  const downloadVideo = useCallback(async () => {
+    // Only download on iOS
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+    
+    const videoUrl = item.videoUrl;
+    
+    if (!videoUrl) {
+      setDownloadError('No video URL available');
+      return;
+    }
+
+    // Check cache first
+    const cachedUri = videoCache.get(videoUrl);
+    if (cachedUri) {
+      setLocalVideoUri(cachedUri);
+      setIsPlaying(true);
+      return;
+    }
+
+    setIsDownloading(true);
+    setDownloadError(null);
+
+    try {
+      const { config, fs } = ReactNativeBlobUtil;
+      const cacheDir = fs.dirs.CacheDir;
+      
+      // Generate a unique filename from the URL
+      const urlParts = videoUrl.split('/');
+      let filename = urlParts[urlParts.length - 1].split('?')[0] || 'video';
+      
+      // Ensure filename has .mp4 extension
+      if (!filename.toLowerCase().endsWith('.mp4') && 
+          !filename.toLowerCase().endsWith('.mov') &&
+          !filename.toLowerCase().endsWith('.m4v')) {
+        filename = `${filename}.mp4`;
+      }
+      
+      // Create a simple hash from URL to avoid conflicts
+      let urlHash = 0;
+      for (let i = 0; i < videoUrl.length; i++) {
+        const char = videoUrl.charCodeAt(i);
+        urlHash = ((urlHash * 31) + char) % 1000000;
+      }
+      const safeFilename = `video_${Math.abs(urlHash)}_${filename}`;
+      const localPath = `${cacheDir}/${safeFilename}`;
+
+      // Check if file already exists
+      if (await fs.exists(localPath)) {
+        // Use file:// prefix for iOS compatibility
+        const fileUri = `file://${localPath}`;
+        console.log('Video already cached, using existing file:', fileUri);
+        // Store in cache
+        videoCache.set(videoUrl, fileUri);
+        setLocalVideoUri(fileUri);
+        setIsDownloading(false);
+        setIsPlaying(true);
+        return;
+      }
+
+      // Download the video
+      const downloadOptions: any = {
+        path: localPath,
+        overwrite: true,
+      };
+
+      console.log('Downloading video from:', videoUrl);
+      console.log('Saving to:', localPath);
+
+      const response = await config(downloadOptions).fetch('GET', videoUrl);
+      
+      console.log('Download response status:', response.respInfo.status);
+      console.log('Content-Type:', response.respInfo.headers['Content-Type'] || response.respInfo.headers['content-type']);
+      
+      if (response.respInfo.status === 200) {
+        const finalPath = response.path();
+        console.log('Download complete, file path:', finalPath);
+        
+        // Verify file exists and has content
+        const fileExists = await fs.exists(finalPath);
+        if (!fileExists) {
+          throw new Error('Downloaded file does not exist');
+        }
+        
+        const fileInfo = await fs.stat(finalPath);
+        console.log('File size:', fileInfo.size, 'bytes');
+        
+        if (fileInfo.size === 0) {
+          throw new Error('Downloaded file is empty');
+        }
+        
+        // Check if we got a video file
+        const contentType = response.respInfo.headers['Content-Type'] || response.respInfo.headers['content-type'] || '';
+        if (contentType && !contentType.startsWith('video/') && !contentType.includes('octet-stream')) {
+          console.warn('Warning: Content-Type is not video:', contentType);
+        }
+        
+        // Use file:// prefix for iOS compatibility
+        const fileUri = finalPath.startsWith('file://') ? finalPath : `file://${finalPath}`;
+        console.log('Setting video URI to:', fileUri);
+        // Store in cache for future use
+        videoCache.set(videoUrl, fileUri);
+        setLocalVideoUri(fileUri);
+        setIsPlaying(true);
+      } else {
+        throw new Error(`Download failed with status: ${response.respInfo.status}`);
+      }
+    } catch (error: any) {
+      console.error('Video download error:', error);
+      setDownloadError(error.message || 'Failed to download video');
+      setIsPlaying(false);
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [item.videoUrl]);
+
+  // Check cache on mount and auto-play if isGift
+  useEffect(() => {
+    const videoUrl = item.videoUrl;
+    
+    if (!videoUrl) return;
+    
+    // Only use download cache on iOS
+    if (Platform.OS === 'ios') {
+      // Check if we have a cached local URI
+      const cachedUri = videoCache.get(videoUrl);
+      if (cachedUri) {
+        setLocalVideoUri(cachedUri);
+        if (isGift) {
+          setIsPlaying(true);
+        }
+        return;
+      }
+      
+      // If isGift, auto-download and play
+      if (isGift) {
+        downloadVideo();
+      }
+    } else {
+      // On Android, just set playing state for isGift
+      if (isGift) {
+        setIsPlaying(true);
+      }
+    }
+  }, [item.videoUrl, isGift, downloadVideo]);
+
+  const handlePress = async () => {
+    if (Platform.OS === 'ios') {
+      // On iOS, download first if needed
+      if (!isPlaying && !localVideoUri && !isDownloading) {
+        // Start download when user wants to play
+        await downloadVideo();
+      } else {
+        setIsPlaying(!isPlaying);
+      }
+    } else {
+      // On Android, just toggle play state
+      setIsPlaying(!isPlaying);
+    }
   };
 
   return (
@@ -201,9 +363,22 @@ const VideoMessageComponent = ({
       delayLongPress={500}
     >
       <View style={videoStyle}>
-        {isPlaying ? (
+        {isDownloading ? (
+          <View style={[StyleSheet.absoluteFill, styles.videoDownloadingOverlay]}>
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={styles.videoDownloadingText}>Downloading video...</Text>
+          </View>
+        ) : downloadError ? (
+          <View style={[StyleSheet.absoluteFill, styles.videoErrorOverlay]}>
+            <Text style={styles.videoErrorText}>{downloadError}</Text>
+          </View>
+        ) : isPlaying != null ? (
           <Video
-            source={{ uri: item.videoUrl }}
+            source={{ 
+              uri: Platform.OS === 'ios' && localVideoUri 
+                ? localVideoUri 
+                : item.videoUrl || '' 
+            }}
             style={StyleSheet.absoluteFill}
             controls={!isGift}
             paused={!isPlaying}
@@ -212,9 +387,7 @@ const VideoMessageComponent = ({
             onError={(error: any) => {
               console.error('Video playback error:', error);
               setIsPlaying(false);
-            }}
-            onEnd={() => {
-              setIsPlaying(false);
+              setDownloadError('Playback failed');
             }}
           />
         ) : (
