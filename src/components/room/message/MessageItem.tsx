@@ -23,9 +23,10 @@ import { LinkPreview } from './LinkPreview';
 import { styles } from './MessageItem.styles';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
-import { parseTextWithUrls, getFirstUrl, getInstagramUrl } from '../../../utils/urlParser';
+import { parseTextWithUrls, getFirstUrl, getInstagramUrl, getInstagramStoryReplyData } from '../../../utils/urlParser';
 import { InstagramImageMessage } from './InstagramImageMessage';
 import { isVideoUrl } from '../../../hooks/useLinkPreview';
+import { Instagram } from 'lucide-react-native';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -160,38 +161,53 @@ const VideoMessageComponent = ({
   item,
   onLongPress,
   textStyle,
+  isGift,
 }: {
   item: MessageItem;
   onVideoPress?: (videoUrl: string) => void;
   onLongPress?: () => void;
   textStyle: StyleProp<TextStyle>;
+  isGift?: boolean;
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   
+  useEffect(() => {
+    if (isGift) {
+      setIsPlaying(true);
+    }
+  }, [isGift]);
+
   const videoStyle = useMemo<StyleProp<ViewStyle>>(() => {
     const { w, h } = item.videoInfo ?? {};
     if (w && h) {
       return [
         styles.messageImage,
         styles.messageVideoWithRatio,
-        { aspectRatio: w / h, maxWidth: 250 },
+        { aspectRatio: w / h },
       ];
     }
     return [styles.messageImage, styles.messageImageDefault];
   }, [item.videoInfo]);
 
-    return (
-      <Pressable
-        style={styles.imageContainer}
-        onLongPress={onLongPress}
-        delayLongPress={500}
-      >
-        <View style={videoStyle}>
+  const handlePress = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  return (
+    <Pressable
+      style={styles.imageContainer}
+      onPress={handlePress}
+      onLongPress={onLongPress}
+      delayLongPress={500}
+    >
+      <View style={videoStyle}>
+        {isPlaying ? (
           <Video
             source={{ uri: item.videoUrl }}
             style={StyleSheet.absoluteFill}
-            controls
+            controls={!isGift}
             paused={!isPlaying}
+            repeat={!isGift}
             resizeMode="contain"
             onError={(error: any) => {
               console.error('Video playback error:', error);
@@ -201,12 +217,32 @@ const VideoMessageComponent = ({
               setIsPlaying(false);
             }}
           />
-        </View>
-        {item.content === '🎥 Video' && (
-          <Text style={[textStyle, styles.imageCaption]}>{item.content}</Text>
+        ) : (
+          <>
+            {item.videoThumbnailUrl ? (
+              <Image
+                source={{ uri: item.videoThumbnailUrl }}
+                style={StyleSheet.absoluteFill}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[StyleSheet.absoluteFill, styles.videoThumbnailPlaceholder]}>
+                <Text style={styles.videoThumbnailPlayIcon}>▶</Text>
+              </View>
+            )}
+            <View style={[StyleSheet.absoluteFill, styles.videoThumbnailOverlay]}>
+              <View style={styles.videoPlayButton}>
+                <Text style={styles.videoPlayButtonIcon}>▶</Text>
+              </View>
+            </View>
+          </>
         )}
-      </Pressable>
-    );
+      </View>
+      {item.content === '🎥 Video' && (
+        <Text style={[textStyle, styles.imageCaption]}>{item.content}</Text>
+      )}
+    </Pressable>
+  );
 };
 
 const MessageContent = ({
@@ -227,9 +263,14 @@ const MessageContent = ({
     item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
   ];
 
+
   const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
   const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
-  const instagramUrl = isImageMessage ? getInstagramUrl(item.content) : null;
+
+  // Check for Instagram URL in content (for stories, posts, reels, etc.)
+  // This works for both image and video messages that contain Instagram URLs
+  const instagramUrl = getInstagramUrl(item.content);
+  const instagramStoryReplyData = instagramUrl ? getInstagramStoryReplyData(item.content) : null;
 
   // Instagram image: show clickable URL above the image
   if (isImageMessage && instagramUrl) {
@@ -239,6 +280,7 @@ const MessageContent = ({
         imageUrl={item.imageUrl!}
         imageStyle={imageStyle}
         isOwn={item.isOwn}
+        instagramStoryReplyData={instagramStoryReplyData}
         onImagePress={onImagePress}
         onLongPress={onLongPress}
       />
@@ -266,12 +308,35 @@ const MessageContent = ({
   }
 
   if (isVideoMessage) {
+    // If video has Instagram URL, show it above the video
+    if (instagramUrl) {
+      return (
+        <View>
+          <Pressable
+            onPress={() => Linking.openURL(instagramUrl).catch(() => {})}
+            style={styles.instagramUrlContainer}
+          >
+            <Instagram size={16} color={colors.accent.instagram} />
+            <Text style={textStyle} numberOfLines={1}>
+              View on Instagram
+            </Text>
+          </Pressable>
+          <VideoMessageComponent
+            item={item}
+            onVideoPress={onVideoPress}
+            onLongPress={onLongPress}
+            textStyle={textStyle}
+          />
+        </View>
+      );
+    }
     return (
       <VideoMessageComponent
         item={item}
         onVideoPress={onVideoPress}
         onLongPress={onLongPress}
         textStyle={textStyle}
+        isGift={(item.videoInfo?.['fi.mau.gif'] as boolean) ?? false}
       />
     );
   }

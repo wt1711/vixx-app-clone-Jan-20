@@ -38,8 +38,13 @@ export function getFirstUrl(text: string): string | null {
   return urls.length > 0 ? urls[0] : null;
 }
 
+// Match Instagram URLs including:
+// - Posts: /p/ABC123/
+// - Reels: /reel/ABC123/ or /reels/ABC123/
+// - IGTV: /tv/ABC123/
+// - Stories: /stories/username/123456789?query=params
 const INSTAGRAM_URL_REGEX =
-  /https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|reels|tv)\/[\w-]+\/?/i;
+  /https?:\/\/(?:www\.)?instagram\.com\/(?:stories\/[\w.-]+\/[\d]+(?:\?[^\s\n]*)?|(?:p|reel|reels|tv)\/[\w-]+\/?)/i;
 
 export function isInstagramUrl(url: string): boolean {
   return INSTAGRAM_URL_REGEX.test(url);
@@ -48,4 +53,20 @@ export function isInstagramUrl(url: string): boolean {
 export function getInstagramUrl(text: string): string | null {
   const match = text.match(INSTAGRAM_URL_REGEX);
   return match ? match[0] : null;
+}
+
+export function getInstagramStoryReplyData(text: string): { replyContent: string, replyTo: string } | null {
+  const replyToRegex = /Replied to @([\w.-]+)'s story/;
+  const match = text.match(replyToRegex);
+  const replyTo = match ? match[0] : null;
+  if (replyTo) {
+    const replyContentSplit = text.split(replyTo);
+    const replyContent = replyContentSplit?.[1].trim();
+    if (!replyContent) return null;
+    return {
+      replyContent,
+      replyTo,
+    };
+  }
+  return null;
 }

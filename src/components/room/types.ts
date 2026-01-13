@@ -32,6 +32,7 @@ export type MessageItem = {
   };
   videoUrl?: string;
   videoInfo?: {
+    [key: string]: any;
     w?: number;
     h?: number;
     mimetype?: string;

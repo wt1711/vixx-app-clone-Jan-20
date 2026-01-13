@@ -105,4 +105,45 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginLeft: 48, // Account for avatar space
   },
+  videoThumbnailPlaceholder: {
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoThumbnailPlayIcon: {
+    color: '#fff',
+    fontSize: 48,
+  },
+  videoThumbnailOverlay: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  videoPlayButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoPlayButtonIcon: {
+    color: '#000',
+    fontSize: 24,
+    marginLeft: 4,
+  },
+  instagramUrlContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 8,
+  },
+  instagramUrlText: {
+    fontSize: 14,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
+    color: colors.accent.instagram,
+  },
 });
