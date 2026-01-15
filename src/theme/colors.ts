@@ -2,8 +2,8 @@ export const colors = {
   // Backgrounds
   background: {
     primary: '#0A0A0F',
-    secondary: '#1A1A2E',
-    tertiary: '#16213E',
+    secondary: '#1A1A2E',  // dark blue
+    tertiary: '#16213E',   // deeper blue
     elevated: '#2A2A3E',
     header: '#2A2A3E',
     input: '#1A1A2E',
@@ -16,24 +16,27 @@ export const colors = {
     secondary: '#9CA3AF',
     tertiary: '#6B7280',
     placeholder: '#9CA3AF',
-    white: '#FFFFFF',
-    input: '#E5E7EB',
+    white: '#E5E7EB',
+    input: '#FFFFFF',
     lastMessage: '#D1D5DB',
-    messageOwn: '#E4E7EB',
-    messageOther: '#F3F4F6',
+    messageOwn: '#E5E7EB',
+    messageOther: '#E5E7EB',
   },
 
   // Accent / Brand
   accent: {
-    primary: '#FF6B35',
+    primary: '#1A7575',  // dark teal (matches bubble)
     purple: '#A855F7',
     instagram: '#E4405F',
   },
 
   // Message bubbles
   message: {
-    own: '#3B82F6',
-    other: '#1A1D24',
+    own: '#0D3B3B',  // electric cyan - dark teal base
+    other: '#18181C',  // stealth dark - low friction
+    otherGradientStart: '#35384A',
+    otherGradientEnd: '#252833',
+    otherBorder: 'rgba(255, 255, 255, 0.08)',
   },
 
   // Borders & Dividers
@@ -60,6 +63,19 @@ export const colors = {
     reactionButtonActive: 'rgba(80, 80, 90, 0.95)',
     roomItem: 'rgba(10, 10, 15, 0.3)',
     roomItemSelected: 'rgba(30, 30, 45, 0.5)',
+  },
+
+  // Liquid Glass effect colors (metallic/modern style)
+  liquidGlass: {
+    // See-through glass effect
+    background: 'rgba(28, 32, 38, 0.75)',
+    backgroundLight: 'rgba(40, 44, 52, 0.65)',
+    // Crisp border - not too bright, just enough definition
+    borderTop: 'rgba(255, 255, 255, 0.15)',
+    borderBottom: 'rgba(255, 255, 255, 0.05)',
+    border: 'rgba(255, 255, 255, 0.15)',
+    // Inner glow/highlight
+    innerGlow: 'rgba(255, 255, 255, 0.08)',
   },
 
   // Shadows
