@@ -1,0 +1,1 @@
+export { VixxLogo } from './VixxLogo';
