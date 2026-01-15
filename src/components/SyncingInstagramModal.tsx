@@ -1,11 +1,20 @@
-import React, { useEffect, useRef } from 'react';
-import { colors, gradients } from '../theme';
-import { StyleSheet, Text, View, Modal, Animated, Easing } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { colors } from '../theme';
+import { StyleSheet, Text, View, Modal, Image } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
+import { ParticleSparkles } from './ui/ParticleSparkles';
+import { CarbonFiberTexture } from './ui/NoiseTexture';
 
 const LOGO_URL =
   'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/90ic679nh3wp43mbosisg';
+
+const LOADING_MESSAGES = [
+  'Setting up your account...',
+  'Syncing your Instagram...',
+  'Almost there...',
+  'Connecting to servers...',
+  'Preparing your inbox...',
+];
 
 interface SyncingInstagramModalProps {
   visible: boolean;
@@ -14,25 +23,54 @@ interface SyncingInstagramModalProps {
 export default function SyncingInstagramModal({
   visible,
 }: SyncingInstagramModalProps) {
-  const spinValue = useRef(new Animated.Value(0)).current;
+  const [displayedText, setDisplayedText] = useState('');
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
+  const [showCursor, setShowCursor] = useState(true);
+  const [countdown, setCountdown] = useState(60);
 
+  // Blinking cursor
   useEffect(() => {
-    const spin = Animated.loop(
-      Animated.timing(spinValue, {
-        toValue: 1,
-        duration: 1000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    );
-    spin.start();
-    return () => spin.stop();
-  }, [spinValue]);
+    const interval = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
 
-  const rotate = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  // Countdown timer
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => {
+      setCountdown(prev => prev - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  // Typewriter effect
+  useEffect(() => {
+    const currentMessage = LOADING_MESSAGES[messageIndex];
+
+    if (isTyping) {
+      if (displayedText.length < currentMessage.length) {
+        const timeout = setTimeout(() => {
+          setDisplayedText(currentMessage.slice(0, displayedText.length + 1));
+        }, 30);
+        return () => clearTimeout(timeout);
+      } else {
+        const timeout = setTimeout(() => {
+          setIsTyping(false);
+        }, 2000);
+        return () => clearTimeout(timeout);
+      }
+    } else {
+      const timeout = setTimeout(() => {
+        setDisplayedText('');
+        setMessageIndex(prev => (prev + 1) % LOADING_MESSAGES.length);
+        setIsTyping(true);
+      }, 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [displayedText, messageIndex, isTyping]);
 
   return (
     <Modal
@@ -42,20 +80,31 @@ export default function SyncingInstagramModal({
     >
       <SafeAreaProvider>
         <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
-          <LinearGradient
-            colors={[...gradients.screenBackground]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]} />
+          <CarbonFiberTexture opacity={0.6} scale={0.5} />
           <View style={styles.content}>
-            <Animated.Image
-              source={{ uri: LOGO_URL }}
-              style={[styles.logo, { transform: [{ rotate }] }]}
-              resizeMode="contain"
-            />
-            <Text style={styles.syncingText}>Setting up your account...</Text>
-            <Text style={styles.syncingSubtext}>Hang tight for a minute.</Text>
+            {/* Logo positioned at 20% from top like login screen */}
+            <View style={styles.logoContainer}>
+              <Image
+                source={{ uri: LOGO_URL }}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+              <ParticleSparkles
+                width={180}
+                height={180}
+                particleCount={3}
+                color="rgba(255, 255, 255, 0.8)"
+              />
+            </View>
+            {/* Text positioned at 50% like login buttons */}
+            <View style={styles.textContainer}>
+              <Text style={styles.syncingText}>
+                {displayedText}
+                <Text style={{ opacity: showCursor ? 1 : 0 }}>|</Text>
+              </Text>
+              <Text style={styles.syncingSubtext}>{countdown}</Text>
+            </View>
           </View>
         </SafeAreaView>
       </SafeAreaProvider>
@@ -69,18 +118,26 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
+  logoContainer: {
+    width: 250,
+    height: 250,
+    position: 'absolute',
+    top: '20%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   logo: {
-    width: 100,
-    height: 100,
-    borderColor: colors.border.light,
-    borderRadius: 9999,
-    borderWidth: 3,
+    width: 250,
+    height: 250,
+  },
+  textContainer: {
+    position: 'absolute',
+    top: '50%',
+    alignItems: 'center',
   },
   syncingText: {
-    marginTop: 32,
     fontSize: 20,
     fontWeight: '500',
     color: colors.text.primary,

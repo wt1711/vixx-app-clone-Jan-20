@@ -3,12 +3,13 @@ import {
   View,
   StyleSheet,
   StatusBar,
-  Image,
-  TouchableOpacity,
   ActivityIndicator,
   Text,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
+import { ParticleSparkles } from '../components/ui/ParticleSparkles';
 import LoginInstagramModal from '../components/LoginInstagramModal';
 import LoginCredentialsModal from '../components/LoginCredentialsModal';
 import { InstagramIcon, KeyRound } from 'lucide-react-native';
@@ -20,6 +21,8 @@ import {
 } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { CarbonFiberTexture } from '../components/ui/NoiseTexture';
 
 export default function Login() {
   const [open, setOpen] = useState(false);
@@ -94,6 +97,10 @@ export default function Login() {
   };
 
   const onLogin = () => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
     setOpen(true);
   };
 
@@ -132,53 +139,50 @@ export default function Login() {
       ]}
     >
       <View style={styles.loginView} />
+      {/* Carbon fiber weave texture */}
+      <CarbonFiberTexture opacity={0.6} scale={0.5} />
       <StatusBar barStyle="light-content" />
       <View style={styles.content}>
-        <Image
-          source={{
-            uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/90ic679nh3wp43mbosisg',
-          }}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        {/* Logo with particle sparkles */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={{
+              uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/90ic679nh3wp43mbosisg',
+            }}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <ParticleSparkles
+            width={180}
+            height={180}
+            particleCount={3}
+            color="rgba(255, 255, 255, 0.8)"
+          />
+        </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
+          <LiquidGlassButton
             onPress={onLogin}
             disabled={isLoading || isSystemSettingsLoading}
-            activeOpacity={0.8}
-            style={styles.button}
           >
             {isLoading ? (
               <ActivityIndicator color={colors.text.primary} />
             ) : (
-              <View style={styles.blurButton}>
+              <>
                 <InstagramIcon color={colors.text.primary} size={24} />
                 <Text style={styles.buttonText}>Login with Instagram</Text>
-              </View>
+              </>
             )}
-          </TouchableOpacity>
+          </LiquidGlassButton>
 
           {!isLoading && (
-            <>
-              <View style={styles.orContainer}>
-                <View style={styles.orLine} />
-                <Text style={styles.orText}>OR</Text>
-                <View style={styles.orLine} />
-              </View>
-
-              <TouchableOpacity
-                onPress={() => setCredentialsModalOpen(true)}
-                disabled={isLoading}
-                activeOpacity={0.8}
-                style={styles.button}
-              >
-                <View style={styles.blurButton}>
-                  <KeyRound color={colors.text.primary} size={20} />
-                  <Text style={styles.buttonText}>Login with Credentials</Text>
-                </View>
-              </TouchableOpacity>
-            </>
+            <LiquidGlassButton
+              onPress={() => setCredentialsModalOpen(true)}
+              disabled={isLoading}
+            >
+              <KeyRound color={colors.text.primary} size={20} />
+              <Text style={styles.buttonText}>Login with Credentials</Text>
+            </LiquidGlassButton>
           )}
         </View>
       </View>
@@ -209,63 +213,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
   },
-  logo: {
+  logoContainer: {
     width: 250,
     height: 250,
     position: 'absolute',
     top: '20%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: 250,
+    height: 250,
   },
   buttonContainer: {
     width: '70%',
     maxWidth: 400,
     position: 'absolute',
     top: '50%',
-  },
-  button: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    elevation: 8,
-    shadowColor: colors.background.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  orContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  orLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.transparent.white20,
-  },
-  orText: {
-    color: colors.text.secondary,
-    fontSize: 14,
-    fontWeight: '600',
-    marginHorizontal: 16,
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
     gap: 12,
-  },
-  blurButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    gap: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.transparent.white20,
-    overflow: 'hidden',
-    backgroundColor: colors.transparent.white10,
   },
   buttonText: {
     color: colors.text.primary,
