@@ -6,14 +6,15 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
-  Animated,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import CookieManager from '@react-native-cookies/cookies';
 import LinearGradient from 'react-native-linear-gradient';
-import { RefreshCw, ArrowRight, Instagram } from 'lucide-react-native';
-import { colors, gradients } from '../theme';
+import { ArrowRight, Instagram } from 'lucide-react-native';
+import { colors } from '../theme';
+import { LiquidGlassButton } from './ui/LiquidGlassButton';
+import { CarbonFiberTexture } from './ui/NoiseTexture';
 import SyncingInstagramModal from './SyncingInstagramModal';
 
 interface LoginInstagramModalProps {
@@ -41,26 +42,6 @@ export default function LoginInstagramModal({
   const [showConnectOptions, setShowConnectOptions] = useState(false);
   const [lastParsedCookies, setLastParsedCookies] = useState('');
   const jsCookiesRef = useRef<Record<string, string>>({});
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.02,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    pulse.start();
-    return () => pulse.stop();
-  }, [pulseAnim]);
 
   const handleCloseWebView = () => {
     onClose();
@@ -377,37 +358,10 @@ export default function LoginInstagramModal({
     <Modal visible={open} animationType="slide">
       <SafeAreaProvider>
         <SafeAreaView edges={['top', 'bottom']} style={styles.modalContainer}>
-          <LinearGradient
-            colors={[...gradients.screenBackground]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]} />
+          <CarbonFiberTexture opacity={0.6} scale={0.5} />
           <View style={styles.header}>
             <View style={styles.headerSpacer} />
-            <View style={styles.headerCenter}>
-              {syncReady ? (
-                <TouchableOpacity
-                  style={[
-                    styles.extractButton,
-                    isConnecting && styles.buttonDisabled,
-                  ]}
-                  onPress={handleConnectInstagram}
-                  disabled={isConnecting}
-                >
-                  <Text style={styles.extractButtonText}>
-                    {isConnecting ? 'Syncing…' : 'Sync'}
-                  </Text>
-                  {isConnecting ? null : (
-                    <RefreshCw
-                      color={colors.accent.primary}
-                      size={14}
-                      style={styles.syncIcon}
-                    />
-                  )}
-                </TouchableOpacity>
-              ) : null}
-            </View>
             <View style={styles.headerRight}>
               <TouchableOpacity
                 style={styles.closeButton}
@@ -426,13 +380,9 @@ export default function LoginInstagramModal({
               presentationStyle="fullScreen"
             >
               <View style={styles.loggedInModalOverlay}>
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]} />
+                <CarbonFiberTexture opacity={0.6} scale={0.5} />
                 <View style={styles.loggedInModalContent}>
-                  <LinearGradient
-                    colors={[...gradients.screenBackground]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={StyleSheet.absoluteFill}
-                  />
                   <View style={styles.instagramIconContainer}>
                     <LinearGradient
                       colors={[
@@ -449,35 +399,14 @@ export default function LoginInstagramModal({
                       <Instagram color="#FFFFFF" size={32} />
                     </LinearGradient>
                   </View>
-                  <Text style={styles.loggedInTitle}>Account connected</Text>
-                  <Animated.View
-                    style={[
-                      styles.continueButtonAnimated,
-                      { transform: [{ scale: pulseAnim }] },
-                    ]}
+                  <Text style={styles.loggedInTitle}>Instagram Connected</Text>
+                  <LiquidGlassButton
+                    onPress={handleConnectInstagram}
+                    style={styles.nextStepButton}
                   >
-                    <LinearGradient
-                      colors={['#f97316', '#f59e0b']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.continueButtonGradient}
-                    >
-                      <TouchableOpacity
-                        style={styles.continueButton}
-                        onPress={handleConnectInstagram}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={styles.continueButtonText}>
-                          Continue setup
-                        </Text>
-                        <ArrowRight
-                          color="#FFFFFF"
-                          size={20}
-                          style={styles.continueButtonIcon}
-                        />
-                      </TouchableOpacity>
-                    </LinearGradient>
-                  </Animated.View>
+                    <Text style={styles.nextStepButtonText}>Next step</Text>
+                    <ArrowRight color={colors.text.primary} size={20} />
+                  </LiquidGlassButton>
                 </View>
               </View>
             </Modal>
@@ -524,6 +453,7 @@ export default function LoginInstagramModal({
             scalesPageToFit={true}
             sharedCookiesEnabled={true}
             thirdPartyCookiesEnabled={true}
+            userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
           />
         </SafeAreaView>
       </SafeAreaProvider>
@@ -634,6 +564,7 @@ const styles = StyleSheet.create({
   },
   loggedInModalOverlay: {
     flex: 1,
+    backgroundColor: colors.background.black,
   },
   loggedInModalContent: {
     flex: 1,
@@ -656,31 +587,12 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginBottom: 24,
   },
-  continueButtonAnimated: {
-    shadowColor: '#f97316',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-    borderRadius: 16,
+  nextStepButton: {
+    minWidth: 180,
   },
-  continueButtonGradient: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  continueButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-  },
-  continueButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  continueButtonIcon: {
-    marginLeft: 4,
+  nextStepButtonText: {
+    color: colors.text.primary,
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
