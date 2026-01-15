@@ -156,7 +156,12 @@ export async function gradeMessage({
   }
 }
 
-export async function getCreditsRemaining(userId: string): Promise<number> {
+export type CreditsInfo = {
+  creditsRemaining: number | string;
+  totalCredits: number | string;
+};
+
+export async function getCreditsRemaining(userId: string): Promise<CreditsInfo> {
   try {
     const response = await fetch(
       `${API_ENDPOINTS.AI.CREDITS_REMAINING}?userId=${encodeURIComponent(userId)}`,
@@ -174,9 +179,12 @@ export async function getCreditsRemaining(userId: string): Promise<number> {
     }
 
     const data = await response.json();
-    return data.creditsRemaining ?? 0;
+    return {
+      creditsRemaining: data.creditsRemaining ?? 0,
+      totalCredits: data.totalCredits ?? 50, // Default to 50 if not provided
+    };
   } catch (error) {
     console.error('Error in getCreditsRemaining:', error);
-    return 0;
+    return { creditsRemaining: 0, totalCredits: 50 };
   }
 }

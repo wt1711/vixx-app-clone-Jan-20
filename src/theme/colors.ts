@@ -2,8 +2,8 @@ export const colors = {
   // Backgrounds
   background: {
     primary: '#0A0A0F',
-    secondary: '#1A1A2E',
-    tertiary: '#16213E',
+    secondary: '#1A1A2E',  // dark blue
+    tertiary: '#16213E',   // deeper blue
     elevated: '#2A2A3E',
     header: '#2A2A3E',
     input: '#1A1A2E',
@@ -16,24 +16,28 @@ export const colors = {
     secondary: '#9CA3AF',
     tertiary: '#6B7280',
     placeholder: '#9CA3AF',
-    white: '#FFFFFF',
-    input: '#E5E7EB',
+    white: '#E5E7EB', // Double check: white and input color text got swapped
+    input: '#FFFFFF',
     lastMessage: '#D1D5DB',
-    messageOwn: '#E4E7EB',
-    messageOther: '#F3F4F6',
+    messageOwn: '#E5E7EB',
+    messageOther: '#E5E7EB',
   },
 
   // Accent / Brand
   accent: {
-    primary: '#FF6B35',
+    primary: '#1A7575',  // dark teal (matches bubble)
+    blue: '#3B82F6',
     purple: '#A855F7',
     instagram: '#E4405F',
   },
 
   // Message bubbles
   message: {
-    own: '#3B82F6',
-    other: '#1A1D24',
+    own: '#0D3B3B',  // electric cyan - dark teal base
+    other: '#18181C',  // stealth dark - low friction
+    otherGradientStart: '#35384A',
+    otherGradientEnd: '#252833',
+    otherBorder: 'rgba(255, 255, 255, 0.08)',
   },
 
   // Borders & Dividers
@@ -45,7 +49,9 @@ export const colors = {
   // Transparency helpers (base colors for rgba usage)
   transparent: {
     white05: 'rgba(255, 255, 255, 0.05)',
+    white08: 'rgba(255, 255, 255, 0.08)',
     white10: 'rgba(255, 255, 255, 0.1)',
+    white12: 'rgba(255, 255, 255, 0.12)',
     white15: 'rgba(255, 255, 255, 0.15)',
     white20: 'rgba(255, 255, 255, 0.2)',
     white30: 'rgba(255, 255, 255, 0.3)',
@@ -56,10 +62,24 @@ export const colors = {
     black60: 'rgba(0, 0, 0, 0.6)',
     inputBar: 'rgba(5, 6, 10, 0.92)',
     purple15: 'rgba(168, 85, 247, 0.15)',
+    blue15: 'rgba(59, 130, 246, 0.15)',
     reactionButton: 'rgba(60, 60, 70, 0.95)',
     reactionButtonActive: 'rgba(80, 80, 90, 0.95)',
     roomItem: 'rgba(10, 10, 15, 0.3)',
     roomItemSelected: 'rgba(30, 30, 45, 0.5)',
+  },
+
+  // Liquid Glass effect colors (metallic/modern style)
+  liquidGlass: {
+    // See-through glass effect
+    background: 'rgba(28, 32, 38, 0.75)',
+    backgroundLight: 'rgba(40, 44, 52, 0.65)',
+    // Crisp border - not too bright, just enough definition
+    borderTop: 'rgba(255, 255, 255, 0.15)',
+    borderBottom: 'rgba(255, 255, 255, 0.05)',
+    border: 'rgba(255, 255, 255, 0.15)',
+    // Inner glow/highlight
+    innerGlow: 'rgba(255, 255, 255, 0.08)',
   },
 
   // Shadows
