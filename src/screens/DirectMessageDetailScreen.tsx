@@ -167,7 +167,7 @@ export function DirectMessageDetailScreen({
                   </Animated.View>
 
                   <LinearGradient
-                    colors={['transparent', 'rgba(0, 0, 0, 0.7)']}
+                    colors={['transparent', 'rgba(0, 0, 0, 1)']}
                     style={styles.bottomFadeOverlay}
                     pointerEvents="none"
                   />
