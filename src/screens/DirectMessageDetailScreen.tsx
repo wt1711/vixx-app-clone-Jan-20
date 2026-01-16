@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -12,18 +12,18 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
-import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from '../matrixClient';
 import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 import { RoomTimeline } from '../components/room/RoomTimeline';
 import { RoomInput } from '../components/room/RoomInput';
 import { RoomViewHeader } from '../components/room/RoomViewHeader';
-import { AIAssistantModal } from '../components/ai/AIAssistantModal';
 import { AIAssistantProvider } from '../context/AIAssistantContext';
 import { ReplyProvider } from '../context/ReplyContext';
-import { colors, gradients } from '../theme';
+import { InputHeightProvider } from '../context/InputHeightContext';
+import LinearGradient from 'react-native-linear-gradient';
+import { CarbonFiberTexture } from '../components/ui/NoiseTexture';
+import { colors } from '../theme';
 
 type DirectMessageDetailScreenProps = {
   roomId: string;
@@ -38,7 +38,6 @@ export function DirectMessageDetailScreen({
 }: DirectMessageDetailScreenProps) {
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const mx = getMatrixClient();
 
   useEffect(() => {
@@ -89,11 +88,6 @@ export function DirectMessageDetailScreen({
     };
   }, [mx, roomId]);
 
-  const handleAIAssistantClick = useCallback(() => {
-    // TODO: Re-enable when payment is implemented
-    setShowAIAssistant(true);
-  }, []);
-
   const swipeGesture = Gesture.Pan()
     .activeOffsetX(50)
     .onEnd(event => {
@@ -110,9 +104,10 @@ export function DirectMessageDetailScreen({
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <LinearGradient
-          colors={[...gradients.screenBackground]}
+          colors={['#0D0D0D', '#151518', '#0D0D0D']}
+          locations={[0, 0.5, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
@@ -121,15 +116,16 @@ export function DirectMessageDetailScreen({
           <ActivityIndicator size="large" color={colors.accent.primary} />
           <Text style={styles.loadingText}>Loading conversation...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!room) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <LinearGradient
-          colors={[...gradients.screenBackground]}
+          colors={['#0D0D0D', '#151518', '#0D0D0D']}
+          locations={[0, 0.5, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
@@ -140,52 +136,49 @@ export function DirectMessageDetailScreen({
             <Text style={styles.backButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
     <GestureHandlerRootView style={styles.container}>
+      {/* Solid black background */}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: colors.background.black },
+        ]}
+      />
+      {/* Carbon fiber weave texture */}
+      <CarbonFiberTexture opacity={0.6} scale={0.5} />
+
       <GestureDetector gesture={swipeGesture}>
-        <SafeAreaView style={styles.container} edges={['top']}>
-          <LinearGradient
-            colors={[...gradients.screenBackground]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
+        <View style={styles.contentContainer}>
           <ReplyProvider>
             <AIAssistantProvider room={room} isMobile={true}>
-              <RoomViewHeader
-                room={room}
-                onBack={onBack}
-                onAIAssistantClick={handleAIAssistantClick}
-              />
-
-              <View style={styles.keyboardView}>
-                <View style={styles.timelineContainer}>
+              <InputHeightProvider>
+                <View style={styles.keyboardView}>
                   <RoomTimeline room={room} eventId={eventId} />
+
+                  <Animated.View
+                    style={[styles.inputContainer, { bottom: keyboardHeight }]}
+                  >
+                    <RoomInput room={room} />
+                  </Animated.View>
+
+                  <LinearGradient
+                    colors={['transparent', 'rgba(0, 0, 0, 1)']}
+                    style={styles.bottomFadeOverlay}
+                    pointerEvents="none"
+                  />
                 </View>
 
-                <Animated.View
-                  style={[
-                    styles.inputContainer,
-                    { marginBottom: keyboardHeight },
-                  ]}
-                >
-                  <RoomInput room={room} />
-                </Animated.View>
-              </View>
-
-              {/* AI Assistant Modal */}
-              <AIAssistantModal
-                visible={showAIAssistant}
-                onClose={() => setShowAIAssistant(false)}
-                room={room}
-              />
+                {/* Header - solid bar with glass pills */}
+                <RoomViewHeader room={room} onBack={onBack} />
+              </InputHeightProvider>
             </AIAssistantProvider>
           </ReplyProvider>
-        </SafeAreaView>
+        </View>
       </GestureDetector>
     </GestureHandlerRootView>
   );
@@ -231,10 +224,21 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  timelineContainer: {
+  inputContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+  },
+  contentContainer: {
     flex: 1,
   },
-  inputContainer: {
-    backgroundColor: 'transparent',
+  bottomFadeOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 50,
   },
 });

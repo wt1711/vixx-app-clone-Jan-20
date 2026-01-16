@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { useInputHeight } from '../../context/InputHeightContext';
 import { colors } from '../../theme';
 
 interface ScrollToBottomButtonProps {
@@ -11,11 +12,13 @@ export function ScrollToBottomButton({
   visible,
   onPress,
 }: ScrollToBottomButtonProps) {
+  const { inputHeight } = useInputHeight();
+
   if (!visible) return null;
 
   return (
     <TouchableOpacity
-      style={styles.button}
+      style={[styles.button, { bottom: inputHeight + 64 }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
@@ -27,10 +30,7 @@ export function ScrollToBottomButton({
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
-    bottom: 16,
-    alignSelf: 'center',
-    left: '50%',
-    marginLeft: -22,
+    right: 16,
     width: 44,
     height: 44,
     borderRadius: 22,
