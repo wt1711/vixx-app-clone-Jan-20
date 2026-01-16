@@ -1,7 +1,15 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
-import { BlurView } from '@react-native-community/blur';
-import { ArrowLeft, User } from 'lucide-react-native';
+import React, { useCallback } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import { LiquidGlassButton } from '../ui/LiquidGlassButton';
+import { ChevronLeft, User } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
 import { getRoomAvatarUrl } from '../../utils/room';
@@ -10,7 +18,7 @@ import { colors } from '../../theme';
 type RoomViewHeaderProps = {
   room: Room;
   onBack: () => void;
-  onAIAssistantClick: () => void;
+  onAIAssistantClick?: () => void;
 };
 
 export function RoomViewHeader({
@@ -19,89 +27,130 @@ export function RoomViewHeader({
 }: // onAIAssistantClick,
 RoomViewHeaderProps) {
   const mx = getMatrixClient();
+  const insets = useSafeAreaInsets();
 
-  // Use room.name directly - Matrix SDK handles the display name correctly
-  // This matches the NextJS implementation
   const roomName = room.name || 'Unknown';
-
-  // Get avatar from fallback member for direct messages, or room avatar
-  // Get MXC URL and convert to HTTP with authentication token in URL
   const avatarUrl = mx ? getRoomAvatarUrl(mx, room, 96, true) : undefined;
 
+  const handlePress = useCallback(() => {
+    onBack();
+  }, [onBack]);
+
+  // Calculate overlay height: safe area + padding + pill height + padding + 5px
+  const overlayHeight = insets.top + 6 + PILL_HEIGHT + 6 + 5;
+
   return (
-    <View style={styles.header}>
-      <BlurView
-        style={StyleSheet.absoluteFill}
-        blurType="dark"
-        blurAmount={80}
-        reducedTransparencyFallbackColor={colors.background.primary}
+    <View style={[styles.header, { paddingTop: insets.top }]}>
+      {/* Gradient overlay - 85% at top with smooth fade for glass pill effect */}
+      <LinearGradient
+        colors={['rgba(0, 0, 0, 0.85)', 'rgba(0, 0, 0, 0.4)', 'rgba(0, 0, 0, 0)']}
+        locations={[0, 0.6, 1]}
+        style={[styles.gradientOverlay, { height: overlayHeight }]}
+        pointerEvents="none"
       />
-      <View style={styles.headerLeft}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <ArrowLeft color={colors.text.primary} size={24} />
-        </TouchableOpacity>
+      <View style={styles.headerContent}>
+        {/* Back button - iOS Liquid Glass */}
+        <LiquidGlassButton
+          style={styles.backPill}
+          contentStyle={styles.backPillContent}
+          borderRadius={PILL_HEIGHT / 2}
+          onPress={handlePress}
+        >
+          <ChevronLeft color={colors.text.primary} size={24} />
+        </LiquidGlassButton>
 
-        {avatarUrl ? (
-          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]}>
-            <User color={colors.text.secondary} size={16} />
-          </View>
-        )}
-        <Text style={styles.roomName} numberOfLines={1}>
-          {roomName}
-        </Text>
+        {/* Profile pill - iOS Liquid Glass */}
+        <LiquidGlassButton
+          style={styles.profilePill}
+          contentStyle={styles.profilePillContent}
+          borderRadius={PILL_HEIGHT / 2}
+        >
+          <TouchableOpacity style={styles.profileSection} activeOpacity={0.7}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                <User color={colors.text.secondary} size={16} />
+              </View>
+            )}
+            <Text style={styles.roomName} numberOfLines={1}>
+              {roomName}
+            </Text>
+          </TouchableOpacity>
+        </LiquidGlassButton>
+
+        {/* Spacer for balance */}
+        <View style={styles.spacer} />
       </View>
-
-      {/* <TouchableOpacity
-        onPress={onAIAssistantClick}
-        style={styles.aiButton}
-      >
-        <User color={colors.text.primary} size={24} />
-      </TouchableOpacity> */}
     </View>
   );
 }
 
+const PILL_HEIGHT = 44;
+
 const styles = StyleSheet.create({
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 20,
+    backgroundColor: 'transparent',
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.transparent.white10,
-    overflow: 'hidden',
-    backgroundColor: colors.transparent.black30,
+    paddingVertical: 6,
+    gap: 10,
   },
-  backButton: {
-    padding: 4,
+  backPill: {
+    width: PILL_HEIGHT,
+    height: PILL_HEIGHT,
   },
-  headerLeft: {
+  backPillContent: {
     flex: 1,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  profilePill: {
+    height: PILL_HEIGHT,
+  },
+  profilePillContent: {
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    paddingLeft: 6,
+    paddingRight: 16,
+    height: PILL_HEIGHT,
+    gap: 10,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: colors.transparent.white30,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   avatarPlaceholder: {
     backgroundColor: colors.background.elevated,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   roomName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text.primary,
+    maxWidth: 180,
   },
-  aiButton: {
-    padding: 8,
+  spacer: {
+    flex: 1,
   },
 });
