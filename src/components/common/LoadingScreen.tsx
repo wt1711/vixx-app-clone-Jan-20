@@ -1,11 +1,11 @@
 import React from 'react';
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Settings } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
-import { colors, gradients } from '../../theme';
+import { colors } from '../../theme';
+import { CarbonFiberTexture } from '../ui/NoiseTexture';
 
 type LoadingScreenProps = {
   message?: string;
@@ -20,12 +20,13 @@ export function LoadingScreen({
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={[...gradients.screenBackground]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: colors.background.black },
+        ]}
       />
+      <CarbonFiberTexture opacity={0.6} scale={0.5} />
       {showHeader && (
         <View style={[styles.header, { paddingTop: insets.top }]}>
           <BlurView
@@ -50,7 +51,7 @@ export function LoadingScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
