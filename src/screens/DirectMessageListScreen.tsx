@@ -10,9 +10,11 @@ import {
   Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
+import LinearGradient from 'react-native-linear-gradient';
+import { CarbonFiberTexture } from '../components/ui/NoiseTexture';
 import { Settings, Plus } from 'lucide-react-native';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import { useDirectRooms } from '../hooks/room';
 import { getMatrixClient } from '../matrixClient';
 import {
@@ -26,14 +28,15 @@ import { LoadingScreen } from '../components/common/LoadingScreen';
 import { EmptyState } from '../components/common/EmptyState';
 import { SocialAccountService } from '../services/apiService';
 import ForceLogOutModal from '../components/ForceLogOutModal';
-import PendingInvitationsModal from '../components/PendingInvitationsModal';
-import { colors, gradients } from '../theme';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { colors } from '../theme';
 import { useChatWithFounder } from '../hooks/useChatWithFounder';
 
 type DirectMessageListScreenProps = {
   onSelectRoom: (roomId: string) => void;
   onCreateChat?: () => void;
   onOpenSettings?: () => void;
+  onOpenPendingInvitations?: () => void;
   selectedRoomId?: string;
 };
 
@@ -41,23 +44,29 @@ export function DirectMessageListScreen({
   onSelectRoom,
   onCreateChat,
   onOpenSettings,
+  onOpenPendingInvitations,
   selectedRoomId,
 }: DirectMessageListScreenProps) {
   const { directRooms, isLoading, invitedRooms } = useDirectRooms();
-
   const [refreshing, setRefreshing] = useState(false);
   const [roomItems, setRoomItems] = useState<RoomItemData[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [showForceLogOut, setShowForceLogOut] = useState(false);
-  const [showPendingInvitationsModal, setShowPendingInvitationsModal] =
-    useState(false);
   const mx = getMatrixClient();
   const { logout } = useAuth();
   const socialAccountService = SocialAccountService.getInstance();
   const insets = useSafeAreaInsets();
   const loadingRef = useRef(false);
   const { handleChatWithFounder, founderAvatar } = useChatWithFounder(onSelectRoom);
+
+  const handleFabPress = useCallback(() => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+    onOpenPendingInvitations?.();
+  }, [onOpenPendingInvitations]);
 
   // Load room data with async message fetching
   const loadRoomItems = useCallback(async () => {
@@ -186,81 +195,95 @@ export function DirectMessageListScreen({
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={[...gradients.screenBackground]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <BlurView
-          style={StyleSheet.absoluteFill}
-          blurType="dark"
-          blurAmount={80}
-          reducedTransparencyFallbackColor={colors.background.primary}
-        />
-        <TouchableOpacity
-          onPress={handleChatWithFounder}
-          style={styles.headerButton}
-          activeOpacity={0.7}
-        >
-          <Image source={founderAvatar} style={styles.founderAvatar} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Messages</Text>
-        <TouchableOpacity
-          onPress={onOpenSettings}
-          style={styles.headerButton}
-          activeOpacity={0.7}
-        >
-          <Settings color={colors.text.primary} size={24} />
-        </TouchableOpacity>
-      </View>
+      {/* Solid black background */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]} />
+      {/* Carbon fiber weave texture */}
+      <CarbonFiberTexture opacity={0.6} scale={0.5} />
       {syncing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent.primary} />
+          <ActivityIndicator size={20} color={colors.accent.primary} />
           <Text style={styles.loadingText}>Syncing your account...</Text>
         </View>
       ) : null}
-      {invitedRooms.length > 0 ? (
-        <View style={styles.addChatContainer}>
-          <TouchableOpacity
-            onPress={() => setShowPendingInvitationsModal(true)}
-            style={styles.addChatButton}
-          >
-            <Plus color={colors.text.primary} size={32} />
-          </TouchableOpacity>
-        </View>
-      ) : null}
       {roomItems.length === 0 ? (
-        <EmptyState
-          title="Welcome to VIXX"
-          subtitle="Click + to add conversation"
-          actionLabel={onCreateChat ? 'Create Chat' : undefined}
-          onAction={onCreateChat}
-        />
+        <View style={styles.emptyStateContainer}>
+          <EmptyState
+            title="Welcome to VIXX"
+            subtitle="Tap + to Add Chat"
+            actionLabel={onCreateChat ? 'Create Chat' : undefined}
+            onAction={onCreateChat}
+          />
+          <LiquidGlassButton
+            style={styles.emptyStateButton}
+            contentStyle={styles.fabContent}
+            borderRadius={28}
+            onPress={handleFabPress}
+          >
+            <Plus color={colors.text.primary} size={28} />
+          </LiquidGlassButton>
+        </View>
       ) : (
-        <FlatList
-          data={roomItems}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={colors.accent.primary}
-            />
-          }
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
+        <>
+          <View style={[styles.sectionHeaderRow, { paddingTop: insets.top + 16 }]}>
+            <Text style={styles.sectionHeader}>Chats</Text>
+            {/* Floating pill with founder avatar + settings - liquid glass */}
+            <View style={styles.headerPill}>
+              <BlurView
+                style={StyleSheet.absoluteFill}
+                blurType="thinMaterialDark"
+                blurAmount={25}
+                reducedTransparencyFallbackColor="rgba(30, 35, 45, 0.9)"
+              />
+              {/* Dark overlay for deeper black */}
+              <View style={styles.pillDarkOverlay} pointerEvents="none" />
+              {/* Subtle border */}
+              <View style={styles.pillGlassHighlight} pointerEvents="none" />
+              <TouchableOpacity
+                onPress={handleChatWithFounder}
+                style={styles.pillButton}
+                activeOpacity={0.7}
+              >
+                <Image source={founderAvatar} style={styles.founderAvatar} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={onOpenSettings}
+                style={styles.pillButton}
+                activeOpacity={0.7}
+              >
+                <Settings color={colors.text.primary} size={20} />
+              </TouchableOpacity>
+            </View>
+          </View>
+          {/* Inset shadow divider */}
+          <View style={styles.listShadow} pointerEvents="none" />
+          <FlatList
+            data={roomItems}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={colors.accent.primary}
+              />
+            }
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        </>
       )}
+      {/* FAB - Bottom Right - Liquid Glass with fallback */}
+      {roomItems.length > 0 ? (
+        <LiquidGlassButton
+          style={[styles.fab, { bottom: insets.bottom + 24 }]}
+          contentStyle={styles.fabContent}
+          borderRadius={28}
+          onPress={handleFabPress}
+        >
+          <Plus color={colors.text.primary} size={28} />
+        </LiquidGlassButton>
+      ) : null}
       <ForceLogOutModal visible={showForceLogOut} />
-      <PendingInvitationsModal
-        visible={showPendingInvitationsModal}
-        invitedRooms={invitedRooms}
-        mx={mx}
-        onClose={() => setShowPendingInvitationsModal(false)}
-      />
     </View>
   );
 }
@@ -268,44 +291,11 @@ export function DirectMessageListScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.transparent.white10,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text.primary,
-  },
-  headerButton: {
-    padding: 8,
-  },
-  founderAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    backgroundColor: '#000000',
   },
   listContent: {
-    paddingVertical: 16,
     paddingHorizontal: 16,
-  },
-  addChatContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  addChatButton: {
-    borderColor: colors.border.light,
-    borderWidth: 1,
-    borderRadius: 9999,
-    padding: 8,
+    paddingBottom: 100,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -316,5 +306,81 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: colors.text.secondary,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  sectionHeader: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  headerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    // No shadow - recessed dark style
+  },
+  pillDarkOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 22,
+  },
+  pillGlassHighlight: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.25)',
+    borderLeftColor: 'rgba(255, 255, 255, 0.18)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    borderRightColor: 'rgba(255, 255, 255, 0.10)',
+  },
+  pillButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  founderAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  listShadow: {
+    height: 12,
+    marginHorizontal: 16,
+    backgroundColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  fab: {
+    position: 'absolute',
+    right: 24,
+    width: 56,
+    height: 56,
+  },
+  fabContent: {
+    flex: 1,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyStateButton: {
+    marginTop: 24,
+    width: 56,
+    height: 56,
   },
 });
