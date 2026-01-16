@@ -15,6 +15,7 @@ import {
   gradeMessage,
 } from '../services/aiService';
 import { isMessageFromMe, getLastReceivedMessageBatch } from '../utils/room';
+import { parseAIResponse, ParsedAIResponse } from '../utils/aiResponseParser';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -28,6 +29,7 @@ type AIAssistantContextType = {
   chatHistory: ChatMessage[];
   isLoading: boolean;
   generatedResponse: string;
+  parsedResponse: ParsedAIResponse | null;
   isGeneratingResponse: boolean;
   isMobile: boolean;
   isAIAssistantOpen: boolean;
@@ -42,6 +44,7 @@ type AIAssistantContextType = {
   clearChatHistory: () => void;
   toggleAIAssistant: (isOpen?: boolean) => void;
   gradeEditorText: (text: string) => void;
+  clearParsedResponse: () => void;
 };
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(
@@ -63,6 +66,7 @@ export function AIAssistantProvider({
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [generatedResponse, setGeneratedResponse] = useState('');
+  const [parsedResponse, setParsedResponse] = useState<ParsedAIResponse | null>(null);
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [prediction, setPrediction] = useState<{
@@ -79,9 +83,14 @@ export function AIAssistantProvider({
       const newIsOpen = isOpen ?? !prev;
       if (!newIsOpen) {
         setGeneratedResponse('');
+        setParsedResponse(null);
       }
       return newIsOpen;
     });
+  }, []);
+
+  const clearParsedResponse = useCallback(() => {
+    setParsedResponse(null);
   }, []);
 
   const handleUseSuggestion = useCallback(
@@ -161,7 +170,13 @@ export function AIAssistantProvider({
           userId: myUserId,
         });
         setGeneratedResponse(response);
-        handleUseSuggestion(response);
+
+        // Parse the response to separate emotion, reason, and message
+        const parsed = parseAIResponse(response);
+        setParsedResponse(parsed);
+
+        // Auto-insert only the clean message into input field
+        handleUseSuggestion(parsed.message);
       } catch (error) {
         console.error('Error in regenerateResponse:', error);
         setGeneratedResponse('Xin lỗi, đã có lỗi');
@@ -298,6 +313,7 @@ export function AIAssistantProvider({
       chatHistory,
       isLoading,
       generatedResponse,
+      parsedResponse,
       isGeneratingResponse,
       isMobile,
       isAIAssistantOpen,
@@ -311,12 +327,14 @@ export function AIAssistantProvider({
       clearChatHistory,
       toggleAIAssistant,
       gradeEditorText,
+      clearParsedResponse,
     }),
     [
       inputValue,
       chatHistory,
       isLoading,
       generatedResponse,
+      parsedResponse,
       isGeneratingResponse,
       isMobile,
       isAIAssistantOpen,
@@ -327,6 +345,7 @@ export function AIAssistantProvider({
       handleUseSuggestion,
       toggleAIAssistant,
       gradeEditorText,
+      clearParsedResponse,
     ],
   );
 
