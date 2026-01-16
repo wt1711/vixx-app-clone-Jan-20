@@ -2,6 +2,10 @@
  * @format
  */
 
+// Enable react-native-screens for native navigation
+import { enableScreens } from 'react-native-screens';
+enableScreens();
+
 // Import ALL polyfills FIRST before any other imports
 // This is critical for matrix-js-sdk to work in React Native
 import './src/polyfills';

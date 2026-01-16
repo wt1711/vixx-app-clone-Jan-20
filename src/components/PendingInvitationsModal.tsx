@@ -2,7 +2,6 @@ import { MatrixClient, Room } from 'matrix-js-sdk';
 import { useCallback, useState, useEffect } from 'react';
 import {
   FlatList,
-  Modal,
   StyleSheet,
   Text,
   View,
@@ -14,20 +13,19 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { BlurView } from '@react-native-community/blur';
 import { Search, Check, ChevronLeft } from 'lucide-react-native';
-import { colors, gradients } from '../theme';
+import { LiquidGlassButton } from './ui/LiquidGlassButton';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { colors } from '../theme';
 import { RoomItemData } from './room/RoomListItem';
 import { getRoomAvatarUrl } from '../utils/room';
 import { getInitials } from '../utils/stringUtils';
 
 const PendingInvitationsModal = ({
-  visible,
   invitedRooms,
   mx,
   onClose,
 }: {
-  visible: boolean;
   invitedRooms: Room[];
   mx: MatrixClient | null;
   onClose: () => void;
@@ -70,10 +68,8 @@ const PendingInvitationsModal = ({
   }, [mx, invitedRooms]);
 
   useEffect(() => {
-    if (visible) {
-      loadRoomItems();
-    }
-  }, [visible, loadRoomItems]);
+    loadRoomItems();
+  }, [loadRoomItems]);
 
   // Filter rooms by search query
   const filteredRooms = roomItems.filter(item =>
@@ -100,6 +96,10 @@ const PendingInvitationsModal = ({
   };
 
   const confirmAccept = (room: Room) => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
     Alert.alert('', `Add ${room.name || 'this conversation'} to your list?`, [
       { text: 'Yes', onPress: () => handleAccept(room) },
       { text: 'No', style: 'cancel' },
@@ -123,99 +123,84 @@ const PendingInvitationsModal = ({
   //   }
   // };
 
-  const renderItem = ({ item }: { item: RoomItemData }) => {
+  const renderItem = ({ item, index }: { item: RoomItemData; index: number }) => {
     const isProcessing =
       processingRoomId?.roomId === item.roomId &&
       processingRoomId.action === 'accept';
-    // const isRejecting =
-    //   processingRoomId?.roomId === item.roomId &&
-    //   processingRoomId.action === 'reject';
+    const isLast = index === filteredRooms.length - 1;
 
     return (
-      <View style={styles.roomItem}>
-        <View style={styles.roomItemContent}>
-          {/* Avatar */}
-          <View style={styles.avatarContainer}>
-            {item.avatarUrl ? (
-              <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
-              </View>
-            )}
-          </View>
-
-          {/* Room Name */}
-          <View style={styles.roomInfo}>
-            <Text style={styles.roomName} numberOfLines={1}>
-              {item.name}
-            </Text>
-          </View>
-
-          {/* Action Buttons */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => confirmAccept(item.room)}
-              disabled={isProcessing}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.addButtonText}>Confirm</Text>
-              {isProcessing ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : null}
-            </TouchableOpacity>
-
-            {/* <TouchableOpacity
-              style={[styles.button, styles.rejectButton]}
-              onPress={() => handleReject(item.room)}
-              disabled={isRejecting}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.rejectButtonText}>Reject</Text>
-              {isRejecting ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : null}
-            </TouchableOpacity> */}
-          </View>
+      <TouchableOpacity
+        style={[styles.roomItem, !isLast && styles.roomItemBorder]}
+        onPress={() => confirmAccept(item.room)}
+        disabled={isProcessing}
+        activeOpacity={0.6}
+      >
+        {/* Avatar */}
+        <View style={styles.avatarContainer}>
+          {item.avatarUrl ? (
+            <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, styles.avatarPlaceholder]}>
+              <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
+            </View>
+          )}
         </View>
-      </View>
+
+        {/* Room Name */}
+        <View style={styles.roomInfo}>
+          <Text style={styles.roomName} numberOfLines={1}>
+            {item.name}
+          </Text>
+        </View>
+
+        {/* Add button - Spotify style */}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => confirmAccept(item.room)}
+          disabled={isProcessing}
+          activeOpacity={0.7}
+        >
+          {isProcessing ? (
+            <ActivityIndicator size="small" color={colors.text.primary} />
+          ) : (
+            <Text style={styles.addButtonText}>Add</Text>
+          )}
+        </TouchableOpacity>
+      </TouchableOpacity>
     );
   };
 
   const keyExtractor = useCallback((item: RoomItemData) => item.roomId, []);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      presentationStyle="fullScreen"
-      onRequestClose={onClose}
-    >
-      <View style={styles.container}>
+    <View style={styles.container}>
+        {/* Subtle gradient for glass refraction effect */}
         <LinearGradient
-          colors={[...gradients.screenBackground]}
+          colors={['#0D0D0D', '#151518', '#0D0D0D']}
+          locations={[0, 0.5, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
 
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top }]}>
-          <BlurView
-            style={StyleSheet.absoluteFill}
-            blurType="dark"
-            blurAmount={80}
-            reducedTransparencyFallbackColor={colors.background.primary}
-          />
-          <Text style={styles.headerTitle}>Add Chat</Text>
-          <TouchableOpacity
+        {/* Header - flat title like Chats header */}
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+          {/* Back pill - liquid glass */}
+          <LiquidGlassButton
+            style={styles.backPill}
+            contentStyle={styles.backPillContent}
+            borderRadius={22}
             onPress={onClose}
-            style={styles.backButton}
-            activeOpacity={0.7}
           >
-            <ChevronLeft color={colors.text.primary} size={28} />
-          </TouchableOpacity>
+            <ChevronLeft color={colors.text.primary} size={24} />
+          </LiquidGlassButton>
+
+          {/* Flat title - like Chats header */}
+          <Text style={styles.headerTitle}>Add Chat</Text>
+
+          {/* Spacer for balance */}
+          <View style={styles.headerSpacer} />
         </View>
 
         {/* Content */}
@@ -230,63 +215,74 @@ const PendingInvitationsModal = ({
             </View>
           ) : null}
 
-          {/* Search Input */}
+          {/* Search Input - icon next to placeholder text */}
           <View style={styles.searchContainer}>
+            {searchQuery.length === 0 && (
+              <View style={styles.searchPlaceholder} pointerEvents="none">
+                <Search color="#9CA3AF" size={18} />
+                <Text style={styles.searchPlaceholderText}>Search</Text>
+              </View>
+            )}
             <TextInput
               style={styles.searchInput}
-              placeholder="Search..."
-              placeholderTextColor="#9CA3AF"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            <Search color="#9CA3AF" size={20} style={styles.searchIcon} />
           </View>
 
-          <FlatList
-            data={filteredRooms}
-            renderItem={renderItem}
-            keyExtractor={keyExtractor}
-            keyboardShouldPersistTaps="handled"
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
-                  {searchQuery ? 'No rooms found' : 'No pending invitations'}
-                </Text>
-              </View>
-            }
-          />
+          {/* List with inverted border for recessed effect */}
+          {filteredRooms.length > 0 ? (
+            <View style={styles.listSection}>
+              <FlatList
+                data={filteredRooms}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                {searchQuery ? 'No rooms found' : 'No pending invitations'}
+              </Text>
+            </View>
+          )}
         </View>
-      </View>
-    </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: '#0D0D0D',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.transparent.white10,
+  },
+  backPill: {
+    width: 44,
+    height: 44,
+  },
+  backPillContent: {
+    flex: 1,
+    width: 44,
+    height: 44,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
   headerTitle: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 12,
-    textAlign: 'center',
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
     color: colors.text.primary,
   },
-  backButton: {
-    padding: 8,
+  headerSpacer: {
+    width: 44,
   },
   content: {
     flex: 1,
@@ -299,13 +295,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderColor: colors.border.light,
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: colors.transparent.roomItem,
   },
   toastContent: {
     marginLeft: 12,
@@ -319,53 +311,69 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
     marginBottom: 16,
-    paddingRight: 12,
+    paddingHorizontal: 12,
+    height: 44,
+  },
+  searchPlaceholder: {
+    position: 'absolute',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    left: 0,
+    right: 0,
+  },
+  searchPlaceholderText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    marginLeft: 6,
   },
   searchInput: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    color: '#FFFFFF',
+    color: colors.text.primary,
     fontSize: 16,
+    paddingVertical: 0,
+    textAlign: 'center',
   },
-  searchIcon: {
-    marginLeft: 8,
+  listSection: {
+    flex: 1,
+    borderRadius: 12,
+    // Inverted border lighting - darker on top/left (shadowed), lighter on bottom/right
+    borderWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.3)',
+    borderLeftColor: 'rgba(0, 0, 0, 0.2)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.03)',
+    borderRightColor: 'rgba(255, 255, 255, 0.02)',
   },
   roomItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  roomItemContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  roomItemBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.transparent.white10,
   },
   avatarContainer: {
-    marginRight: 12,
+    marginRight: 14,
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
   avatarPlaceholder: {
-    backgroundColor: '#2A2A3E',
+    backgroundColor: colors.background.elevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    color: '#9CA3AF',
-    fontSize: 18,
+    color: colors.text.secondary,
+    fontSize: 20,
     fontWeight: '600',
   },
   roomInfo: {
@@ -375,22 +383,21 @@ const styles = StyleSheet.create({
   roomName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 8,
+    color: colors.text.primary,
   },
   addButton: {
-    borderColor: colors.border.light,
-    borderWidth: 1,
     paddingHorizontal: 20,
     paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 70,
   },
   addButtonText: {
-    color: colors.accent.primary,
-    fontSize: 16,
+    color: colors.text.primary,
+    fontSize: 14,
     fontWeight: '600',
   },
   emptyContainer: {
@@ -398,7 +405,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#9CA3AF',
+    color: colors.text.secondary,
     fontSize: 16,
   },
 });
