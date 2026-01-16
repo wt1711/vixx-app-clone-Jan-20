@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
-import LinearGradient from 'react-native-linear-gradient';
 import { CarbonFiberTexture } from '../components/ui/NoiseTexture';
 import { Settings, Plus } from 'lucide-react-native';
 import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
@@ -47,7 +46,7 @@ export function DirectMessageListScreen({
   onOpenPendingInvitations,
   selectedRoomId,
 }: DirectMessageListScreenProps) {
-  const { directRooms, isLoading, invitedRooms } = useDirectRooms();
+  const { directRooms, isLoading } = useDirectRooms();
   const [refreshing, setRefreshing] = useState(false);
   const [roomItems, setRoomItems] = useState<RoomItemData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +57,8 @@ export function DirectMessageListScreen({
   const socialAccountService = SocialAccountService.getInstance();
   const insets = useSafeAreaInsets();
   const loadingRef = useRef(false);
-  const { handleChatWithFounder, founderAvatar } = useChatWithFounder(onSelectRoom);
+  const { handleChatWithFounder, founderAvatar } =
+    useChatWithFounder(onSelectRoom);
 
   const handleFabPress = useCallback(() => {
     ReactNativeHapticFeedback.trigger('impactLight', {
@@ -224,7 +224,9 @@ export function DirectMessageListScreen({
         </View>
       ) : (
         <>
-          <View style={[styles.sectionHeaderRow, { paddingTop: insets.top + 16 }]}>
+          <View
+            style={[styles.sectionHeaderRow, { paddingTop: insets.top + 16 }]}
+          >
             <Text style={styles.sectionHeader}>Chats</Text>
             {/* Floating pill with founder avatar + settings - liquid glass */}
             <View style={styles.headerPill}>
