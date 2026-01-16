@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -15,6 +15,7 @@ import { MessageItemComponent, QuickReactionsModal, ModalPosition } from './mess
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { useRoomTimeline, useTimelineScroll } from '../../hooks/room';
 import { useReply } from '../../context/ReplyContext';
+import { useInputHeight } from '../../context/InputHeightContext';
 import { colors } from '../../theme';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
@@ -121,6 +122,16 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
 
   // ─── Reply ─────────────────────────────────────────────────────────────────
   const { setReplyingTo } = useReply();
+
+  // ─── Dynamic Padding for Input Height ─────────────────────────────────────
+  const { inputHeight } = useInputHeight();
+
+  // Dynamic content container style - paddingTop is visual bottom in inverted list
+  const listContentStyle = useMemo(() => ({
+    paddingTop: inputHeight + 16, // input height + extra spacing
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+  }), [inputHeight]);
 
   const handleReply = useCallback(
     (item: MessageItem) => {
@@ -252,7 +263,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         inverted
         renderItem={renderMessage}
         keyExtractor={(item) => item.eventId}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={listContentStyle}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         ListHeaderComponent={renderHeader}
@@ -292,10 +303,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  listContent: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
   },
   loadingMoreContainer: {
     padding: 16,
