@@ -331,6 +331,13 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
     const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
 
+    // Check if this is an Instagram story reply
+    const instagramUrl = getInstagramUrl(item.content);
+    const isInstagramStoryReply =
+      isImageMessage &&
+      instagramUrl &&
+      getInstagramStoryReplyData(item.content) !== null;
+
     const containerStyle: StyleProp<ViewStyle> = [
       styles.messageContainer,
       item.isOwn ? styles.messageOwn : styles.messageOther,
@@ -340,12 +347,14 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       styles.messageBubble,
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
       isVideoMessage && styles.messageBubbleVideo,
+      isInstagramStoryReply && styles.messageBubbleInstagramStory,
     ];
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
       isImageMessage && styles.messageBubbleContentImage,
       isVideoMessage && styles.messageBubbleContentVideo,
+      isInstagramStoryReply && styles.messageBubbleContentImage,
     ];
 
     const timestampStyle: StyleProp<ViewStyle> = [

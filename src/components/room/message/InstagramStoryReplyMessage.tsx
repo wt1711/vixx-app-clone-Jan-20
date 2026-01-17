@@ -20,7 +20,7 @@ type InstagramStoryReplyMessageProps = {
 
 export const InstagramStoryReplyMessage =
   React.memo<InstagramStoryReplyMessageProps>(
-    ({ instagramUrl, imageUrl, isOwn, replyTo, replyContent, onLongPress }) => {
+    ({ instagramUrl, imageUrl, isOwn, replyContent, onLongPress }) => {
       const handleImagePress = () => {
         Linking.openURL(instagramUrl).catch(() => {});
       };
@@ -28,12 +28,10 @@ export const InstagramStoryReplyMessage =
       return (
         <View style={styles.container}>
           <Text style={styles.headerText}>
-            {isOwn ? 'You replied to ' : 'Replied to '}
-            {replyTo}'s story
+            {isOwn ? 'You replied to their story' : `Replied to your story`}
           </Text>
 
           <View style={styles.storyContainer}>
-            <View style={styles.verticalDivider} />
             <Pressable
               onPress={handleImagePress}
               onLongPress={onLongPress}
@@ -45,6 +43,7 @@ export const InstagramStoryReplyMessage =
                 resizeMode="cover"
               />
             </Pressable>
+            <View style={styles.verticalDivider} />
           </View>
 
           <View style={styles.replyBubble}>
@@ -74,10 +73,10 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
   },
   verticalDivider: {
-    width: 3,
-    backgroundColor: colors.text.secondary,
+    width: 2,
+    backgroundColor: colors.text.primary,
     borderRadius: 2,
-    marginRight: 8,
+    marginLeft: 6,
   },
   storyImage: {
     width: 200,
