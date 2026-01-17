@@ -144,7 +144,7 @@ const MessageContent = ({
       <InstagramImageMessage
         instagramUrl={instagramUrl}
         imageUrl={item.imageUrl!}
-        imageStyle={imageStyle}
+        isOwn={item.isOwn}
         onImagePress={onImagePress}
         onLongPress={onLongPress}
       />
@@ -252,12 +252,13 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
     const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
 
-    // Check if this is an Instagram story reply
+    // Check for Instagram content
     const instagramUrl = getInstagramUrl(item.content);
     const isInstagramStoryReply =
       isImageMessage &&
       instagramUrl &&
       getInstagramStoryReplyData(item.content) !== null;
+    const isInstagramImage = isImageMessage && instagramUrl && !isInstagramStoryReply;
 
     const containerStyle: StyleProp<ViewStyle> = [
       styles.messageContainer,
@@ -269,6 +270,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
       isVideoMessage && styles.messageBubbleVideo,
       isInstagramStoryReply && styles.messageBubbleInstagramStory,
+      isInstagramImage && styles.messageBubbleInstagramStory,
     ];
 
     const contentStyle: StyleProp<ViewStyle> = [

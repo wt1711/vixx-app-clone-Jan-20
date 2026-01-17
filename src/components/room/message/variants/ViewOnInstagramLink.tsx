@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 4,
     paddingVertical: 8,
   },
   linkText: {
