@@ -25,9 +25,12 @@ import {
  * Check if a room is the founder/team chat room (supports both old and new names)
  */
 export const isFounderRoom = (roomName: string | undefined): boolean => {
-  return (
-    roomName === FOUNDER_ROOM_NAME || roomName === FOUNDER_ROOM_NAME_LEGACY
-  );
+  if (
+    roomName &&
+    [FOUNDER_ROOM_NAME, FOUNDER_ROOM_NAME_LEGACY].includes(roomName)
+  )
+    return true;
+  return false;
 };
 
 export const getStateEvent = (
