@@ -9,8 +9,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Link } from 'lucide-react-native';
-import { useLinkPreview } from '../../../hooks/useLinkPreview';
-import { colors } from '../../../theme';
+import { useLinkPreview } from '../../../../hooks/useLinkPreview';
+import { colors } from '../../../../theme';
 
 type LinkPreviewProps = {
   url: string;

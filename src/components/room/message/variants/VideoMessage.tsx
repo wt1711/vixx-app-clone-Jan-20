@@ -14,8 +14,8 @@ import {
 import Video from 'react-native-video';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { Play } from 'lucide-react-native';
-import { MessageItem } from '../types';
-import { styles } from './MessageItem.styles';
+import { MessageItem } from '../../types';
+import { styles } from '../MessageItem.styles';
 
 // Cache map: videoUrl -> localVideoUri (only for iOS)
 const videoCache = new Map<string, string>();

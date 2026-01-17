@@ -10,7 +10,7 @@ import {
   ImageStyle,
 } from 'react-native';
 import { Instagram } from 'lucide-react-native';
-import { colors } from '../../../theme';
+import { colors } from '../../../../theme';
 
 type InstagramImageMessageProps = {
   instagramUrl: string;

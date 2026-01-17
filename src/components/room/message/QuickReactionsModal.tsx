@@ -13,7 +13,7 @@ import { BlurView } from '@react-native-community/blur';
 import { Reply, Plus } from 'lucide-react-native';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { MessageItem } from '../types';
-import { ReplyPreview } from './ReplyPreview';
+import { ReplyPreview } from './variants';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
 

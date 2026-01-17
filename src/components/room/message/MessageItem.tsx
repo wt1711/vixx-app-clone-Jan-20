@@ -14,8 +14,13 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
 import { ReactionsList } from './Reactions';
-import { ReplyPreview } from './ReplyPreview';
-import { LinkPreview } from './LinkPreview';
+import {
+  ReplyPreview,
+  LinkPreview,
+  InstagramImageMessage,
+  InstagramStoryReplyMessage,
+  VideoMessage,
+} from './variants';
 import { styles } from './MessageItem.styles';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
@@ -25,11 +30,8 @@ import {
   getInstagramUrl,
   getInstagramStoryReplyData,
 } from '../../../utils/urlParser';
-import { InstagramImageMessage } from './InstagramImageMessage';
-import { InstagramStoryReplyMessage } from './InstagramStoryReplyMessage';
 import { isVideoUrl } from '../../../hooks/useLinkPreview';
 import { Instagram } from 'lucide-react-native';
-import { VideoMessage } from './VideoMessage';
 
 export type MessageItemProps = {
   item: MessageItem;
