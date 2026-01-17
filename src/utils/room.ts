@@ -235,10 +235,56 @@ const formatReactionPreview = (content: Record<string, any>): string => {
 
 /**
  * Finds the last message or reaction from an array of events
+ * If the latest event is a reaction, compares its timestamp with the latest message
+ * and returns whichever is later (to handle messed up reaction timestamps)
  */
 const findLastMessageInEvents = (
   events: MatrixEvent[],
 ): LastMessageInfo | null => {
+  if (events.length === 0) return null;
+
+  const lastEvent = events[events.length - 1];
+  const lastEventType = lastEvent.getType();
+  const lastEventContent = lastEvent.getContent();
+
+  // If the latest event is a reaction, compare with latest message timestamp
+  if (lastEventType === MessageEvent.Reaction) {
+    const reactionInfo: LastMessageInfo = {
+      message: formatReactionPreview(lastEventContent),
+      timestamp: lastEvent.getTs(),
+      isReaction: true,
+      senderId: lastEvent.getSender() || undefined,
+      senderName: lastEvent.sender?.name || undefined,
+    };
+
+    // Find the latest message to compare
+    for (let i = events.length - 1; i >= 0; i--) {
+      const event = events[i];
+      const eventType = event.getType();
+      const content = event.getContent();
+
+      if (eventType === MessageEvent.RoomMessage) {
+        if (content.msgtype === MsgType.Notice) {
+          continue;
+        }
+        const messageInfo: LastMessageInfo = {
+          message: formatMessagePreview(content),
+          timestamp: event.getTs(),
+          senderId: event.getSender() || undefined,
+          senderName: event.sender?.name || undefined,
+        };
+        // Return whichever is later
+        return reactionInfo.timestamp > messageInfo.timestamp
+          ? reactionInfo
+          : messageInfo;
+      }
+    }
+
+    // No message found, return the reaction
+    return reactionInfo;
+  }
+
+  // Original logic for non-reaction latest events
   for (let i = events.length - 1; i >= 0; i--) {
     const event = events[i];
     const eventType = event.getType();
