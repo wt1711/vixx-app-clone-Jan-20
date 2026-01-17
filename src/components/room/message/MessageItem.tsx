@@ -22,8 +22,6 @@ import {
 } from 'react-native';
 import Video from 'react-native-video';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import { BlurView } from '@react-native-community/blur';
-import LinearGradient from 'react-native-linear-gradient';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
@@ -624,9 +622,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
     ];
 
-    const blurFallbackColor = item.isOwn
-      ? colors.message.own
-      : colors.message.other;
     const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
 
     const contentStyle: StyleProp<ViewStyle> = [
@@ -697,24 +692,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
               delayLongPress={500}
             >
               <View style={bubbleStyle}>
-                {item.isOwn ? (
-                  <BlurView
-                    style={StyleSheet.absoluteFill}
-                    blurType="dark"
-                    blurAmount={80}
-                    reducedTransparencyFallbackColor={blurFallbackColor}
-                  />
-                ) : (
-                  <LinearGradient
-                    style={StyleSheet.absoluteFill}
-                    colors={[
-                      colors.message.otherGradientStart,
-                      colors.message.otherGradientEnd,
-                    ]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0, y: 1 }}
-                  />
-                )}
                 <View style={contentStyle}>
                   <MessageContent
                     item={item}
