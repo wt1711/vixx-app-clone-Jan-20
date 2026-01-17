@@ -1,5 +1,7 @@
 export { GifMessage } from './GifMessage';
 export type { GifMessageProps } from './GifMessage';
+export { ImageMessage } from './ImageMessage';
+export type { ImageMessageProps } from './ImageMessage';
 export { InstagramImageMessage } from './InstagramImageMessage';
 export { InstagramStoryReplyMessage } from './InstagramStoryReplyMessage';
 export { InstagramVideoMessage } from './InstagramVideoMessage';

@@ -1,13 +1,11 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  Image,
   Pressable,
   Animated,
   StyleProp,
   ViewStyle,
-  ImageStyle,
 } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from '../types';
@@ -15,6 +13,7 @@ import { formatTimeWithDay } from '../../../utils/timeFormatter';
 import { ReactionsList } from './Reactions';
 import {
   GifMessage,
+  ImageMessage,
   ReplyPreview,
   InstagramImageMessage,
   InstagramStoryReplyMessage,
@@ -23,11 +22,15 @@ import {
   VideoMessage,
 } from './variants';
 import { styles } from './MessageItem.styles';
-import { MsgType } from '../../../types/matrix/room';
 import {
   getInstagramUrl,
   getInstagramStoryReplyData,
 } from '../../../utils/urlParser';
+import {
+  getMessageVariant,
+  isMessageItemEqual,
+  MessageVariant,
+} from './MessageItem.utils';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -43,152 +46,57 @@ export type MessageItemProps = {
   isFirstOfHour?: boolean;
 };
 
-function areReactionsEqual(
-  prev: MessageItemProps['item']['reactions'],
-  next: MessageItemProps['item']['reactions'],
-): boolean {
-  if (prev === next) return true;
-
-  const a = prev ?? [];
-  const b = next ?? [];
-
-  if (a.length !== b.length) return false;
-
-  return a.every(
-    (r, i) =>
-      r.key === b[i]?.key &&
-      r.count === b[i]?.count &&
-      r.myReaction === b[i]?.myReaction,
-  );
-}
-
-function isMessageItemEqual(
-  prev: MessageItemProps,
-  next: MessageItemProps,
-): boolean {
-  const { item: prevItem, ...prevRest } = prev;
-  const { item: nextItem, ...nextRest } = next;
-
-  // Check top-level props
-  if (
-    prevRest.showTimestamp !== nextRest.showTimestamp ||
-    prevRest.isFirstOfHour !== nextRest.isFirstOfHour
-  ) {
-    return false;
-  }
-
-  // Check item scalar fields
-  if (
-    prevItem.eventId !== nextItem.eventId ||
-    prevItem.content !== nextItem.content ||
-    prevItem.timestamp !== nextItem.timestamp ||
-    prevItem.imageUrl !== nextItem.imageUrl ||
-    prevItem.avatarUrl !== nextItem.avatarUrl
-  ) {
-    return false;
-  }
-
-  // Check replyTo
-  if (prevItem.replyTo?.eventId !== nextItem.replyTo?.eventId) {
-    return false;
-  }
-
-  // Check reactions (reference equality first, then shallow compare)
-  return areReactionsEqual(prevItem.reactions, nextItem.reactions);
-}
-
-const MessageContent = ({
-  item,
-  imageStyle,
-  onImagePress,
-  onVideoPress,
-  onLongPress,
-}: {
+type MessageContentProps = {
   item: MessageItem;
-  imageStyle: StyleProp<ImageStyle>;
+  variant: MessageVariant;
   onImagePress?: (imageUrl: string) => void;
   onVideoPress?: (videoUrl: string) => void;
   onLongPress?: () => void;
-}) => {
+};
+
+const MessageContent = ({
+  item,
+  variant,
+  onImagePress,
+  onVideoPress,
+  onLongPress,
+}: MessageContentProps) => {
   const textStyle = [
     styles.messageText,
     item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
   ];
 
-  const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
-  const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
-
-  // Check for Instagram URL in content (for stories, posts, reels, etc.)
-  // This works for both image and video messages that contain Instagram URLs
-  const instagramUrl = getInstagramUrl(item.content);
-  const instagramStoryReplyData = instagramUrl
-    ? getInstagramStoryReplyData(item.content)
-    : null;
-
-  // Instagram story reply: show story reply UI
-  if (isImageMessage && instagramUrl && instagramStoryReplyData) {
-    return (
-      <InstagramStoryReplyMessage
-        instagramUrl={instagramUrl}
-        imageUrl={item.imageUrl!}
-        isOwn={item.isOwn}
-        replyTo={instagramStoryReplyData.replyTo}
-        replyContent={instagramStoryReplyData.replyContent}
-        onLongPress={onLongPress}
-      />
-    );
-  }
-
-  // Instagram image: show clickable URL above the image
-  if (isImageMessage && instagramUrl) {
-    return (
-      <InstagramImageMessage
-        instagramUrl={instagramUrl}
-        imageUrl={item.imageUrl!}
-        isOwn={item.isOwn}
-        onImagePress={onImagePress}
-        onLongPress={onLongPress}
-      />
-    );
-  }
-
-  // GIF image: render smaller without bubble background
-  const isGifImage = item.imageInfo?.mimetype === 'image/gif';
-  if (isImageMessage && isGifImage) {
-    return (
-      <GifMessage
-        imageUrl={item.imageUrl!}
-        imageInfo={item.imageInfo}
-        isOwn={item.isOwn}
-        onImagePress={onImagePress}
-        onLongPress={onLongPress}
-      />
-    );
-  }
-
-  if (isImageMessage) {
-    return (
-      <Pressable
-        style={styles.imageContainer}
-        onPress={() => onImagePress?.(item.imageUrl!)}
-        onLongPress={onLongPress}
-        delayLongPress={500}
-      >
-        <Image
-          source={{ uri: item.imageUrl }}
-          style={imageStyle}
-          resizeMode="contain"
+  switch (variant) {
+    case 'instagram-story-reply': {
+      const instagramUrl = getInstagramUrl(item.content)!;
+      const storyData = getInstagramStoryReplyData(item.content)!;
+      return (
+        <InstagramStoryReplyMessage
+          instagramUrl={instagramUrl}
+          imageUrl={item.imageUrl!}
+          isOwn={item.isOwn}
+          replyTo={storyData.replyTo}
+          replyContent={storyData.replyContent}
+          onLongPress={onLongPress}
         />
-        {item.content === '📷 Image' && (
-          <Text style={[textStyle, styles.imageCaption]}>{item.content}</Text>
-        )}
-      </Pressable>
-    );
-  }
+      );
+    }
 
-  if (isVideoMessage) {
-    // If video has Instagram URL, show it above the video
-    if (instagramUrl) {
+    case 'instagram-image': {
+      const instagramUrl = getInstagramUrl(item.content)!;
+      return (
+        <InstagramImageMessage
+          instagramUrl={instagramUrl}
+          imageUrl={item.imageUrl!}
+          isOwn={item.isOwn}
+          onImagePress={onImagePress}
+          onLongPress={onLongPress}
+        />
+      );
+    }
+
+    case 'instagram-video': {
+      const instagramUrl = getInstagramUrl(item.content)!;
       return (
         <InstagramVideoMessage
           instagramUrl={instagramUrl}
@@ -199,24 +107,50 @@ const MessageContent = ({
         />
       );
     }
-    return (
-      <VideoMessage
-        item={item}
-        onVideoPress={onVideoPress}
-        onLongPress={onLongPress}
-        textStyle={textStyle}
-        isGift={(item.videoInfo?.['fi.mau.gif'] as boolean) ?? false}
-      />
-    );
-  }
 
-  return (
-    <MessageTextWithLinks
-      content={item.content}
-      isOwn={item.isOwn}
-      onLongPress={onLongPress}
-    />
-  );
+    case 'gif':
+      return (
+        <GifMessage
+          imageUrl={item.imageUrl!}
+          imageInfo={item.imageInfo}
+          isOwn={item.isOwn}
+          onImagePress={onImagePress}
+          onLongPress={onLongPress}
+        />
+      );
+
+    case 'image':
+      return (
+        <ImageMessage
+          imageUrl={item.imageUrl!}
+          imageInfo={item.imageInfo}
+          content={item.content}
+          isOwn={item.isOwn}
+          onImagePress={onImagePress}
+          onLongPress={onLongPress}
+        />
+      );
+
+    case 'video':
+      return (
+        <VideoMessage
+          item={item}
+          onVideoPress={onVideoPress}
+          onLongPress={onLongPress}
+          textStyle={textStyle}
+          isGift={(item.videoInfo?.['fi.mau.gif'] as boolean) ?? false}
+        />
+      );
+
+    default:
+      return (
+        <MessageTextWithLinks
+          content={item.content}
+          isOwn={item.isOwn}
+          onLongPress={onLongPress}
+        />
+      );
+  }
 };
 
 export const MessageItemComponent = React.memo<MessageItemProps>(
@@ -227,6 +161,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     onBubblePress,
     onReplyPreviewPress,
     onImagePress,
+    onVideoPress,
     showTimestamp,
     isFirstOfHour,
   }) => {
@@ -246,35 +181,8 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       }).start();
     }, [showTimestamp, animatedOpacity, isFirstOfHour]);
 
+    const variant = getMessageVariant(item);
     const timeString = formatTimeWithDay(item.timestamp);
-
-    const imageStyle = useMemo<StyleProp<ImageStyle>>(() => {
-      const { w, h } = item.imageInfo ?? {};
-      const shapeStyle = item.isOwn
-        ? styles.messageImageOwn
-        : styles.messageImageOther;
-      if (w && h) {
-        return [
-          styles.messageImage,
-          shapeStyle,
-          styles.messageImageWithRatio,
-          { aspectRatio: w / h, maxWidth: 250 },
-        ];
-      }
-      return [styles.messageImage, shapeStyle, styles.messageImageDefault];
-    }, [item.imageInfo, item.isOwn]);
-
-    const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
-    const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
-    const isGifImage = isImageMessage && item.imageInfo?.mimetype === 'image/gif';
-
-    // Check for Instagram content
-    const instagramUrl = getInstagramUrl(item.content);
-    const isInstagramStoryReply =
-      isImageMessage &&
-      instagramUrl &&
-      getInstagramStoryReplyData(item.content) !== null;
-    const isInstagramImage = isImageMessage && instagramUrl && !isInstagramStoryReply;
 
     const containerStyle: StyleProp<ViewStyle> = [
       styles.messageContainer,
@@ -284,18 +192,15 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     const bubbleStyle: StyleProp<ViewStyle> = [
       styles.messageBubble,
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
-      isVideoMessage && styles.messageBubbleVideo,
-      isGifImage && styles.messageBubbleVideo,
-      isInstagramStoryReply && styles.messageBubbleInstagramStory,
-      isInstagramImage && styles.messageBubbleInstagramStory,
+      (variant === 'video' || variant === 'gif') && styles.messageBubbleVideo,
+      variant.startsWith('instagram') && styles.messageBubbleInstagramStory,
     ];
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
-      isImageMessage && styles.messageBubbleContentImage,
-      isVideoMessage && styles.messageBubbleContentVideo,
-      isGifImage && styles.messageBubbleContentVideo,
-      isInstagramStoryReply && styles.messageBubbleContentImage,
+      variant === 'image' && styles.messageBubbleContentImage,
+      (variant === 'video' || variant === 'gif') && styles.messageBubbleContentVideo,
+      variant === 'instagram-story-reply' && styles.messageBubbleContentImage,
     ];
 
     const timestampStyle: StyleProp<ViewStyle> = [
@@ -314,7 +219,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
         return;
       }
 
-      // Trigger haptic feedback on long press
       ReactNativeHapticFeedback.trigger('impactMedium', {
         enableVibrateFallback: true,
         ignoreAndroidSystemSettings: false,
@@ -333,7 +237,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
           </Animated.View>
         )}
 
-        {/* Reply preview above message - sizes to its own content */}
         {item.replyTo && (
           <View
             style={[
@@ -364,8 +267,9 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
                 <View style={contentStyle}>
                   <MessageContent
                     item={item}
-                    imageStyle={imageStyle}
+                    variant={variant}
                     onImagePress={onImagePress}
+                    onVideoPress={onVideoPress}
                     onLongPress={handleLongPress}
                   />
                 </View>
