@@ -208,15 +208,18 @@ const formatMessagePreview = (content: Record<string, any>): string => {
   if (content.msgtype === MsgType.Text) {
     return content.body || '';
   } else if (content.msgtype === MsgType.Image) {
-    return '📷 Image';
+    if (content.info?.mimetype === 'image/gif') {
+      return 'Sent a GIF';
+    }
+    return 'Sent a photo';
   } else if (content.msgtype === MsgType.Video) {
-    return '🎥 Video';
+    return 'Sent a video';
   } else if (content.msgtype === MsgType.File) {
-    return '📎 File';
+    return 'Sent an attachment';
   } else if (content.msgtype === MsgType.Audio) {
-    return '🎵 Audio';
+    return 'Sent an audio';
   }
-  return 'Message';
+  return 'Sent a message';
 };
 
 /**
