@@ -220,7 +220,7 @@ const VideoMessageComponent = ({
     const cachedUri = videoCache.get(videoUrl);
     if (cachedUri) {
       setLocalVideoUri(cachedUri);
-      setIsPlaying(true);
+      // Don't auto-play - video will show first frame as thumbnail
       return;
     }
 
@@ -262,7 +262,7 @@ const VideoMessageComponent = ({
         videoCache.set(videoUrl, fileUri);
         setLocalVideoUri(fileUri);
         setIsDownloading(false);
-        setIsPlaying(true);
+        // Don't auto-play - video will show first frame as thumbnail
         return;
       }
 
@@ -322,7 +322,7 @@ const VideoMessageComponent = ({
         // Store in cache for future use
         videoCache.set(videoUrl, fileUri);
         setLocalVideoUri(fileUri);
-        setIsPlaying(true);
+        // Don't auto-play - video will show first frame as thumbnail
       } else {
         throw new Error(
           `Download failed with status: ${response.respInfo.status}`,
@@ -403,25 +403,36 @@ const VideoMessageComponent = ({
           <View style={[StyleSheet.absoluteFill, styles.videoErrorOverlay]}>
             <Text style={styles.videoErrorText}>{downloadError}</Text>
           </View>
-        ) : isPlaying != null ? (
-          <Video
-            source={{
-              uri:
-                Platform.OS === 'ios' && localVideoUri
-                  ? localVideoUri
-                  : item.videoUrl || '',
-            }}
-            style={StyleSheet.absoluteFill}
-            controls={!isGift}
-            paused={!isPlaying}
-            repeat={!isGift}
-            resizeMode="cover"
-            onError={(error: any) => {
-              console.error('Video playback error:', error);
-              setIsPlaying(false);
-              setDownloadError('Playback failed');
-            }}
-          />
+        ) : localVideoUri || Platform.OS === 'android' ? (
+          <>
+            <Video
+              source={{
+                uri:
+                  Platform.OS === 'ios' && localVideoUri
+                    ? localVideoUri
+                    : item.videoUrl || '',
+              }}
+              style={StyleSheet.absoluteFill}
+              controls={isPlaying && !isGift}
+              paused={!isPlaying}
+              repeat={!isGift}
+              resizeMode="cover"
+              onError={(error: any) => {
+                console.error('Video playback error:', error);
+                setIsPlaying(false);
+                setDownloadError('Playback failed');
+              }}
+            />
+            {!isPlaying && (
+              <View
+                style={[StyleSheet.absoluteFill, styles.videoThumbnailOverlay]}
+              >
+                <View style={styles.videoPlayButton}>
+                  <Play size={32} color="#fff" fill="#fff" />
+                </View>
+              </View>
+            )}
+          </>
         ) : (
           <>
             {item.videoThumbnailUrl && (
@@ -437,7 +448,7 @@ const VideoMessageComponent = ({
               <View style={styles.videoPlayButton}>
                 <Play size={32} color="#fff" fill="#fff" />
               </View>
-              <Text style={styles.videoMessageLabel}>Play Video</Text>
+              <Text style={styles.videoMessageLabel}>Tap to load</Text>
             </View>
           </>
         )}
