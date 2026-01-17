@@ -1,12 +1,5 @@
-import React, {
-  useEffect,
-  useRef,
-  useMemo,
-  useState,
-  useCallback,
-} from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   Image,
@@ -15,13 +8,8 @@ import {
   StyleProp,
   ViewStyle,
   ImageStyle,
-  TextStyle,
   Linking,
-  ActivityIndicator,
-  Platform,
 } from 'react-native';
-import Video from 'react-native-video';
-import ReactNativeBlobUtil from 'react-native-blob-util';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
@@ -40,6 +28,7 @@ import {
 import { InstagramImageMessage } from './InstagramImageMessage';
 import { isVideoUrl } from '../../../hooks/useLinkPreview';
 import { Instagram } from 'lucide-react-native';
+import { VideoMessage } from './VideoMessage';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -174,293 +163,6 @@ const MessageTextWithLinks = ({
   );
 };
 
-// Cache map: videoUrl -> localVideoUri (only for iOS)
-const videoCache = new Map<string, string>();
-
-const VideoMessageComponent = ({
-  item,
-  onLongPress,
-  textStyle,
-  isGift,
-}: {
-  item: MessageItem;
-  onVideoPress?: (videoUrl: string) => void;
-  onLongPress?: () => void;
-  textStyle: StyleProp<TextStyle>;
-  isGift?: boolean;
-}) => {
-  const [isPlaying, setIsPlaying] = useState<boolean | undefined>(undefined);
-  const [localVideoUri, setLocalVideoUri] = useState<string | null>(null);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
-
-  const videoStyle = useMemo<StyleProp<ViewStyle>>(() => {
-    const { w, h } = item.videoInfo ?? {};
-    if (w && h) {
-      return [
-        styles.messageImage,
-        styles.messageVideoWithRatio,
-        { aspectRatio: w / h },
-      ];
-    }
-    return [styles.messageImage, styles.messageImageDefault];
-  }, [item.videoInfo]);
-
-  // Download video from item.videoUrl (iOS only)
-  const downloadVideo = useCallback(async () => {
-    // Only download on iOS
-    if (Platform.OS !== 'ios') {
-      return;
-    }
-
-    const videoUrl = item.videoUrl;
-
-    if (!videoUrl) {
-      setDownloadError('No video URL available');
-      return;
-    }
-
-    // Check cache first
-    const cachedUri = videoCache.get(videoUrl);
-    if (cachedUri) {
-      setLocalVideoUri(cachedUri);
-      setIsPlaying(true);
-      return;
-    }
-
-    setIsDownloading(true);
-    setDownloadError(null);
-
-    try {
-      const { config, fs } = ReactNativeBlobUtil;
-      const cacheDir = fs.dirs.CacheDir;
-
-      // Generate a unique filename from the URL
-      const urlParts = videoUrl.split('/');
-      let filename = urlParts[urlParts.length - 1].split('?')[0] || 'video';
-
-      // Ensure filename has .mp4 extension
-      if (
-        !filename.toLowerCase().endsWith('.mp4') &&
-        !filename.toLowerCase().endsWith('.mov') &&
-        !filename.toLowerCase().endsWith('.m4v')
-      ) {
-        filename = `${filename}.mp4`;
-      }
-
-      // Create a simple hash from URL to avoid conflicts
-      let urlHash = 0;
-      for (let i = 0; i < videoUrl.length; i++) {
-        const char = videoUrl.charCodeAt(i);
-        urlHash = (urlHash * 31 + char) % 1000000;
-      }
-      const safeFilename = `video_${Math.abs(urlHash)}_${filename}`;
-      const localPath = `${cacheDir}/${safeFilename}`;
-
-      // Check if file already exists
-      if (await fs.exists(localPath)) {
-        // Use file:// prefix for iOS compatibility
-        const fileUri = `file://${localPath}`;
-        console.log('Video already cached, using existing file:', fileUri);
-        // Store in cache
-        videoCache.set(videoUrl, fileUri);
-        setLocalVideoUri(fileUri);
-        setIsDownloading(false);
-        setIsPlaying(true);
-        return;
-      }
-
-      // Download the video
-      const downloadOptions: any = {
-        path: localPath,
-        overwrite: true,
-      };
-
-      console.log('Downloading video from:', videoUrl);
-      console.log('Saving to:', localPath);
-
-      const response = await config(downloadOptions).fetch('GET', videoUrl);
-
-      console.log('Download response status:', response.respInfo.status);
-      console.log(
-        'Content-Type:',
-        response.respInfo.headers['Content-Type'] ||
-          response.respInfo.headers['content-type'],
-      );
-
-      if (response.respInfo.status === 200) {
-        const finalPath = response.path();
-        console.log('Download complete, file path:', finalPath);
-
-        // Verify file exists and has content
-        const fileExists = await fs.exists(finalPath);
-        if (!fileExists) {
-          throw new Error('Downloaded file does not exist');
-        }
-
-        const fileInfo = await fs.stat(finalPath);
-        console.log('File size:', fileInfo.size, 'bytes');
-
-        if (fileInfo.size === 0) {
-          throw new Error('Downloaded file is empty');
-        }
-
-        // Check if we got a video file
-        const contentType =
-          response.respInfo.headers['Content-Type'] ||
-          response.respInfo.headers['content-type'] ||
-          '';
-        if (
-          contentType &&
-          !contentType.startsWith('video/') &&
-          !contentType.includes('octet-stream')
-        ) {
-          console.warn('Warning: Content-Type is not video:', contentType);
-        }
-
-        // Use file:// prefix for iOS compatibility
-        const fileUri = finalPath.startsWith('file://')
-          ? finalPath
-          : `file://${finalPath}`;
-        console.log('Setting video URI to:', fileUri);
-        // Store in cache for future use
-        videoCache.set(videoUrl, fileUri);
-        setLocalVideoUri(fileUri);
-        setIsPlaying(true);
-      } else {
-        throw new Error(
-          `Download failed with status: ${response.respInfo.status}`,
-        );
-      }
-    } catch (error: any) {
-      console.error('Video download error:', error);
-      setDownloadError(error.message || 'Failed to download video');
-      setIsPlaying(false);
-    } finally {
-      setIsDownloading(false);
-    }
-  }, [item.videoUrl]);
-
-  // Check cache on mount and auto-play if isGift
-  useEffect(() => {
-    const videoUrl = item.videoUrl;
-
-    if (!videoUrl) return;
-
-    // Only use download cache on iOS
-    if (Platform.OS === 'ios') {
-      // Check if we have a cached local URI
-      const cachedUri = videoCache.get(videoUrl);
-      if (cachedUri) {
-        setLocalVideoUri(cachedUri);
-        if (isGift) {
-          setIsPlaying(true);
-        }
-        return;
-      }
-
-      // If isGift, auto-download and play
-      if (isGift) {
-        downloadVideo();
-      }
-    } else {
-      // On Android, just set playing state for isGift
-      if (isGift) {
-        setIsPlaying(true);
-      }
-    }
-  }, [item.videoUrl, isGift, downloadVideo]);
-
-  const handlePress = async () => {
-    if (Platform.OS === 'ios') {
-      // On iOS, download first if needed
-      if (!isPlaying && !localVideoUri && !isDownloading) {
-        // Start download when user wants to play
-        await downloadVideo();
-      } else {
-        setIsPlaying(!isPlaying);
-      }
-    } else {
-      // On Android, just toggle play state
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  return (
-    <Pressable
-      style={styles.imageContainer}
-      onPress={handlePress}
-      onLongPress={onLongPress}
-      delayLongPress={500}
-    >
-      <View style={videoStyle}>
-        {isDownloading ? (
-          <View
-            style={[StyleSheet.absoluteFill, styles.videoDownloadingOverlay]}
-          >
-            <ActivityIndicator size="large" color="#fff" />
-            <Text style={styles.videoDownloadingText}>
-              Downloading video...
-            </Text>
-          </View>
-        ) : downloadError ? (
-          <View style={[StyleSheet.absoluteFill, styles.videoErrorOverlay]}>
-            <Text style={styles.videoErrorText}>{downloadError}</Text>
-          </View>
-        ) : isPlaying != null ? (
-          <Video
-            source={{
-              uri:
-                Platform.OS === 'ios' && localVideoUri
-                  ? localVideoUri
-                  : item.videoUrl || '',
-            }}
-            style={StyleSheet.absoluteFill}
-            controls={!isGift}
-            paused={!isPlaying}
-            repeat={!isGift}
-            resizeMode="contain"
-            onError={(error: any) => {
-              console.error('Video playback error:', error);
-              setIsPlaying(false);
-              setDownloadError('Playback failed');
-            }}
-          />
-        ) : (
-          <>
-            {item.videoThumbnailUrl ? (
-              <Image
-                source={{ uri: item.videoThumbnailUrl }}
-                style={StyleSheet.absoluteFill}
-                resizeMode="cover"
-              />
-            ) : (
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  styles.videoThumbnailPlaceholder,
-                ]}
-              >
-                <Text style={styles.videoThumbnailPlayIcon}>▶</Text>
-              </View>
-            )}
-            <View
-              style={[StyleSheet.absoluteFill, styles.videoThumbnailOverlay]}
-            >
-              <View style={styles.videoPlayButton}>
-                <Text style={styles.videoPlayButtonIcon}>▶</Text>
-              </View>
-            </View>
-          </>
-        )}
-      </View>
-      {item.content === '🎥 Video' && (
-        <Text style={[textStyle, styles.imageCaption]}>{item.content}</Text>
-      )}
-    </Pressable>
-  );
-};
-
 const MessageContent = ({
   item,
   imageStyle,
@@ -538,7 +240,7 @@ const MessageContent = ({
               View on Instagram
             </Text>
           </Pressable>
-          <VideoMessageComponent
+          <VideoMessage
             item={item}
             onVideoPress={onVideoPress}
             onLongPress={onLongPress}
@@ -548,7 +250,7 @@ const MessageContent = ({
       );
     }
     return (
-      <VideoMessageComponent
+      <VideoMessage
         item={item}
         onVideoPress={onVideoPress}
         onLongPress={onLongPress}
@@ -612,6 +314,9 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       return [styles.messageImage, shapeStyle, styles.messageImageDefault];
     }, [item.imageInfo, item.isOwn]);
 
+    const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
+    const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
+
     const containerStyle: StyleProp<ViewStyle> = [
       styles.messageContainer,
       item.isOwn ? styles.messageOwn : styles.messageOther,
@@ -620,13 +325,13 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     const bubbleStyle: StyleProp<ViewStyle> = [
       styles.messageBubble,
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
+      isVideoMessage && styles.messageBubbleVideo,
     ];
-
-    const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
       isImageMessage && styles.messageBubbleContentImage,
+      isVideoMessage && styles.messageBubbleContentVideo,
     ];
 
     const timestampStyle: StyleProp<ViewStyle> = [

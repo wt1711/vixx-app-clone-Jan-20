@@ -51,6 +51,16 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingVertical: 0,
   },
+  messageBubbleContentVideo: {
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+  },
+  messageBubbleVideo: {
+    backgroundColor: 'transparent',
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   timestampRow: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -81,9 +91,15 @@ export const styles = StyleSheet.create({
     maxHeight: 300,
     width: '100%',
   },
+  messageVideo: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    overflow: 'hidden',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
   messageVideoWithRatio: {
-    maxWidth: 250,
-    maxHeight: 400,
+    maxWidth: 150,
     width: '100%',
   },
   messageImageDefault: {
@@ -129,20 +145,22 @@ export const styles = StyleSheet.create({
   videoThumbnailOverlay: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    padding: 12,
   },
   videoPlayButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    // width: 56,
+    // height: 56,
+    // borderRadius: 28,
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    marginBottom: 8,
   },
-  videoPlayButtonIcon: {
-    color: '#000',
-    fontSize: 24,
-    marginLeft: 4,
+  videoMessageLabel: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 4,
   },
   instagramUrlContainer: {
     flexDirection: 'row',
