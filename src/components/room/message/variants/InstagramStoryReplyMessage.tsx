@@ -58,12 +58,12 @@ InstagramStoryReplyMessage.displayName = 'InstagramStoryReplyMessage';
 
 const styles = StyleSheet.create({
   container: {
-    gap: 16,
+    gap: 8,
     paddingVertical: 8,
     alignItems: 'flex-end',
   },
   headerText: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.text.secondary,
     paddingHorizontal: 4,
     alignSelf: 'flex-start',
@@ -84,14 +84,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   replyBubble: {
-    backgroundColor: colors.accent.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 24,
+    backgroundColor: colors.message.own,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderBottomRightRadius: 6,
     maxWidth: '80%',
   },
   replyText: {
-    fontSize: 18,
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '500',
     color: colors.text.messageOwn,
   },
 });
