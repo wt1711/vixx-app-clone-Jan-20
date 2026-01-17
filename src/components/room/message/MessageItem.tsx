@@ -14,6 +14,7 @@ import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
 import { ReactionsList } from './Reactions';
 import {
+  GifMessage,
   ReplyPreview,
   InstagramImageMessage,
   InstagramStoryReplyMessage,
@@ -144,7 +145,21 @@ const MessageContent = ({
       <InstagramImageMessage
         instagramUrl={instagramUrl}
         imageUrl={item.imageUrl!}
-        imageStyle={imageStyle}
+        isOwn={item.isOwn}
+        onImagePress={onImagePress}
+        onLongPress={onLongPress}
+      />
+    );
+  }
+
+  // GIF image: render smaller without bubble background
+  const isGifImage = item.imageInfo?.mimetype === 'image/gif';
+  if (isImageMessage && isGifImage) {
+    return (
+      <GifMessage
+        imageUrl={item.imageUrl!}
+        imageInfo={item.imageInfo}
+        isOwn={item.isOwn}
         onImagePress={onImagePress}
         onLongPress={onLongPress}
       />
@@ -251,13 +266,15 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
 
     const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
     const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
+    const isGifImage = isImageMessage && item.imageInfo?.mimetype === 'image/gif';
 
-    // Check if this is an Instagram story reply
+    // Check for Instagram content
     const instagramUrl = getInstagramUrl(item.content);
     const isInstagramStoryReply =
       isImageMessage &&
       instagramUrl &&
       getInstagramStoryReplyData(item.content) !== null;
+    const isInstagramImage = isImageMessage && instagramUrl && !isInstagramStoryReply;
 
     const containerStyle: StyleProp<ViewStyle> = [
       styles.messageContainer,
@@ -268,13 +285,16 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       styles.messageBubble,
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
       isVideoMessage && styles.messageBubbleVideo,
+      isGifImage && styles.messageBubbleVideo,
       isInstagramStoryReply && styles.messageBubbleInstagramStory,
+      isInstagramImage && styles.messageBubbleInstagramStory,
     ];
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
       isImageMessage && styles.messageBubbleContentImage,
       isVideoMessage && styles.messageBubbleContentVideo,
+      isGifImage && styles.messageBubbleContentVideo,
       isInstagramStoryReply && styles.messageBubbleContentImage,
     ];
 
