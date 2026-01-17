@@ -168,20 +168,6 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: 4,
   },
-  instagramUrlContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 8,
-  },
-  instagramUrlText: {
-    fontSize: 14,
-    fontWeight: '500',
-    textDecorationLine: 'underline',
-    color: colors.accent.instagram,
-  },
   videoDownloadingOverlay: {
     justifyContent: 'center',
     alignItems: 'center',
