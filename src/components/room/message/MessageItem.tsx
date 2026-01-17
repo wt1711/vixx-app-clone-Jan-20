@@ -39,7 +39,7 @@ import {
 } from '../../../utils/urlParser';
 import { InstagramImageMessage } from './InstagramImageMessage';
 import { isVideoUrl } from '../../../hooks/useLinkPreview';
-import { Instagram } from 'lucide-react-native';
+import { Instagram, Play } from 'lucide-react-native';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -198,12 +198,12 @@ const VideoMessageComponent = ({
     const { w, h } = item.videoInfo ?? {};
     if (w && h) {
       return [
-        styles.messageImage,
+        styles.messageVideo,
         styles.messageVideoWithRatio,
         { aspectRatio: w / h },
       ];
     }
-    return [styles.messageImage, styles.messageImageDefault];
+    return [styles.messageVideo, styles.messageImageDefault];
   }, [item.videoInfo]);
 
   // Download video from item.videoUrl (iOS only)
@@ -419,7 +419,7 @@ const VideoMessageComponent = ({
             controls={!isGift}
             paused={!isPlaying}
             repeat={!isGift}
-            resizeMode="contain"
+            resizeMode="cover"
             onError={(error: any) => {
               console.error('Video playback error:', error);
               setIsPlaying(false);
@@ -428,28 +428,17 @@ const VideoMessageComponent = ({
           />
         ) : (
           <>
-            {item.videoThumbnailUrl ? (
+            {item.videoThumbnailUrl && (
               <Image
                 source={{ uri: item.videoThumbnailUrl }}
                 style={StyleSheet.absoluteFill}
                 resizeMode="cover"
               />
-            ) : (
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  styles.videoThumbnailPlaceholder,
-                ]}
-              >
-                <Text style={styles.videoThumbnailPlayIcon}>▶</Text>
-              </View>
             )}
             <View
               style={[StyleSheet.absoluteFill, styles.videoThumbnailOverlay]}
             >
-              <View style={styles.videoPlayButton}>
-                <Text style={styles.videoPlayButtonIcon}>▶</Text>
-              </View>
+              <Play size={28} color={colors.text.primary} fill={colors.text.primary} />
             </View>
           </>
         )}
@@ -623,10 +612,12 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     ];
 
     const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
+    const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
       isImageMessage && styles.messageBubbleContentImage,
+      isVideoMessage && styles.messageBubbleContentVideo,
     ];
 
     const timestampStyle: StyleProp<ViewStyle> = [
