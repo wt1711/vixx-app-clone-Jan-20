@@ -1,6 +1,8 @@
 export { InstagramImageMessage } from './InstagramImageMessage';
 export { InstagramStoryReplyMessage } from './InstagramStoryReplyMessage';
+export { InstagramVideoMessage } from './InstagramVideoMessage';
 export { LinkPreview } from './LinkPreview';
+export { MessageTextWithLinks } from './MessageTextWithLinks';
 export { ReplyPreview } from './ReplyPreview';
 export type { ReplyPreviewProps } from './ReplyPreview';
 export { VideoMessage } from './VideoMessage';

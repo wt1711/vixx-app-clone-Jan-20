@@ -8,7 +8,6 @@ import {
   StyleProp,
   ViewStyle,
   ImageStyle,
-  Linking,
 } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from '../types';
@@ -16,21 +15,18 @@ import { formatTimeWithDay } from '../../../utils/timeFormatter';
 import { ReactionsList } from './Reactions';
 import {
   ReplyPreview,
-  LinkPreview,
   InstagramImageMessage,
   InstagramStoryReplyMessage,
+  InstagramVideoMessage,
+  MessageTextWithLinks,
   VideoMessage,
-  ViewOnInstagramLink,
 } from './variants';
 import { styles } from './MessageItem.styles';
 import { MsgType } from '../../../types/matrix/room';
 import {
-  parseTextWithUrls,
-  getFirstUrl,
   getInstagramUrl,
   getInstagramStoryReplyData,
 } from '../../../utils/urlParser';
-import { isVideoUrl } from '../../../hooks/useLinkPreview';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -99,71 +95,6 @@ function isMessageItemEqual(
   // Check reactions (reference equality first, then shallow compare)
   return areReactionsEqual(prevItem.reactions, nextItem.reactions);
 }
-
-const MessageTextWithLinks = ({
-  content,
-  isOwn,
-  onLongPress,
-}: {
-  content: string;
-  isOwn: boolean;
-  onLongPress?: () => void;
-}) => {
-  const textStyle = [
-    styles.messageText,
-    isOwn ? styles.messageTextOwn : styles.messageTextOther,
-  ];
-  const linkStyle = [
-    styles.messageText,
-    isOwn ? styles.messageTextOwn : styles.messageTextOther,
-    styles.linkText,
-  ];
-
-  const parts = useMemo(() => parseTextWithUrls(content), [content]);
-  const firstUrl = useMemo(() => getFirstUrl(content), [content]);
-  const isVideo = firstUrl ? isVideoUrl(firstUrl) : false;
-
-  const handleLinkPress = (url: string) => {
-    Linking.openURL(url).catch(() => {});
-  };
-
-  // Check if message is only a video URL (with optional whitespace)
-  const isVideoOnly = isVideo && content.trim() === firstUrl;
-
-  // For video-only messages, just show the preview
-  if (isVideoOnly && firstUrl) {
-    return (
-      <LinkPreview url={firstUrl} isOwn={isOwn} onLongPress={onLongPress} />
-    );
-  }
-
-  return (
-    <View>
-      <Text style={textStyle}>
-        {parts.map((part, index) => {
-          // Hide video URLs in text, only show preview
-          if (part.type === 'url' && isVideoUrl(part.content)) {
-            return null;
-          }
-          return part.type === 'url' ? (
-            <Text
-              key={index}
-              style={linkStyle}
-              onPress={() => handleLinkPress(part.content)}
-            >
-              {part.content}
-            </Text>
-          ) : (
-            <Text key={index}>{part.content}</Text>
-          );
-        })}
-      </Text>
-      {firstUrl && (
-        <LinkPreview url={firstUrl} isOwn={isOwn} onLongPress={onLongPress} />
-      )}
-    </View>
-  );
-};
 
 const MessageContent = ({
   item,
@@ -244,15 +175,13 @@ const MessageContent = ({
     // If video has Instagram URL, show it above the video
     if (instagramUrl) {
       return (
-        <View>
-          <ViewOnInstagramLink instagramUrl={instagramUrl} />
-          <VideoMessage
-            item={item}
-            onVideoPress={onVideoPress}
-            onLongPress={onLongPress}
-            textStyle={textStyle}
-          />
-        </View>
+        <InstagramVideoMessage
+          instagramUrl={instagramUrl}
+          item={item}
+          textStyle={textStyle}
+          onVideoPress={onVideoPress}
+          onLongPress={onLongPress}
+        />
       );
     }
     return (
