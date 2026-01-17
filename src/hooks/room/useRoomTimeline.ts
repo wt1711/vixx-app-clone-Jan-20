@@ -98,12 +98,14 @@ export function useRoomTimeline({
         contentText = content.body || '';
       } else if (content.msgtype === MsgType.Image) {
         const mxcUrl = content.file?.url || content.url;
+        imageInfo = content.info || content.file?.info;
         if (mxcUrl && typeof mxcUrl === 'string') {
-          imageUrl =
-            mx.mxcUrlToHttp(mxcUrl, 400, 400, 'scale', undefined, false, true) ||
-            undefined;
+          // Use full download URL for GIFs to preserve animation, thumbnail for other images
+          const isGif = imageInfo?.mimetype === 'image/gif';
+          imageUrl = isGif
+            ? mx.mxcUrlToHttp(mxcUrl, undefined, undefined, undefined, undefined, false, true) || undefined
+            : mx.mxcUrlToHttp(mxcUrl, 400, 400, 'scale', undefined, false, true) || undefined;
           imageUrl = `${imageUrl}&access_token=${mx.getAccessToken()}`;
-          imageInfo = content.info || content.file?.info;
         }
         contentText = content.body || '📷 Image';
       } else if (content.msgtype === MsgType.Video) {

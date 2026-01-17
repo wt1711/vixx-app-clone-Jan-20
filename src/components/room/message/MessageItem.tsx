@@ -14,6 +14,7 @@ import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
 import { ReactionsList } from './Reactions';
 import {
+  GifMessage,
   ReplyPreview,
   InstagramImageMessage,
   InstagramStoryReplyMessage,
@@ -151,6 +152,20 @@ const MessageContent = ({
     );
   }
 
+  // GIF image: render smaller without bubble background
+  const isGifImage = item.imageInfo?.mimetype === 'image/gif';
+  if (isImageMessage && isGifImage) {
+    return (
+      <GifMessage
+        imageUrl={item.imageUrl!}
+        imageInfo={item.imageInfo}
+        isOwn={item.isOwn}
+        onImagePress={onImagePress}
+        onLongPress={onLongPress}
+      />
+    );
+  }
+
   if (isImageMessage) {
     return (
       <Pressable
@@ -251,6 +266,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
 
     const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
     const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
+    const isGifImage = isImageMessage && item.imageInfo?.mimetype === 'image/gif';
 
     // Check for Instagram content
     const instagramUrl = getInstagramUrl(item.content);
@@ -269,6 +285,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       styles.messageBubble,
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
       isVideoMessage && styles.messageBubbleVideo,
+      isGifImage && styles.messageBubbleVideo,
       isInstagramStoryReply && styles.messageBubbleInstagramStory,
       isInstagramImage && styles.messageBubbleInstagramStory,
     ];
@@ -277,6 +294,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       styles.messageBubbleContent,
       isImageMessage && styles.messageBubbleContentImage,
       isVideoMessage && styles.messageBubbleContentVideo,
+      isGifImage && styles.messageBubbleContentVideo,
       isInstagramStoryReply && styles.messageBubbleContentImage,
     ];
 
