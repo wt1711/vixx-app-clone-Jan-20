@@ -14,7 +14,24 @@ import {
   RelationType,
   ContentKey,
 } from '../types/matrix/room';
-import { FOUNDER_MATRIX_ID, FOUNDER_ROOM_NAME } from '../constants/founder';
+import {
+  FOUNDER_MATRIX_ID,
+  FOUNDER_ROOM_NAME,
+  FOUNDER_ROOM_NAME_LEGACY,
+  FOUNDER_AVATAR_URL,
+} from '../constants/founder';
+
+/**
+ * Check if a room is the founder/team chat room (supports both old and new names)
+ */
+export const isFounderRoom = (roomName: string | undefined): boolean => {
+  if (
+    roomName &&
+    [FOUNDER_ROOM_NAME, FOUNDER_ROOM_NAME_LEGACY].includes(roomName)
+  )
+    return true;
+  return false;
+};
 
 export const getStateEvent = (
   room: Room,
@@ -44,32 +61,13 @@ export const getRoomAvatarUrl = (
         useAuthentication,
       ) ?? undefined
     : undefined;
-  return `${avatarUrl}&access_token=${mx.getAccessToken()}`;
-};
 
-export const getDirectRoomAvatarUrl = (
-  mx: MatrixClient,
-  room: Room,
-  size: 32 | 96 = 32,
-  useAuthentication = false,
-): string | undefined => {
-  const mxcUrl = room.getAvatarFallbackMember()?.getMxcAvatarUrl();
-
-  if (!mxcUrl) {
-    return getRoomAvatarUrl(mx, room, size, useAuthentication);
+  // Fallback to founder avatar if this is the founder room
+  if (!avatarUrl && isFounderRoom(room.name)) {
+    return FOUNDER_AVATAR_URL;
   }
 
-  return (
-    mx.mxcUrlToHttp(
-      mxcUrl,
-      size,
-      size,
-      'crop',
-      undefined,
-      false,
-      useAuthentication,
-    ) ?? undefined
-  );
+  return `${avatarUrl}&access_token=${mx.getAccessToken()}`;
 };
 
 export const isRoom = (room: Room | null): boolean => {
@@ -329,11 +327,21 @@ export const isMessageFromMe = (
   roomName: string,
   senderName: string,
 ): boolean => {
-  // Messages from founder in VIXX Founder room are not from me
-  if (roomName === FOUNDER_ROOM_NAME && sender === FOUNDER_MATRIX_ID) {
+  // Primary: check sender ID directly
+  if (sender && myUserId && sender === myUserId) {
+    return true;
+  }
+  // Messages from founder in founder room are not from me
+  if (isFounderRoom(roomName) && sender === FOUNDER_MATRIX_ID) {
     return false;
   }
-  return sender === myUserId || roomName !== senderName;
+  // Fallback for DMs: if sender name matches room name, it's from the other person
+  // In DMs, room name = other person's name, so if sender name differs, it's from me
+
+  if (roomName && senderName) {
+    return roomName !== senderName;
+  }
+  return false;
 };
 
 type RoomContextMessage = {

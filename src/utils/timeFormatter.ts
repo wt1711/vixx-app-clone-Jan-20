@@ -7,7 +7,9 @@ export type FormattedTime = {
  * Formats a timestamp into a human-readable relative time string
  * Returns both the formatted text and whether the time is recent (within 24 hours)
  */
-export function formatRelativeTimeWithRecent(timestamp?: number): FormattedTime {
+export function formatRelativeTimeWithRecent(
+  timestamp?: number,
+): FormattedTime {
   if (!timestamp) return { text: '', isRecent: false };
 
   const date = new Date(timestamp);
@@ -31,10 +33,12 @@ export function formatRelativeTimeWithRecent(timestamp?: number): FormattedTime 
       isRecent: false,
     };
   } else {
+    const isSameYear = date.getFullYear() === now.getFullYear();
     return {
       text: date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
+        ...(isSameYear ? {} : { year: 'numeric' }),
       }),
       isRecent: false,
     };
