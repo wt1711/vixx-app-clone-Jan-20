@@ -92,8 +92,11 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   messageVideo: {
-    backgroundColor: colors.background.black,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     overflow: 'hidden',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   messageVideoWithRatio: {
     maxWidth: 150,
@@ -140,9 +143,24 @@ export const styles = StyleSheet.create({
     fontSize: 48,
   },
   videoThumbnailOverlay: {
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 12,
+  },
+  videoPlayButton: {
+    // width: 56,
+    // height: 56,
+    // borderRadius: 28,
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    marginBottom: 8,
+  },
+  videoMessageLabel: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 4,
   },
   instagramUrlContainer: {
     flexDirection: 'row',

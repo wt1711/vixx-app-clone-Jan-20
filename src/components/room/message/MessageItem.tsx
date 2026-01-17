@@ -434,7 +434,10 @@ const VideoMessageComponent = ({
             <View
               style={[StyleSheet.absoluteFill, styles.videoThumbnailOverlay]}
             >
-              <Play size={28} color={colors.text.primary} fill={colors.text.primary} />
+              <View style={styles.videoPlayButton}>
+                <Play size={32} color="#fff" fill="#fff" />
+              </View>
+              <Text style={styles.videoMessageLabel}>Play Video</Text>
             </View>
           </>
         )}
