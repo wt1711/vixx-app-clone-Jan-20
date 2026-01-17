@@ -14,10 +14,15 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
 import { ReactionsList } from './Reactions';
-import { ReplyPreview } from './ReplyPreview';
-import { LinkPreview } from './LinkPreview';
+import {
+  ReplyPreview,
+  LinkPreview,
+  InstagramImageMessage,
+  InstagramStoryReplyMessage,
+  VideoMessage,
+  ViewOnInstagramLink,
+} from './variants';
 import { styles } from './MessageItem.styles';
-import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
 import {
   parseTextWithUrls,
@@ -25,11 +30,7 @@ import {
   getInstagramUrl,
   getInstagramStoryReplyData,
 } from '../../../utils/urlParser';
-import { InstagramImageMessage } from './InstagramImageMessage';
-import { InstagramStoryReplyMessage } from './InstagramStoryReplyMessage';
 import { isVideoUrl } from '../../../hooks/useLinkPreview';
-import { Instagram } from 'lucide-react-native';
-import { VideoMessage } from './VideoMessage';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -213,7 +214,6 @@ const MessageContent = ({
         instagramUrl={instagramUrl}
         imageUrl={item.imageUrl!}
         imageStyle={imageStyle}
-        isOwn={item.isOwn}
         onImagePress={onImagePress}
         onLongPress={onLongPress}
       />
@@ -245,15 +245,7 @@ const MessageContent = ({
     if (instagramUrl) {
       return (
         <View>
-          <Pressable
-            onPress={() => Linking.openURL(instagramUrl).catch(() => {})}
-            style={styles.instagramUrlContainer}
-          >
-            <Instagram size={16} color={colors.accent.instagram} />
-            <Text style={textStyle} numberOfLines={1}>
-              View on Instagram
-            </Text>
-          </Pressable>
+          <ViewOnInstagramLink instagramUrl={instagramUrl} />
           <VideoMessage
             item={item}
             onVideoPress={onVideoPress}
