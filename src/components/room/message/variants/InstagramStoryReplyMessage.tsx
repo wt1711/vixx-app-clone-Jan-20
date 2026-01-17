@@ -79,9 +79,9 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   storyImage: {
-    width: 200,
-    height: 350,
-    borderRadius: 12,
+    width: 144,
+    height: 256,
+    borderRadius: 8,
   },
   replyBubble: {
     backgroundColor: colors.message.own,
