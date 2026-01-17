@@ -26,6 +26,7 @@ import {
   getInstagramStoryReplyData,
 } from '../../../utils/urlParser';
 import { InstagramImageMessage } from './InstagramImageMessage';
+import { InstagramStoryReplyMessage } from './InstagramStoryReplyMessage';
 import { isVideoUrl } from '../../../hooks/useLinkPreview';
 import { Instagram } from 'lucide-react-native';
 import { VideoMessage } from './VideoMessage';
@@ -191,6 +192,20 @@ const MessageContent = ({
     ? getInstagramStoryReplyData(item.content)
     : null;
 
+  // Instagram story reply: show story reply UI
+  if (isImageMessage && instagramUrl && instagramStoryReplyData) {
+    return (
+      <InstagramStoryReplyMessage
+        instagramUrl={instagramUrl}
+        imageUrl={item.imageUrl!}
+        isOwn={item.isOwn}
+        replyTo={instagramStoryReplyData.replyTo}
+        replyContent={instagramStoryReplyData.replyContent}
+        onLongPress={onLongPress}
+      />
+    );
+  }
+
   // Instagram image: show clickable URL above the image
   if (isImageMessage && instagramUrl) {
     return (
@@ -199,7 +214,6 @@ const MessageContent = ({
         imageUrl={item.imageUrl!}
         imageStyle={imageStyle}
         isOwn={item.isOwn}
-        instagramStoryReplyData={instagramStoryReplyData}
         onImagePress={onImagePress}
         onLongPress={onLongPress}
       />
