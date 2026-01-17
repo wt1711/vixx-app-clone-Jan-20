@@ -46,7 +46,9 @@ export const ImageMessage = ({
     isOwn ? styles.messageTextOwn : styles.messageTextOther,
   ];
 
-  const showCaption = content && content !== '📷 Image';
+  // Hide caption if it's the default placeholder or looks like a filename
+  const isFilename = content && /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(content);
+  const showCaption = content && content !== '📷 Image' && !isFilename;
 
   return (
     <Pressable
