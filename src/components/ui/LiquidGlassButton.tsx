@@ -82,6 +82,7 @@ export function LiquidGlassButton({
         <LiquidGlassView
           style={[StyleSheet.absoluteFill, { borderRadius }]}
           effect="regular"
+          colorScheme="dark" /** fix blinking */
           interactive
         />
         <Pressable
