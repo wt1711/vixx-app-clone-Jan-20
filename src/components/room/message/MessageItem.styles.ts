@@ -61,6 +61,12 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
+  messageBubbleInstagramStory: {
+    backgroundColor: 'transparent',
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   timestampRow: {
     alignItems: 'center',
     justifyContent: 'center',

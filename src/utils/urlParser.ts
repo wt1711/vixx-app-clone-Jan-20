@@ -55,18 +55,28 @@ export function getInstagramUrl(text: string): string | null {
   return match ? match[0] : null;
 }
 
-export function getInstagramStoryReplyData(text: string): { replyContent: string, replyTo: string } | null {
-  const replyToRegex = /Replied to @([\w.-]+)'s story/;
+export function getInstagramStoryReplyData(
+  text: string,
+): { replyContent: string; replyTo: string } | null {
+  // Match "[Action] to @Username's story" (e.g., Replied, Reacted, etc.)
+  // where username can contain Unicode, spaces, emoji
+  const replyToRegex = /\w+ to @(.+?)'s story/;
   const match = text.match(replyToRegex);
-  const replyTo = match ? match[0] : null;
-  if (replyTo) {
-    const replyContentSplit = text.split(replyTo);
-    const replyContent = replyContentSplit?.[1].trim();
-    if (!replyContent) return null;
-    return {
-      replyContent,
-      replyTo,
-    };
-  }
-  return null;
+  if (!match) return null;
+
+  const replyTo = match[1]; // The captured username
+  const fullMatch = match[0]; // "Replied to @Username's story"
+
+  // Get the reply content (everything after the "Replied to..." line)
+  const replyContentSplit = text.split(fullMatch);
+  const replyContent = replyContentSplit?.[1]?.trim();
+
+  console.log(text, replyContent, replyTo);
+
+  if (!replyContent) return null;
+
+  return {
+    replyContent,
+    replyTo,
+  };
 }

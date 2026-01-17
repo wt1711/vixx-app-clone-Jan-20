@@ -26,6 +26,7 @@ import {
   getInstagramStoryReplyData,
 } from '../../../utils/urlParser';
 import { InstagramImageMessage } from './InstagramImageMessage';
+import { InstagramStoryReplyMessage } from './InstagramStoryReplyMessage';
 import { isVideoUrl } from '../../../hooks/useLinkPreview';
 import { Instagram } from 'lucide-react-native';
 import { VideoMessage } from './VideoMessage';
@@ -191,6 +192,20 @@ const MessageContent = ({
     ? getInstagramStoryReplyData(item.content)
     : null;
 
+  // Instagram story reply: show story reply UI
+  if (isImageMessage && instagramUrl && instagramStoryReplyData) {
+    return (
+      <InstagramStoryReplyMessage
+        instagramUrl={instagramUrl}
+        imageUrl={item.imageUrl!}
+        isOwn={item.isOwn}
+        replyTo={instagramStoryReplyData.replyTo}
+        replyContent={instagramStoryReplyData.replyContent}
+        onLongPress={onLongPress}
+      />
+    );
+  }
+
   // Instagram image: show clickable URL above the image
   if (isImageMessage && instagramUrl) {
     return (
@@ -199,7 +214,6 @@ const MessageContent = ({
         imageUrl={item.imageUrl!}
         imageStyle={imageStyle}
         isOwn={item.isOwn}
-        instagramStoryReplyData={instagramStoryReplyData}
         onImagePress={onImagePress}
         onLongPress={onLongPress}
       />
@@ -317,6 +331,13 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
     const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
 
+    // Check if this is an Instagram story reply
+    const instagramUrl = getInstagramUrl(item.content);
+    const isInstagramStoryReply =
+      isImageMessage &&
+      instagramUrl &&
+      getInstagramStoryReplyData(item.content) !== null;
+
     const containerStyle: StyleProp<ViewStyle> = [
       styles.messageContainer,
       item.isOwn ? styles.messageOwn : styles.messageOther,
@@ -326,12 +347,14 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       styles.messageBubble,
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
       isVideoMessage && styles.messageBubbleVideo,
+      isInstagramStoryReply && styles.messageBubbleInstagramStory,
     ];
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
       isImageMessage && styles.messageBubbleContentImage,
       isVideoMessage && styles.messageBubbleContentVideo,
+      isInstagramStoryReply && styles.messageBubbleContentImage,
     ];
 
     const timestampStyle: StyleProp<ViewStyle> = [
