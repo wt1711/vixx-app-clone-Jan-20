@@ -5,3 +5,4 @@ export { ReplyPreview } from './ReplyPreview';
 export type { ReplyPreviewProps } from './ReplyPreview';
 export { VideoMessage } from './VideoMessage';
 export type { VideoMessageProps } from './VideoMessage';
+export { ViewOnInstagramLink } from './ViewOnInstagramLink';

@@ -20,9 +20,9 @@ import {
   InstagramImageMessage,
   InstagramStoryReplyMessage,
   VideoMessage,
+  ViewOnInstagramLink,
 } from './variants';
 import { styles } from './MessageItem.styles';
-import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
 import {
   parseTextWithUrls,
@@ -31,7 +31,6 @@ import {
   getInstagramStoryReplyData,
 } from '../../../utils/urlParser';
 import { isVideoUrl } from '../../../hooks/useLinkPreview';
-import { Instagram } from 'lucide-react-native';
 
 export type MessageItemProps = {
   item: MessageItem;
@@ -215,7 +214,6 @@ const MessageContent = ({
         instagramUrl={instagramUrl}
         imageUrl={item.imageUrl!}
         imageStyle={imageStyle}
-        isOwn={item.isOwn}
         onImagePress={onImagePress}
         onLongPress={onLongPress}
       />
@@ -247,15 +245,7 @@ const MessageContent = ({
     if (instagramUrl) {
       return (
         <View>
-          <Pressable
-            onPress={() => Linking.openURL(instagramUrl).catch(() => {})}
-            style={styles.instagramUrlContainer}
-          >
-            <Instagram size={16} color={colors.accent.instagram} />
-            <Text style={textStyle} numberOfLines={1}>
-              View on Instagram
-            </Text>
-          </Pressable>
+          <ViewOnInstagramLink instagramUrl={instagramUrl} />
           <VideoMessage
             item={item}
             onVideoPress={onVideoPress}

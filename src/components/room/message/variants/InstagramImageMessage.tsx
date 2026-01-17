@@ -1,48 +1,20 @@
 import React from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  Pressable,
-  Linking,
-  StyleProp,
-  ImageStyle,
-} from 'react-native';
-import { Instagram } from 'lucide-react-native';
-import { colors } from '../../../../theme';
+import { StyleSheet, View, Image, Pressable, StyleProp, ImageStyle } from 'react-native';
+import { ViewOnInstagramLink } from './ViewOnInstagramLink';
 
 type InstagramImageMessageProps = {
   instagramUrl: string;
   imageUrl: string;
   imageStyle: StyleProp<ImageStyle>;
-  isOwn: boolean;
   onImagePress?: (imageUrl: string) => void;
   onLongPress?: () => void;
 };
 
 export const InstagramImageMessage = React.memo<InstagramImageMessageProps>(
-  ({ instagramUrl, imageUrl, imageStyle, isOwn, onImagePress, onLongPress }) => {
-    const handleUrlPress = () => {
-      Linking.openURL(instagramUrl).catch(() => {});
-    };
-
-    const linkStyle = [
-      styles.linkText,
-      isOwn ? styles.linkTextOwn : styles.linkTextOther,
-    ];
-
+  ({ instagramUrl, imageUrl, imageStyle, onImagePress, onLongPress }) => {
     return (
       <View style={styles.container}>
-        <Pressable onPress={handleUrlPress} style={styles.urlContainer}>
-          <View style={styles.urlContent}>
-            <Instagram size={16} color={colors.accent.instagram} />
-            <Text style={linkStyle} numberOfLines={1}>
-              View on Instagram
-            </Text>
-          </View>
-        </Pressable>
-
+        <ViewOnInstagramLink instagramUrl={instagramUrl} />
         <Pressable
           onPress={() => onImagePress?.(imageUrl)}
           onLongPress={onLongPress}
@@ -64,24 +36,5 @@ InstagramImageMessage.displayName = 'InstagramImageMessage';
 const styles = StyleSheet.create({
   container: {
     gap: 12,
-  },
-  urlContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  urlContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  linkText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  linkTextOwn: {
-    color: colors.accent.instagram,
-  },
-  linkTextOther: {
-    color: colors.accent.instagram,
   },
 });
