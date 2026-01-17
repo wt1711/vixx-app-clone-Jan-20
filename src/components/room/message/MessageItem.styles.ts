@@ -55,6 +55,12 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingVertical: 0,
   },
+  messageBubbleVideo: {
+    backgroundColor: 'transparent',
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   timestampRow: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -90,8 +96,7 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   messageVideoWithRatio: {
-    maxWidth: 250,
-    maxHeight: 400,
+    maxWidth: 150,
     width: '100%',
   },
   messageImageDefault: {

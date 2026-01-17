@@ -195,16 +195,12 @@ const VideoMessageComponent = ({
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const videoStyle = useMemo<StyleProp<ViewStyle>>(() => {
-    const { w, h } = item.videoInfo ?? {};
-    if (w && h) {
-      return [
-        styles.messageVideo,
-        styles.messageVideoWithRatio,
-        { aspectRatio: w / h },
-      ];
-    }
-    return [styles.messageVideo, styles.messageImageDefault];
-  }, [item.videoInfo]);
+    return [
+      styles.messageVideo,
+      styles.messageVideoWithRatio,
+      { aspectRatio: 9 / 16 }, // Phone aspect ratio
+    ];
+  }, []);
 
   // Download video from item.videoUrl (iOS only)
   const downloadVideo = useCallback(async () => {
@@ -601,6 +597,9 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       return [styles.messageImage, shapeStyle, styles.messageImageDefault];
     }, [item.imageInfo, item.isOwn]);
 
+    const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
+    const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
+
     const containerStyle: StyleProp<ViewStyle> = [
       styles.messageContainer,
       item.isOwn ? styles.messageOwn : styles.messageOther,
@@ -609,10 +608,8 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     const bubbleStyle: StyleProp<ViewStyle> = [
       styles.messageBubble,
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
+      isVideoMessage && styles.messageBubbleVideo,
     ];
-
-    const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
-    const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
