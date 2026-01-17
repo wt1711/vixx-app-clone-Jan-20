@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useMemo,
+  useState,
+  useCallback,
+} from 'react';
 import {
   StyleSheet,
   View,
@@ -16,17 +22,21 @@ import {
 } from 'react-native';
 import Video from 'react-native-video';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import { BlurView } from '@react-native-community/blur';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from '../types';
 import { formatTimeWithDay } from '../../../utils/timeFormatter';
-import { Avatar } from '../../common/Avatar';
 import { ReactionsList } from './Reactions';
 import { ReplyPreview } from './ReplyPreview';
 import { LinkPreview } from './LinkPreview';
 import { styles } from './MessageItem.styles';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
-import { parseTextWithUrls, getFirstUrl, getInstagramUrl, getInstagramStoryReplyData } from '../../../utils/urlParser';
+import {
+  parseTextWithUrls,
+  getFirstUrl,
+  getInstagramUrl,
+  getInstagramStoryReplyData,
+} from '../../../utils/urlParser';
 import { InstagramImageMessage } from './InstagramImageMessage';
 import { isVideoUrl } from '../../../hooks/useLinkPreview';
 import { Instagram } from 'lucide-react-native';
@@ -131,7 +141,9 @@ const MessageTextWithLinks = ({
 
   // For video-only messages, just show the preview
   if (isVideoOnly && firstUrl) {
-    return <LinkPreview url={firstUrl} isOwn={isOwn} onLongPress={onLongPress} />;
+    return (
+      <LinkPreview url={firstUrl} isOwn={isOwn} onLongPress={onLongPress} />
+    );
   }
 
   return (
@@ -155,7 +167,9 @@ const MessageTextWithLinks = ({
           );
         })}
       </Text>
-      {firstUrl && <LinkPreview url={firstUrl} isOwn={isOwn} onLongPress={onLongPress} />}
+      {firstUrl && (
+        <LinkPreview url={firstUrl} isOwn={isOwn} onLongPress={onLongPress} />
+      )}
     </View>
   );
 };
@@ -198,9 +212,9 @@ const VideoMessageComponent = ({
     if (Platform.OS !== 'ios') {
       return;
     }
-    
+
     const videoUrl = item.videoUrl;
-    
+
     if (!videoUrl) {
       setDownloadError('No video URL available');
       return;
@@ -220,23 +234,25 @@ const VideoMessageComponent = ({
     try {
       const { config, fs } = ReactNativeBlobUtil;
       const cacheDir = fs.dirs.CacheDir;
-      
+
       // Generate a unique filename from the URL
       const urlParts = videoUrl.split('/');
       let filename = urlParts[urlParts.length - 1].split('?')[0] || 'video';
-      
+
       // Ensure filename has .mp4 extension
-      if (!filename.toLowerCase().endsWith('.mp4') && 
-          !filename.toLowerCase().endsWith('.mov') &&
-          !filename.toLowerCase().endsWith('.m4v')) {
+      if (
+        !filename.toLowerCase().endsWith('.mp4') &&
+        !filename.toLowerCase().endsWith('.mov') &&
+        !filename.toLowerCase().endsWith('.m4v')
+      ) {
         filename = `${filename}.mp4`;
       }
-      
+
       // Create a simple hash from URL to avoid conflicts
       let urlHash = 0;
       for (let i = 0; i < videoUrl.length; i++) {
         const char = videoUrl.charCodeAt(i);
-        urlHash = ((urlHash * 31) + char) % 1000000;
+        urlHash = (urlHash * 31 + char) % 1000000;
       }
       const safeFilename = `video_${Math.abs(urlHash)}_${filename}`;
       const localPath = `${cacheDir}/${safeFilename}`;
@@ -264,42 +280,57 @@ const VideoMessageComponent = ({
       console.log('Saving to:', localPath);
 
       const response = await config(downloadOptions).fetch('GET', videoUrl);
-      
+
       console.log('Download response status:', response.respInfo.status);
-      console.log('Content-Type:', response.respInfo.headers['Content-Type'] || response.respInfo.headers['content-type']);
-      
+      console.log(
+        'Content-Type:',
+        response.respInfo.headers['Content-Type'] ||
+          response.respInfo.headers['content-type'],
+      );
+
       if (response.respInfo.status === 200) {
         const finalPath = response.path();
         console.log('Download complete, file path:', finalPath);
-        
+
         // Verify file exists and has content
         const fileExists = await fs.exists(finalPath);
         if (!fileExists) {
           throw new Error('Downloaded file does not exist');
         }
-        
+
         const fileInfo = await fs.stat(finalPath);
         console.log('File size:', fileInfo.size, 'bytes');
-        
+
         if (fileInfo.size === 0) {
           throw new Error('Downloaded file is empty');
         }
-        
+
         // Check if we got a video file
-        const contentType = response.respInfo.headers['Content-Type'] || response.respInfo.headers['content-type'] || '';
-        if (contentType && !contentType.startsWith('video/') && !contentType.includes('octet-stream')) {
+        const contentType =
+          response.respInfo.headers['Content-Type'] ||
+          response.respInfo.headers['content-type'] ||
+          '';
+        if (
+          contentType &&
+          !contentType.startsWith('video/') &&
+          !contentType.includes('octet-stream')
+        ) {
           console.warn('Warning: Content-Type is not video:', contentType);
         }
-        
+
         // Use file:// prefix for iOS compatibility
-        const fileUri = finalPath.startsWith('file://') ? finalPath : `file://${finalPath}`;
+        const fileUri = finalPath.startsWith('file://')
+          ? finalPath
+          : `file://${finalPath}`;
         console.log('Setting video URI to:', fileUri);
         // Store in cache for future use
         videoCache.set(videoUrl, fileUri);
         setLocalVideoUri(fileUri);
         setIsPlaying(true);
       } else {
-        throw new Error(`Download failed with status: ${response.respInfo.status}`);
+        throw new Error(
+          `Download failed with status: ${response.respInfo.status}`,
+        );
       }
     } catch (error: any) {
       console.error('Video download error:', error);
@@ -313,9 +344,9 @@ const VideoMessageComponent = ({
   // Check cache on mount and auto-play if isGift
   useEffect(() => {
     const videoUrl = item.videoUrl;
-    
+
     if (!videoUrl) return;
-    
+
     // Only use download cache on iOS
     if (Platform.OS === 'ios') {
       // Check if we have a cached local URI
@@ -327,7 +358,7 @@ const VideoMessageComponent = ({
         }
         return;
       }
-      
+
       // If isGift, auto-download and play
       if (isGift) {
         downloadVideo();
@@ -364,9 +395,13 @@ const VideoMessageComponent = ({
     >
       <View style={videoStyle}>
         {isDownloading ? (
-          <View style={[StyleSheet.absoluteFill, styles.videoDownloadingOverlay]}>
+          <View
+            style={[StyleSheet.absoluteFill, styles.videoDownloadingOverlay]}
+          >
             <ActivityIndicator size="large" color="#fff" />
-            <Text style={styles.videoDownloadingText}>Downloading video...</Text>
+            <Text style={styles.videoDownloadingText}>
+              Downloading video...
+            </Text>
           </View>
         ) : downloadError ? (
           <View style={[StyleSheet.absoluteFill, styles.videoErrorOverlay]}>
@@ -374,10 +409,11 @@ const VideoMessageComponent = ({
           </View>
         ) : isPlaying != null ? (
           <Video
-            source={{ 
-              uri: Platform.OS === 'ios' && localVideoUri 
-                ? localVideoUri 
-                : item.videoUrl || '' 
+            source={{
+              uri:
+                Platform.OS === 'ios' && localVideoUri
+                  ? localVideoUri
+                  : item.videoUrl || '',
             }}
             style={StyleSheet.absoluteFill}
             controls={!isGift}
@@ -399,11 +435,18 @@ const VideoMessageComponent = ({
                 resizeMode="cover"
               />
             ) : (
-              <View style={[StyleSheet.absoluteFill, styles.videoThumbnailPlaceholder]}>
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  styles.videoThumbnailPlaceholder,
+                ]}
+              >
                 <Text style={styles.videoThumbnailPlayIcon}>▶</Text>
               </View>
             )}
-            <View style={[StyleSheet.absoluteFill, styles.videoThumbnailOverlay]}>
+            <View
+              style={[StyleSheet.absoluteFill, styles.videoThumbnailOverlay]}
+            >
               <View style={styles.videoPlayButton}>
                 <Text style={styles.videoPlayButtonIcon}>▶</Text>
               </View>
@@ -436,14 +479,15 @@ const MessageContent = ({
     item.isOwn ? styles.messageTextOwn : styles.messageTextOther,
   ];
 
-
   const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
   const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
 
   // Check for Instagram URL in content (for stories, posts, reels, etc.)
   // This works for both image and video messages that contain Instagram URLs
   const instagramUrl = getInstagramUrl(item.content);
-  const instagramStoryReplyData = instagramUrl ? getInstagramStoryReplyData(item.content) : null;
+  const instagramStoryReplyData = instagramUrl
+    ? getInstagramStoryReplyData(item.content)
+    : null;
 
   // Instagram image: show clickable URL above the image
   if (isImageMessage && instagramUrl) {
@@ -514,7 +558,13 @@ const MessageContent = ({
     );
   }
 
-  return <MessageTextWithLinks content={item.content} isOwn={item.isOwn} onLongPress={onLongPress} />;
+  return (
+    <MessageTextWithLinks
+      content={item.content}
+      isOwn={item.isOwn}
+      onLongPress={onLongPress}
+    />
+  );
 };
 
 export const MessageItemComponent = React.memo<MessageItemProps>(
@@ -548,15 +598,19 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
 
     const imageStyle = useMemo<StyleProp<ImageStyle>>(() => {
       const { w, h } = item.imageInfo ?? {};
+      const shapeStyle = item.isOwn
+        ? styles.messageImageOwn
+        : styles.messageImageOther;
       if (w && h) {
         return [
           styles.messageImage,
+          shapeStyle,
           styles.messageImageWithRatio,
           { aspectRatio: w / h, maxWidth: 250 },
         ];
       }
-      return [styles.messageImage, styles.messageImageDefault];
-    }, [item.imageInfo]);
+      return [styles.messageImage, shapeStyle, styles.messageImageDefault];
+    }, [item.imageInfo, item.isOwn]);
 
     const containerStyle: StyleProp<ViewStyle> = [
       styles.messageContainer,
@@ -568,7 +622,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       item.isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
     ];
 
-    const blurFallbackColor = item.isOwn ? colors.message.own : colors.message.other;
     const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
 
     const contentStyle: StyleProp<ViewStyle> = [
@@ -591,6 +644,12 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
         );
         return;
       }
+
+      // Trigger haptic feedback on long press
+      ReactNativeHapticFeedback.trigger('impactMedium', {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
+      });
 
       messageRef.current.measure((_x, _y, width, height, pageX, pageY) => {
         onLongPress(() => ({ x: pageX, y: pageY, width, height }));
@@ -626,12 +685,6 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
         )}
 
         <View ref={messageRef} style={containerStyle}>
-          {!item.isOwn && (
-            <View style={styles.avatarContainer}>
-              <Avatar avatarUrl={item.avatarUrl} name={item.senderName} />
-            </View>
-          )}
-
           <View style={styles.messageBubbleWrapper}>
             <Pressable
               onPress={onBubblePress}
@@ -639,14 +692,13 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
               delayLongPress={500}
             >
               <View style={bubbleStyle}>
-                <BlurView
-                  style={StyleSheet.absoluteFill}
-                  blurType="dark"
-                  blurAmount={80}
-                  reducedTransparencyFallbackColor={blurFallbackColor}
-                />
                 <View style={contentStyle}>
-                  <MessageContent item={item} imageStyle={imageStyle} onImagePress={onImagePress} onLongPress={handleLongPress} />
+                  <MessageContent
+                    item={item}
+                    imageStyle={imageStyle}
+                    onImagePress={onImagePress}
+                    onLongPress={handleLongPress}
+                  />
                 </View>
               </View>
             </Pressable>
