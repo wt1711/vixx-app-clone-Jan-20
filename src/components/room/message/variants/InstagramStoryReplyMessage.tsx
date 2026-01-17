@@ -73,8 +73,8 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
   },
   verticalDivider: {
-    width: 2,
-    backgroundColor: colors.text.primary,
+    width: 4,
+    backgroundColor: colors.text.tertiary,
     borderRadius: 2,
     marginLeft: 6,
   },
