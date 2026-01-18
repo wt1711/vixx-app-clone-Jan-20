@@ -32,29 +32,29 @@ export const ReplyPreview = React.memo<ReplyPreviewProps>(
         <Text style={[styles.label, isOwn && styles.labelOwn]}>{label}</Text>
         <View style={[styles.bubbleRow, isOwn && styles.bubbleRowOwn]}>
           {!isOwn && <View style={styles.bar} />}
-          <View style={bubbleStyle}>
-            <BlurView
-              style={StyleSheet.absoluteFill}
-              blurType="dark"
-              blurAmount={80}
-              reducedTransparencyFallbackColor={
-                replyTo.isOwn ? colors.message.own : colors.message.other
-              }
-            />
-            {replyTo.imageUrl && replyTo.msgtype === MsgType.Image ? (
-              <View style={styles.imageContainer}>
-                <Image
-                  source={{ uri: replyTo.imageUrl }}
-                  style={styles.replyImage}
-                  resizeMode="cover"
-                />
-              </View>
-            ) : (
+          {replyTo.imageUrl && replyTo.msgtype === MsgType.Image ? (
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ uri: replyTo.imageUrl }}
+                style={styles.replyImage}
+                resizeMode="cover"
+              />
+            </View>
+          ) : (
+            <View style={bubbleStyle}>
+              <BlurView
+                style={StyleSheet.absoluteFill}
+                blurType="dark"
+                blurAmount={80}
+                reducedTransparencyFallbackColor={
+                  replyTo.isOwn ? colors.message.own : colors.message.other
+                }
+              />
               <Text style={styles.quotedText} numberOfLines={2}>
                 {replyTo.content}
               </Text>
-            )}
-          </View>
+            </View>
+          )}
           {isOwn && <View style={styles.barRight} />}
         </View>
       </TouchableOpacity>
@@ -70,11 +70,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    marginBottom: 4,
+    marginBottom: 8,
     color: colors.text.secondary,
   },
   labelOwn: {
     textAlign: 'right',
+    marginRight: 6,
   },
   bubbleRow: {
     flexDirection: 'row',
