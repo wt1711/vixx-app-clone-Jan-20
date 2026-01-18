@@ -16,6 +16,7 @@ import { MessageItem } from '../types';
 import { ReplyPreview } from './variants';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
+import { getMatrixClient } from '../../../matrixClient';
 
 const QUICK_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
@@ -46,6 +47,8 @@ export function QuickReactionsModal({
   onDelete,
 }: QuickReactionsModalProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const mx = getMatrixClient();
+  const myUserId = mx?.getUserId();
 
   // Calculate vertical position based on message position
   // Reactions row is ~64px, gap is 8px, so we position above the message
@@ -61,6 +64,15 @@ export function QuickReactionsModal({
     // Clamp to keep within screen bounds
     return Math.max(MIN_TOP, Math.min(desiredTop, screenHeight - 300));
   }, [position, screenHeight]);
+
+  // Check if the current user can delete this message
+  const canDelete = useMemo(() => {
+    if (!messageItem || !myUserId) return false;
+    // Can only delete messages sent through VIXX and that have been sent (eventId starts with $)
+    return (
+      messageItem.sender === myUserId && messageItem.eventId.startsWith('$')
+    );
+  }, [messageItem, myUserId]);
 
   if (!messageItem) return null;
 
@@ -234,7 +246,7 @@ export function QuickReactionsModal({
               <Reply size={22} color={colors.text.primary} />
               <Text style={styles.actionLabel}>Reply</Text>
             </TouchableOpacity>
-            {messageItem.isOwn && (
+            {canDelete && (
               <TouchableOpacity
                 style={styles.actionItem}
                 onPress={handleDeletePress}
