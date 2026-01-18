@@ -8,6 +8,8 @@ import {
   Modal,
   Image,
   Dimensions,
+  StyleProp,
+  TextStyle,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { Reply, Plus, Trash2 } from 'lucide-react-native';
@@ -19,6 +21,38 @@ import { MsgType } from '../../../types/matrix/room';
 import { getMatrixClient } from '../../../matrixClient';
 
 const QUICK_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍'];
+
+type MessageContentPreviewProps = {
+  messageItem: MessageItem;
+  textStyle: StyleProp<TextStyle>;
+};
+
+const MessageContentPreview = ({
+  messageItem,
+  textStyle,
+}: MessageContentPreviewProps) => {
+  const isImageMessage =
+    messageItem.msgtype === MsgType.Image && messageItem.imageUrl;
+  const isVideoMessage =
+    messageItem.msgtype === MsgType.Video &&
+    (messageItem.videoThumbnailUrl || messageItem.videoUrl);
+
+  if (isImageMessage) {
+    return (
+      <Image
+        source={{ uri: messageItem.imageUrl }}
+        style={styles.messageImage}
+        resizeMode="cover"
+      />
+    );
+  }
+
+  if (isVideoMessage) {
+    return <Text style={textStyle}>Video</Text>;
+  }
+
+  return <Text style={textStyle}>{messageItem.content}</Text>;
+};
 
 export type ModalPosition = {
   x: number;
@@ -101,8 +135,6 @@ export function QuickReactionsModal({
     }
   };
 
-  const isImageMessage =
-    messageItem.msgtype === MsgType.Image && messageItem.imageUrl;
   const blurFallbackColor = messageItem.isOwn
     ? colors.message.own
     : colors.message.other;
@@ -201,24 +233,15 @@ export function QuickReactionsModal({
                     reducedTransparencyFallbackColor={blurFallbackColor}
                   />
                   <View style={styles.messageBubbleContent}>
-                    {isImageMessage ? (
-                      <Image
-                        source={{ uri: messageItem.imageUrl }}
-                        style={styles.messageImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <Text
-                        style={[
-                          styles.messageText,
-                          messageItem.isOwn
-                            ? styles.messageTextOwn
-                            : styles.messageTextOther,
-                        ]}
-                      >
-                        {messageItem.content}
-                      </Text>
-                    )}
+                    <MessageContentPreview
+                      messageItem={messageItem}
+                      textStyle={[
+                        styles.messageText,
+                        messageItem.isOwn
+                          ? styles.messageTextOwn
+                          : styles.messageTextOther,
+                      ]}
+                    />
                   </View>
                 </View>
               </View>
@@ -404,6 +427,35 @@ const styles = StyleSheet.create({
     width: 200,
     height: 150,
     borderRadius: 16,
+  },
+  videoPreviewContainer: {
+    width: 200,
+    height: 150,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  messageVideo: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 16,
+  },
+  videoPlayOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.transparent.black30,
+  },
+  videoPlayButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.transparent.white30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   // Actions styles
   actionsSection: {
