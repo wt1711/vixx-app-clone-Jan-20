@@ -205,7 +205,12 @@ export function DirectMessageListScreen({
   return (
     <View style={styles.container}>
       {/* Solid black background */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]} />
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: colors.background.black },
+        ]}
+      />
       {/* Carbon fiber weave texture */}
       <CarbonFiberTexture opacity={0.6} scale={0.5} />
       {syncing ? (
@@ -390,7 +395,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyStateButton: {
-    marginTop: 24,
     width: 56,
     height: 56,
   },
