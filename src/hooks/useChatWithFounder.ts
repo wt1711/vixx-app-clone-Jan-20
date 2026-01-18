@@ -1,23 +1,24 @@
 import { useCallback } from 'react';
 import { Image } from 'react-native';
 import { getMatrixClient } from '../matrixClient';
-import { useDirectRooms } from './room';
 import { FOUNDER_MATRIX_ID, FOUNDER_ROOM_NAME } from '../constants/founder';
+import { Membership } from '../types/matrix/room';
 
 const founderAvatar = require('../../assets/founder.png');
 
 export function useChatWithFounder(onSelectRoom: (roomId: string) => void) {
-  const { directRooms } = useDirectRooms();
   const mx = getMatrixClient();
 
   const handleChatWithFounder = useCallback(async () => {
     if (!mx) return;
-
+    const allRooms = mx.getVisibleRooms();
     // Check if we already have a DM room with the founder
-    for (const room of directRooms) {
+    for (const room of allRooms) {
       const members = room.getJoinedMembers();
       const hasFounder = members.some(
-        member => member.userId === FOUNDER_MATRIX_ID,
+        member =>
+          member.userId === FOUNDER_MATRIX_ID &&
+          member.membership !== Membership.Leave,
       );
       if (hasFounder) {
         onSelectRoom(room.roomId);
@@ -65,7 +66,7 @@ export function useChatWithFounder(onSelectRoom: (roomId: string) => void) {
     } catch (error) {
       console.error('Failed to create room with founder:', error);
     }
-  }, [mx, directRooms, onSelectRoom]);
+  }, [mx, onSelectRoom]);
 
   return { handleChatWithFounder, founderAvatar };
 }
