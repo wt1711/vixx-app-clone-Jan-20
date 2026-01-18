@@ -428,35 +428,6 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 16,
   },
-  videoPreviewContainer: {
-    width: 200,
-    height: 150,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  messageVideo: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 16,
-  },
-  videoPlayOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.transparent.black30,
-  },
-  videoPlayButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.transparent.white30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   // Actions styles
   actionsSection: {
     backgroundColor: colors.message.other,
