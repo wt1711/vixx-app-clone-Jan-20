@@ -69,6 +69,22 @@ export function DirectMessageListScreen({
     onOpenPendingInvitations?.();
   }, [onOpenPendingInvitations]);
 
+  const handleChatWithFounderPress = useCallback(() => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+    handleChatWithFounder();
+  }, [handleChatWithFounder]);
+
+  const handleSettingsPress = useCallback(() => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+    onOpenSettings?.();
+  }, [onOpenSettings]);
+
   // Load room data with async message fetching
   const loadRoomItems = useCallback(async () => {
     if (!mx || loadingRef.current) return;
@@ -255,14 +271,14 @@ export function DirectMessageListScreen({
               {/* Subtle border */}
               <View style={styles.pillGlassHighlight} pointerEvents="none" />
               <TouchableOpacity
-                onPress={handleChatWithFounder}
+                onPress={handleChatWithFounderPress}
                 style={styles.pillButton}
                 activeOpacity={0.7}
               >
                 <Image source={founderAvatar} style={styles.founderAvatar} />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={onOpenSettings}
+                onPress={handleSettingsPress}
                 style={styles.pillButton}
                 activeOpacity={0.7}
               >
