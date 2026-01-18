@@ -397,8 +397,8 @@ type RoomContextMessage = {
 export const getLastReceivedMessageBatch = (
   roomContext: RoomContextMessage[],
   fallback: { messageBatch: string; timestampStr: string } = {
-    messageBatch: '',
-    timestampStr: '',
+    messageBatch: 'Hello',
+    timestampStr: '2026-01-01T15:00:00Z',
   },
 ): { messageBatch: string; timestampStr: string } => {
   const reversed = [...roomContext].reverse();
@@ -423,7 +423,7 @@ export const getLastReceivedMessageBatch = (
   const messageBatch =
     batch.length > 0 ? batch.join('\n') : fallback.messageBatch;
   const timestampStr =
-    batch.length > 0 ? reversed[startIndex].timestamp : fallback.timestampStr;
+    batch.length > 0 ? reversed[startIndex].timestamp : Date.now().toLocaleString();
   return { messageBatch, timestampStr };
 };
 
