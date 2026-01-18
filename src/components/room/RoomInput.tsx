@@ -23,18 +23,34 @@ import { LiquidGlassButton } from '../ui/LiquidGlassButton';
 import { colors } from '../../theme';
 import { isFounderRoom as checkIsFounderRoom } from '../../utils/room';
 
+export type ReplyPreviewInput = {
+  content: string;
+  msgtype?: string;
+};
+
+export function getReplyPreviewText(reply: ReplyPreviewInput): string {
+  switch (reply.msgtype) {
+    case MsgType.Image:
+      if (reply.content === 'image.gif') return 'GIF';
+      return 'Photo';
+    case MsgType.Video:
+      return 'Video';
+    default:
+      return reply.content;
+  }
+}
+
 type RoomInputProps = {
   room: Room;
 };
 
 export function RoomInput({ room }: RoomInputProps) {
   const [sending, setSending] = useState(false);
-  const [generationType, setGenerationType] = useState<'withIdea' | 'withoutIdea' | null>(null);
+  const [generationType, setGenerationType] = useState<
+    'withIdea' | 'withoutIdea' | null
+  >(null);
   const mx = getMatrixClient();
-  const {
-    pickAndSendImage,
-    isUploading,
-  } = useImageSender(room.roomId);
+  const { pickAndSendImage, isUploading } = useImageSender(room.roomId);
   const {
     generateInitialResponse,
     isGeneratingResponse,
@@ -48,25 +64,30 @@ export function RoomInput({ room }: RoomInputProps) {
   const isFounderRoom = checkIsFounderRoom(room.name);
 
   // Measure container height and report to context for timeline padding
-  const handleLayout = useCallback((event: { nativeEvent: { layout: { height: number } } }) => {
-    setInputHeight(event.nativeEvent.layout.height);
-  }, [setInputHeight]);
+  const handleLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      setInputHeight(event.nativeEvent.layout.height);
+    },
+    [setInputHeight],
+  );
 
   // Pulse animation for sparkles icon
   const pulseAnim = useRef(new Animated.Value(1)).current;
   // Color animation for sparkles (0 = orange, 0.33 = purple, 0.66 = cyan, 1 = orange)
   const colorAnim = useRef(new Animated.Value(0)).current;
-  const [sparkleColor, setSparkleColor] = useState<string>(colors.accent.primary);
+  const [sparkleColor, setSparkleColor] = useState<string>(
+    colors.accent.primary,
+  );
 
   // Interpolate color based on animation value
   useEffect(() => {
     const listenerId = colorAnim.addListener(({ value }) => {
       // Cycle through: orange → purple → cyan → orange
       const colorStops = [
-        { pos: 0, color: [163, 68, 0] },      // orange (#A34400)
+        { pos: 0, color: [163, 68, 0] }, // orange (#A34400)
         { pos: 0.33, color: [168, 85, 247] }, // purple (#A855F7)
-        { pos: 0.66, color: [6, 182, 212] },  // cyan (#06B6D4)
-        { pos: 1, color: [163, 68, 0] },      // back to orange
+        { pos: 0.66, color: [6, 182, 212] }, // cyan (#06B6D4)
+        { pos: 1, color: [163, 68, 0] }, // back to orange
       ];
 
       // Find the two colors to interpolate between
@@ -83,9 +104,15 @@ export function RoomInput({ room }: RoomInputProps) {
       // Interpolate
       const range = endStop.pos - startStop.pos;
       const progress = range > 0 ? (value - startStop.pos) / range : 0;
-      const r = Math.round(startStop.color[0] + (endStop.color[0] - startStop.color[0]) * progress);
-      const g = Math.round(startStop.color[1] + (endStop.color[1] - startStop.color[1]) * progress);
-      const b = Math.round(startStop.color[2] + (endStop.color[2] - startStop.color[2]) * progress);
+      const r = Math.round(
+        startStop.color[0] + (endStop.color[0] - startStop.color[0]) * progress,
+      );
+      const g = Math.round(
+        startStop.color[1] + (endStop.color[1] - startStop.color[1]) * progress,
+      );
+      const b = Math.round(
+        startStop.color[2] + (endStop.color[2] - startStop.color[2]) * progress,
+      );
 
       setSparkleColor(`rgb(${r}, ${g}, ${b})`);
     });
@@ -185,12 +212,15 @@ export function RoomInput({ room }: RoomInputProps) {
   const setInputText = setInputValue;
 
   // Clear reasoning when user edits the input
-  const handleTextChange = useCallback((text: string) => {
-    if (parsedResponse) {
-      clearParsedResponse();
-    }
-    setInputText(text);
-  }, [parsedResponse, clearParsedResponse, setInputText]);
+  const handleTextChange = useCallback(
+    (text: string) => {
+      if (parsedResponse) {
+        clearParsedResponse();
+      }
+      setInputText(text);
+    },
+    [parsedResponse, clearParsedResponse, setInputText],
+  );
 
   const handleGenerateWithoutIdea = useCallback(() => {
     ReactNativeHapticFeedback.trigger('impactLight');
@@ -240,12 +270,17 @@ export function RoomInput({ room }: RoomInputProps) {
   return (
     <View style={styles.container} onLayout={handleLayout}>
       {/* AI Reasoning Pill - Animated */}
-      <Animated.View style={[styles.reasoningPillWrapper, reasoningAnimatedStyle]}>
+      <Animated.View
+        style={[styles.reasoningPillWrapper, reasoningAnimatedStyle]}
+      >
         {parsedResponse?.reason && (
           <View style={styles.reasoningPill}>
             <View style={styles.reasoningBorder} pointerEvents="none" />
             <Text style={styles.reasoningText}>{parsedResponse.reason}</Text>
-            <TouchableOpacity onPress={clearParsedResponse} style={styles.reasoningClose}>
+            <TouchableOpacity
+              onPress={clearParsedResponse}
+              style={styles.reasoningClose}
+            >
               <X color={colors.text.secondary} size={16} />
             </TouchableOpacity>
           </View>
@@ -259,13 +294,9 @@ export function RoomInput({ room }: RoomInputProps) {
             <View style={styles.replyBarContent}>
               <View style={styles.replyBarIndicator} />
               <View style={styles.replyBarTextContainer}>
-                <Text style={styles.replyBarLabel}>
-                  Replying to
-                </Text>
+                <Text style={styles.replyBarLabel}>Replying to</Text>
                 <Text style={styles.replyBarMessage} numberOfLines={1}>
-                  {replyingTo.msgtype === MsgType.Image
-                    ? 'Photo'
-                    : replyingTo.content}
+                  {getReplyPreviewText(replyingTo)}
                 </Text>
               </View>
             </View>
@@ -325,8 +356,19 @@ export function RoomInput({ room }: RoomInputProps) {
               onPress={handleGenerateWithoutIdea}
               disabled={isGeneratingResponse}
             >
-              <Animated.View style={generationType === 'withoutIdea' ? { transform: [{ scale: pulseAnim }] } : undefined}>
-                <Sparkles color={isGeneratingResponse ? sparkleColor : colors.accent.primary} size={20} />
+              <Animated.View
+                style={
+                  generationType === 'withoutIdea'
+                    ? { transform: [{ scale: pulseAnim }] }
+                    : undefined
+                }
+              >
+                <Sparkles
+                  color={
+                    isGeneratingResponse ? sparkleColor : colors.accent.primary
+                  }
+                  size={20}
+                />
               </Animated.View>
             </TouchableOpacity>
           )}
@@ -334,7 +376,10 @@ export function RoomInput({ room }: RoomInputProps) {
 
         {/* Separate Send Button - Liquid Glass */}
         <LiquidGlassButton
-          style={[styles.sendPillContainer, (!inputText.trim() || sending) && styles.pillDisabled]}
+          style={[
+            styles.sendPillContainer,
+            (!inputText.trim() || sending) && styles.pillDisabled,
+          ]}
           contentStyle={styles.sendPillContent}
           borderRadius={22}
           onPress={handleSend}
@@ -344,7 +389,9 @@ export function RoomInput({ room }: RoomInputProps) {
             <ActivityIndicator size="small" color={colors.text.messageOwn} />
           ) : (
             <Send
-              color={inputText.trim() ? colors.text.messageOwn : colors.text.tertiary}
+              color={
+                inputText.trim() ? colors.text.messageOwn : colors.text.tertiary
+              }
               size={20}
             />
           )}
@@ -503,10 +550,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 12,
     borderWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.10)',    // subtle white top
-    borderLeftColor: 'rgba(255, 255, 255, 0.06)',   // subtle white left
+    borderTopColor: 'rgba(255, 255, 255, 0.10)', // subtle white top
+    borderLeftColor: 'rgba(255, 255, 255, 0.06)', // subtle white left
     borderBottomColor: 'rgba(255, 255, 255, 0.14)', // white catchlight bottom
-    borderRightColor: 'rgba(255, 255, 255, 0.08)',  // subtle white right
+    borderRightColor: 'rgba(255, 255, 255, 0.08)', // subtle white right
   },
   reasoningText: {
     flex: 1,
