@@ -11,6 +11,7 @@ import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import CookieManager from '@react-native-cookies/cookies';
 import LinearGradient from 'react-native-linear-gradient';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { ArrowRight, Instagram } from 'lucide-react-native';
 import { colors } from '../theme';
 import { LiquidGlassButton } from './ui/LiquidGlassButton';
@@ -230,6 +231,10 @@ export default function LoginInstagramModal({
   };
 
   const handleConnectInstagram = () => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
     onSubmit(cookies);
     setSyncReady(true);
   };
