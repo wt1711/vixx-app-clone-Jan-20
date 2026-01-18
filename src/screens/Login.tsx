@@ -38,7 +38,6 @@ export default function Login() {
 
   const handleLogin = async (cookies: Record<string, string>) => {
     setIsLoading(true);
-    console.log('Login with cookies:', cookies);
     const result = await authService.login(cookies);
     if (result) {
       console.log('Login successful');

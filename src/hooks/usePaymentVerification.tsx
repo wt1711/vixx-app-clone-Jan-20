@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { PaymentStorageService, PaymentStatusResponse } from '../services/payment/paymentStorageService';
+import {
+  PaymentStorageService,
+  PaymentStatusResponse,
+} from '../services/payment/paymentStorageService';
 
 interface PaymentVerificationState {
   isLoading: boolean;
@@ -23,15 +26,15 @@ export const usePaymentVerification = (): PaymentVerificationReturn => {
   const paymentService = PaymentStorageService.getInstance();
 
   const checkPaymentStatus = async () => {
-
     try {
-      console.log('🔄 Starting payment status check for user');
+      // console.log('🔄 Starting payment status check for user');
       setState(prev => ({ ...prev, isLoading: true, error: undefined }));
-      console.log('🔍 Checking payment status for user');
-      console.log('🌐 Making request to payment API...');
+      // console.log('🔍 Checking payment status for user');
+      // console.log('🌐 Making request to payment API...');
 
-      const status: PaymentStatusResponse = await paymentService.checkPaymentStatus();
-      console.log('💰 Payment status response:', status);
+      const status: PaymentStatusResponse =
+        await paymentService.checkPaymentStatus();
+      // console.log('💰 Payment status response:', status);
 
       const newState = {
         isLoading: false,
@@ -39,25 +42,28 @@ export const usePaymentVerification = (): PaymentVerificationReturn => {
         paymentId: status.paymentId,
       };
 
-      console.log('🔄 Setting new payment state:', newState);
+      // console.log('🔄 Setting new payment state:', newState);
       setState(newState);
 
-      console.log('✅ Payment state updated successfully');
+      // console.log('✅ Payment state updated successfully');
     } catch (error) {
       console.error('❌ Error checking payment status:', error);
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to check payment status',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to check payment status',
       }));
     }
   };
 
   const refreshPaymentStatus = async () => {
-    console.log('🔄 refreshPaymentStatus called for user');
-    console.log('📊 Current state before refresh:', state);
+    // console.log('🔄 refreshPaymentStatus called for user');
+    // console.log('📊 Current state before refresh:', state);
     await checkPaymentStatus();
-    console.log('📊 State after refresh:', state);
+    // console.log('📊 State after refresh:', state);
   };
 
   useEffect(() => {
@@ -66,7 +72,7 @@ export const usePaymentVerification = (): PaymentVerificationReturn => {
 
   // Log state changes
   useEffect(() => {
-    console.log('📈 Payment state changed:', state);
+    // console.log('📈 Payment state changed:', state);
   }, [state]);
 
   return {
@@ -92,8 +98,8 @@ export function useAIAssistanceAccess() {
   return {
     ...paymentVerification,
     canAccessAI: paymentVerification.paymentState.hasPaid,
-    requiresPayment: !paymentVerification.paymentState.hasPaid && !paymentVerification.paymentState.isLoading,
+    requiresPayment:
+      !paymentVerification.paymentState.hasPaid &&
+      !paymentVerification.paymentState.isLoading,
   };
 }
-
-

@@ -25,10 +25,10 @@ const fixUrlString = (urlString: string): string => {
   const fixedUrlString = urlString.replace(/\/+(\?|#|$)/g, '$1');
   const fixedPath = fixedUrlString.split('?')[0];
   if (allowedTrailingList.some(trailing => fixedPath.endsWith(trailing))) {
-      return urlString;
+    return urlString;
   }
   return fixedUrlString;
-}
+};
 
 const fetchFn = (
   url: string | URL | Request,
@@ -63,23 +63,30 @@ const fetchFn = (
   }
 
   return fetch(fixedUrl, options);
-}
+};
 
-export const createMatrixClient = async (baseUrl: string): Promise<MatrixClient> => {
+export const createMatrixClient = async (
+  baseUrl: string,
+): Promise<MatrixClient> => {
   // Match Expo pattern - use baseUrl directly without normalization
   // matrix-js-sdk handles URL construction internally
-  console.log('[Matrix] Creating client with baseUrl:', baseUrl);
+  // console.log('[Matrix] Creating client with baseUrl:', baseUrl);
   return createClient({
     baseUrl: baseUrl,
     fetchFn: fetchFn,
   });
 };
 
-export const initMatrixClient = async (credentials: MatrixCredentials): Promise<MatrixClient> => {
+export const initMatrixClient = async (
+  credentials: MatrixCredentials,
+): Promise<MatrixClient> => {
   // Idempotent check - same credentials, already running
   if (matrixClient) {
-    if (matrixClient.getAccessToken() === credentials.accessToken && matrixClient.getUserId() === credentials.userId) {
-      console.log('[Matrix] Client already ready');
+    if (
+      matrixClient.getAccessToken() === credentials.accessToken &&
+      matrixClient.getUserId() === credentials.userId
+    ) {
+      // console.log('[Matrix] Client already ready');
       return matrixClient;
     }
     // Token mismatch - full restart
@@ -94,7 +101,7 @@ export const initMatrixClient = async (credentials: MatrixCredentials): Promise<
   // Remove trailing slash if present
   baseUrl = baseUrl.replace(/\/$/, '');
 
-  console.log('[Matrix] Creating client with baseUrl:', baseUrl);
+  // console.log('[Matrix] Creating client with baseUrl:', baseUrl);
   matrixClient = createClient({
     baseUrl: baseUrl,
     accessToken: credentials.accessToken,
@@ -103,10 +110,10 @@ export const initMatrixClient = async (credentials: MatrixCredentials): Promise<
     fetchFn: fetchFn,
   });
 
-  console.log('[Matrix] Starting client...');
+  // console.log('[Matrix] Starting client...');
   await matrixClient.startClient({ initialSyncLimit: 10 });
   isReady = true;
-  console.log('[Matrix] Client started and ready');
+  // console.log('[Matrix] Client started and ready');
 
   return matrixClient;
 };
@@ -127,4 +134,3 @@ export const stopMatrixClient = (): void => {
 export const getIsReady = (): boolean => {
   return isReady;
 };
-

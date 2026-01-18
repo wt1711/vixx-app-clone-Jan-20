@@ -71,8 +71,6 @@ export function getInstagramStoryReplyData(
   const replyContentSplit = text.split(fullMatch);
   const replyContent = replyContentSplit?.[1]?.trim();
 
-  console.log(text, replyContent, replyTo);
-
   if (!replyContent) return null;
 
   return {
