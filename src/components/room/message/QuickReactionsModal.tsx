@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { Reply, Plus } from 'lucide-react-native';
+import { Reply, Plus, Trash2 } from 'lucide-react-native';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { MessageItem } from '../types';
 import { ReplyPreview } from './variants';
@@ -33,6 +33,7 @@ export type QuickReactionsModalProps = {
   onClose: () => void;
   onSelectEmoji: (emoji: string, eventId: string) => void;
   onReply?: () => void;
+  onDelete?: () => void;
 };
 
 export function QuickReactionsModal({
@@ -42,6 +43,7 @@ export function QuickReactionsModal({
   onClose,
   onSelectEmoji,
   onReply,
+  onDelete,
 }: QuickReactionsModalProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -78,6 +80,12 @@ export function QuickReactionsModal({
   const handleReplyPress = () => {
     if (onReply) {
       onReply();
+    }
+  };
+
+  const handleDeletePress = () => {
+    if (onDelete) {
+      onDelete();
     }
   };
 
@@ -226,6 +234,16 @@ export function QuickReactionsModal({
               <Reply size={22} color={colors.text.primary} />
               <Text style={styles.actionLabel}>Reply</Text>
             </TouchableOpacity>
+            {messageItem.isOwn && (
+              <TouchableOpacity
+                style={styles.actionItem}
+                onPress={handleDeletePress}
+                activeOpacity={0.7}
+              >
+                <Trash2 size={22} color={colors.status.error} />
+                <Text style={styles.actionLabelDelete}>Delete</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -397,5 +415,9 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 17,
     color: colors.text.primary,
+  },
+  actionLabelDelete: {
+    fontSize: 17,
+    color: colors.status.error,
   },
 });
