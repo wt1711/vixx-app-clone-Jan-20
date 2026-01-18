@@ -235,18 +235,25 @@ const formatReactionPreview = (content: Record<string, any>): string => {
 
 /**
  * Finds the last message or reaction from an array of events
+ * Compares reaction and message timestamps to handle messed up reaction timestamps
  */
 const findLastMessageInEvents = (
   events: MatrixEvent[],
 ): LastMessageInfo | null => {
+  if (events.length === 0) return null;
+
+  let lastReaction: LastMessageInfo | null = null;
+  let lastMessage: LastMessageInfo | null = null;
+
+  // Find the latest reaction and latest message
   for (let i = events.length - 1; i >= 0; i--) {
     const event = events[i];
     const eventType = event.getType();
     const content = event.getContent();
 
-    // Check for reaction events
-    if (eventType === MessageEvent.Reaction) {
-      return {
+    // Find first (latest) reaction
+    if (!lastReaction && eventType === MessageEvent.Reaction) {
+      lastReaction = {
         message: formatReactionPreview(content),
         timestamp: event.getTs(),
         isReaction: true,
@@ -255,21 +262,31 @@ const findLastMessageInEvents = (
       };
     }
 
-    // Check for regular message events
-    if (eventType === MessageEvent.RoomMessage) {
-      // Skip notice messages (bot/system messages)
-      if (content.msgtype === MsgType.Notice) {
-        continue;
+    // Find first (latest) message
+    if (!lastMessage && eventType === MessageEvent.RoomMessage) {
+      if (content.msgtype !== MsgType.Notice) {
+        lastMessage = {
+          message: formatMessagePreview(content),
+          timestamp: event.getTs(),
+          senderId: event.getSender() || undefined,
+          senderName: event.sender?.name || undefined,
+        };
       }
-      return {
-        message: formatMessagePreview(content),
-        timestamp: event.getTs(),
-        senderId: event.getSender() || undefined,
-        senderName: event.sender?.name || undefined,
-      };
+    }
+
+    // If we've found both, we can stop
+    if (lastReaction && lastMessage) {
+      break;
     }
   }
-  return null;
+
+  // Return whichever has the later timestamp
+  if (lastReaction && lastMessage) {
+    return lastReaction.timestamp > lastMessage.timestamp
+      ? lastReaction
+      : lastMessage;
+  }
+  return lastReaction || lastMessage;
 };
 
 /**
