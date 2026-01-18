@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import Login from './Login';
@@ -9,14 +10,23 @@ export default function Home() {
   const { matrixToken, isLoading } = useAuth();
 
   return (
-    <SafeAreaProvider>
-      {isLoading ? (
-        <LoadingScreen showHeader={false} />
-      ) : !matrixToken ? (
-        <Login />
-      ) : (
-        <AppNavigator />
-      )}
-    </SafeAreaProvider>
+    <View style={styles.root}>
+      <SafeAreaProvider>
+        {isLoading ? (
+          <LoadingScreen showHeader={false} />
+        ) : !matrixToken ? (
+          <Login />
+        ) : (
+          <AppNavigator />
+        )}
+      </SafeAreaProvider>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+});
