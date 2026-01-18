@@ -234,8 +234,21 @@ const formatReactionPreview = (content: Record<string, any>): string => {
 };
 
 /**
+ * Checks if an event has been redacted (deleted)
+ */
+const isEventRedacted = (event: MatrixEvent): boolean => {
+  // Check if event is marked as redacted
+  if (event.isRedacted()) return true;
+  // Check for redacted_because in unsigned data
+  const unsigned = event.getUnsigned();
+  if (unsigned?.redacted_because) return true;
+  return false;
+};
+
+/**
  * Finds the last message or reaction from an array of events
  * Compares reaction and message timestamps to handle messed up reaction timestamps
+ * Skips redacted (deleted) messages
  */
 const findLastMessageInEvents = (
   events: MatrixEvent[],
@@ -248,6 +261,10 @@ const findLastMessageInEvents = (
   // Find the latest reaction and latest message
   for (let i = events.length - 1; i >= 0; i--) {
     const event = events[i];
+
+    // Skip redacted (deleted) events
+    if (isEventRedacted(event)) continue;
+
     const eventType = event.getType();
     const content = event.getContent();
 

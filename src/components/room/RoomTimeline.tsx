@@ -5,13 +5,18 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
 import { getMatrixClient } from '../../matrixClient';
 import { getEventReactions, getReactionContent } from '../../utils/room';
 import { MessageEvent } from '../../types/matrix/room';
 import { MessageItem, RoomTimelineProps } from './types';
-import { MessageItemComponent, QuickReactionsModal, ModalPosition } from './message';
+import {
+  MessageItemComponent,
+  QuickReactionsModal,
+  ModalPosition,
+} from './message';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { useRoomTimeline, useTimelineScroll } from '../../hooks/room';
 import { useReply } from '../../context/ReplyContext';
@@ -48,8 +53,11 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   });
 
   // ─── Quick Reactions Modal ──────────────────────────────────────────────────
-  const [quickReactionsItem, setQuickReactionsItem] = useState<MessageItem | null>(null);
-  const [modalPosition, setModalPosition] = useState<ModalPosition | null>(null);
+  const [quickReactionsItem, setQuickReactionsItem] =
+    useState<MessageItem | null>(null);
+  const [modalPosition, setModalPosition] = useState<ModalPosition | null>(
+    null,
+  );
 
   const openQuickReactions = useCallback(
     (item: MessageItem, position: ModalPosition) => {
@@ -75,7 +83,9 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         const [, reactionsSet] =
           sortedReactions.find(([k]) => k === reactionKey) || [];
         const reactions = reactionsSet ? Array.from(reactionsSet) : [];
-        const myReaction = reactions.find(e => e.getSender() === mx.getUserId());
+        const myReaction = reactions.find(
+          e => e.getSender() === mx.getUserId(),
+        );
 
         if (myReaction && myReaction.isRelation()) {
           await mx.redactEvent(room.roomId, myReaction.getId() || '');
@@ -103,7 +113,9 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   );
 
   // ─── Message Selection (for timestamp) ──────────────────────────────────────
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
+    null,
+  );
 
   const handleBubblePress = useCallback((msgEventId: string) => {
     setSelectedMessageId(prev => (prev === msgEventId ? null : msgEventId));
@@ -127,11 +139,14 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const { inputHeight } = useInputHeight();
 
   // Dynamic content container style - paddingTop is visual bottom in inverted list
-  const listContentStyle = useMemo(() => ({
-    paddingTop: inputHeight + 16, // input height + extra spacing
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-  }), [inputHeight]);
+  const listContentStyle = useMemo(
+    () => ({
+      paddingTop: inputHeight + 16, // input height + extra spacing
+      paddingBottom: 16,
+      paddingHorizontal: 16,
+    }),
+    [inputHeight],
+  );
 
   const handleReply = useCallback(
     (item: MessageItem) => {
@@ -147,15 +162,37 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     [setReplyingTo],
   );
 
-  const handleReplyFromModal = useCallback(
-    () => {
-      if (quickReactionsItem) {
-        handleReply(quickReactionsItem);
-      }
-      closeQuickReactions();
-    },
-    [quickReactionsItem, handleReply, closeQuickReactions],
-  );
+  const handleReplyFromModal = useCallback(() => {
+    if (quickReactionsItem) {
+      handleReply(quickReactionsItem);
+    }
+    closeQuickReactions();
+  }, [quickReactionsItem, handleReply, closeQuickReactions]);
+
+  const handleDeleteFromModal = useCallback(() => {
+    if (!quickReactionsItem || !mx) return;
+
+    Alert.alert('Delete Message', 'Are you sure? This cannot be undone', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await mx.redactEvent(room.roomId, quickReactionsItem.eventId);
+            refresh();
+          } catch (error) {
+            console.error('Error deleting message:', error);
+            Alert.alert('Error', 'Failed to delete message. Please try again.');
+          }
+          closeQuickReactions();
+        },
+      },
+    ]);
+  }, [quickReactionsItem, mx, room.roomId, refresh, closeQuickReactions]);
 
   // ─── Scroll to Replied Message ─────────────────────────────────────────────
   const scrollToMessage = useCallback(
@@ -171,7 +208,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         setSelectedMessageId(targetEventId);
         // Clear highlight after a short delay
         setTimeout(() => {
-          setSelectedMessageId(prev => prev === targetEventId ? null : prev);
+          setSelectedMessageId(prev => (prev === targetEventId ? null : prev));
         }, 2000);
       }
     },
@@ -180,7 +217,11 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
 
   // Handle scroll-to-index failures (fallback for variable height items)
   const onScrollToIndexFailed = useCallback(
-    (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
+    (info: {
+      index: number;
+      highestMeasuredFrameIndex: number;
+      averageItemLength: number;
+    }) => {
       setTimeout(() => {
         flatListRef.current?.scrollToIndex({
           index: info.index,
@@ -231,7 +272,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       <MessageItemComponent
         item={item}
         onReactionPress={(key: string) => toggleReaction(item.eventId, key)}
-        onLongPress={(getPosition) => {
+        onLongPress={getPosition => {
           const position = getPosition();
           openQuickReactions(item, position);
         }}
@@ -242,7 +283,15 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         isFirstOfHour={firstOfHourIds.has(item.eventId)}
       />
     ),
-    [toggleReaction, openQuickReactions, handleBubblePress, scrollToMessage, handleImagePress, selectedMessageId, firstOfHourIds],
+    [
+      toggleReaction,
+      openQuickReactions,
+      handleBubblePress,
+      scrollToMessage,
+      handleImagePress,
+      selectedMessageId,
+      firstOfHourIds,
+    ],
   );
 
   // ─── Loading State ──────────────────────────────────────────────────────────
@@ -262,7 +311,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         data={messages}
         inverted
         renderItem={renderMessage}
-        keyExtractor={(item) => item.eventId}
+        keyExtractor={item => item.eventId}
         contentContainerStyle={listContentStyle}
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -277,7 +326,10 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         keyboardShouldPersistTaps="handled"
       />
 
-      <ScrollToBottomButton visible={showScrollButton} onPress={scrollToBottom} />
+      <ScrollToBottomButton
+        visible={showScrollButton}
+        onPress={scrollToBottom}
+      />
 
       <QuickReactionsModal
         visible={quickReactionsItem !== null}
@@ -286,6 +338,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         onClose={closeQuickReactions}
         onSelectEmoji={handleQuickReactionSelect}
         onReply={handleReplyFromModal}
+        onDelete={handleDeleteFromModal}
       />
 
       <ImageViewing

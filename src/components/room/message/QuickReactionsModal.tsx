@@ -10,12 +10,13 @@ import {
   Dimensions,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { Reply, Plus } from 'lucide-react-native';
+import { Reply, Plus, Trash2 } from 'lucide-react-native';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { MessageItem } from '../types';
 import { ReplyPreview } from './variants';
 import { colors } from '../../../theme';
 import { MsgType } from '../../../types/matrix/room';
+import { getMatrixClient } from '../../../matrixClient';
 
 const QUICK_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 
@@ -33,6 +34,7 @@ export type QuickReactionsModalProps = {
   onClose: () => void;
   onSelectEmoji: (emoji: string, eventId: string) => void;
   onReply?: () => void;
+  onDelete?: () => void;
 };
 
 export function QuickReactionsModal({
@@ -42,8 +44,11 @@ export function QuickReactionsModal({
   onClose,
   onSelectEmoji,
   onReply,
+  onDelete,
 }: QuickReactionsModalProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const mx = getMatrixClient();
+  const myUserId = mx?.getUserId();
 
   // Calculate vertical position based on message position
   // Reactions row is ~64px, gap is 8px, so we position above the message
@@ -59,6 +64,15 @@ export function QuickReactionsModal({
     // Clamp to keep within screen bounds
     return Math.max(MIN_TOP, Math.min(desiredTop, screenHeight - 300));
   }, [position, screenHeight]);
+
+  // Check if the current user can delete this message
+  const canDelete = useMemo(() => {
+    if (!messageItem || !myUserId) return false;
+    // Can only delete messages sent through VIXX and that have been sent (eventId starts with $)
+    return (
+      messageItem.sender === myUserId && messageItem.eventId.startsWith('$')
+    );
+  }, [messageItem, myUserId]);
 
   if (!messageItem) return null;
 
@@ -78,6 +92,12 @@ export function QuickReactionsModal({
   const handleReplyPress = () => {
     if (onReply) {
       onReply();
+    }
+  };
+
+  const handleDeletePress = () => {
+    if (onDelete) {
+      onDelete();
     }
   };
 
@@ -226,6 +246,16 @@ export function QuickReactionsModal({
               <Reply size={22} color={colors.text.primary} />
               <Text style={styles.actionLabel}>Reply</Text>
             </TouchableOpacity>
+            {canDelete && (
+              <TouchableOpacity
+                style={styles.actionItem}
+                onPress={handleDeletePress}
+                activeOpacity={0.7}
+              >
+                <Trash2 size={22} color={colors.status.error} />
+                <Text style={styles.actionLabelDelete}>Delete</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -397,5 +427,9 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 17,
     color: colors.text.primary,
+  },
+  actionLabelDelete: {
+    fontSize: 17,
+    color: colors.status.error,
   },
 });
