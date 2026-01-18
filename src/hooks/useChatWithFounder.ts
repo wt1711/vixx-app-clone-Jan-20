@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Image } from 'react-native';
 import { getMatrixClient } from '../matrixClient';
 import { FOUNDER_MATRIX_ID, FOUNDER_ROOM_NAME } from '../constants/founder';
+import { isFounderRoom } from '../utils/room';
 import { Membership } from '../types/matrix/room';
 
 const founderAvatar = require('../../assets/founder.png');
@@ -23,7 +24,7 @@ export function useChatWithFounder(onSelectRoom: (roomId: string) => void) {
         continue;
       }
 
-      if (room.name === FOUNDER_ROOM_NAME) {
+      if (isFounderRoom(room.name)) {
         onSelectRoom(room.roomId);
         return;
       }

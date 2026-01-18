@@ -9,7 +9,11 @@ import {
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
 import { getMatrixClient } from '../../matrixClient';
-import { getEventReactions, getReactionContent } from '../../utils/room';
+import {
+  getEventReactions,
+  getReactionContent,
+  isFounderRoom,
+} from '../../utils/room';
 import { MessageEvent } from '../../types/matrix/room';
 import { MessageItem, RoomTimelineProps } from './types';
 import {
@@ -23,10 +27,6 @@ import { useRoomTimeline, useTimelineScroll } from '../../hooks/room';
 import { useReply } from '../../context/ReplyContext';
 import { useInputHeight } from '../../context/InputHeightContext';
 import { colors } from '../../theme';
-import {
-  FOUNDER_ROOM_NAME,
-  FOUNDER_ROOM_NAME_LEGACY,
-} from '../../constants/founder';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const mx = getMatrixClient();
@@ -262,8 +262,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   }, [messages]);
 
   // ─── Founder Room Check ─────────────────────────────────────────────────────
-  const isFounderRoom =
-    room.name === FOUNDER_ROOM_NAME || room.name === FOUNDER_ROOM_NAME_LEGACY;
+  const isFounderRoomChat = isFounderRoom(room.name);
 
   // ─── Render Helpers ─────────────────────────────────────────────────────────
   const renderHeader = useCallback(() => {
@@ -277,9 +276,9 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   }, [loadingMore]);
 
   const renderFooter = useCallback(() => {
-    if (!isFounderRoom) return null;
+    if (!isFounderRoomChat) return null;
     return <FounderWelcomeCard />;
-  }, [isFounderRoom]);
+  }, [isFounderRoomChat]);
 
   const renderMessage = useCallback(
     ({ item }: { item: MessageItem }) => (
