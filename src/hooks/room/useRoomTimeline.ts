@@ -1,5 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { MatrixEvent, Room, RoomEvent, Direction, ReceiptType } from 'matrix-js-sdk';
+import {
+  MatrixEvent,
+  Room,
+  RoomEvent,
+  Direction,
+  ReceiptType,
+} from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
 import { MsgType, MessageEvent, ContentKey } from '../../types/matrix/room';
 import {
@@ -80,7 +86,12 @@ export function useRoomTimeline({
       const senderName =
         senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
       const roomName = room.name || 'Unknown';
-      const isOwn = isMessageFromMe(sender, mx.getUserId(), roomName, senderName);
+      const isOwn = isMessageFromMe(
+        sender,
+        mx.getUserId(),
+        roomName,
+        senderName,
+      );
       const avatarUrl = isOwn
         ? undefined
         : getMemberAvatarMxc(mx, room, sender) ||
@@ -90,8 +101,16 @@ export function useRoomTimeline({
       let imageUrl: string | undefined;
       let imageInfo: { w?: number; h?: number; mimetype?: string } | undefined;
       let videoUrl: string | undefined;
-      let videoSource: {uri: string, accessToken: string | null} | undefined;
-      let videoInfo: { w?: number; h?: number; mimetype?: string; duration?: number; thumbnail_url?: string } | undefined;
+      let videoSource: { uri: string; accessToken: string | null } | undefined;
+      let videoInfo:
+        | {
+            w?: number;
+            h?: number;
+            mimetype?: string;
+            duration?: number;
+            thumbnail_url?: string;
+          }
+        | undefined;
       let videoThumbnailUrl: string | undefined;
 
       if (content.msgtype === MsgType.Text) {
@@ -103,8 +122,24 @@ export function useRoomTimeline({
           // Use full download URL for GIFs to preserve animation, thumbnail for other images
           const isGif = imageInfo?.mimetype === 'image/gif';
           imageUrl = isGif
-            ? mx.mxcUrlToHttp(mxcUrl, undefined, undefined, undefined, undefined, false, true) || undefined
-            : mx.mxcUrlToHttp(mxcUrl, 400, 400, 'scale', undefined, false, true) || undefined;
+            ? mx.mxcUrlToHttp(
+                mxcUrl,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                true,
+              ) || undefined
+            : mx.mxcUrlToHttp(
+                mxcUrl,
+                400,
+                400,
+                'scale',
+                undefined,
+                false,
+                true,
+              ) || undefined;
           imageUrl = `${imageUrl}&access_token=${mx.getAccessToken()}`;
         }
         contentText = content.body || '📷 Image';
@@ -112,18 +147,36 @@ export function useRoomTimeline({
         const mxcUrl = content.file?.url || content.url;
         if (mxcUrl && typeof mxcUrl === 'string') {
           videoUrl =
-            mx.mxcUrlToHttp(mxcUrl, undefined, undefined, undefined, undefined, false, true) ||
-            undefined;
-          videoSource = { uri: videoUrl || '', accessToken: mx.getAccessToken() };
+            mx.mxcUrlToHttp(
+              mxcUrl,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              false,
+              true,
+            ) || undefined;
+          videoSource = {
+            uri: videoUrl || '',
+            accessToken: mx.getAccessToken(),
+          };
           videoUrl = `${videoUrl}&access_token=${mx.getAccessToken()}`;
           videoInfo = content.info || content.file?.info;
-          
+
           // Extract thumbnail URL if available
-          const thumbnailMxc = videoInfo?.thumbnail_url || content.thumbnail_url;
+          const thumbnailMxc =
+            videoInfo?.thumbnail_url || content.thumbnail_url;
           if (thumbnailMxc && typeof thumbnailMxc === 'string') {
             videoThumbnailUrl =
-              mx.mxcUrlToHttp(thumbnailMxc, 400, 400, 'scale', undefined, false, true) ||
-              undefined;
+              mx.mxcUrlToHttp(
+                thumbnailMxc,
+                400,
+                400,
+                'scale',
+                undefined,
+                false,
+                true,
+              ) || undefined;
             if (videoThumbnailUrl) {
               videoThumbnailUrl = `${videoThumbnailUrl}&access_token=${mx.getAccessToken()}`;
             }
@@ -162,14 +215,33 @@ export function useRoomTimeline({
             'Unknown';
 
           let replyContentText = '';
+          let replyImageUrl: string | undefined;
+
           if (replyContent.msgtype === MsgType.Text) {
             replyContentText = replyContent.body || '';
           } else if (replyContent.msgtype === MsgType.Image) {
-            replyContentText = '📷 Image';
+            replyContentText = replyContent.body || 'Image';
+            // Extract image URL for reply preview
+            const replyMxcUrl = replyContent.file?.url || replyContent.url;
+            if (replyMxcUrl && typeof replyMxcUrl === 'string') {
+              replyImageUrl =
+                mx.mxcUrlToHttp(
+                  replyMxcUrl,
+                  200,
+                  200,
+                  'crop',
+                  undefined,
+                  false,
+                  true,
+                ) || undefined;
+              if (replyImageUrl) {
+                replyImageUrl = `${replyImageUrl}&access_token=${mx.getAccessToken()}`;
+              }
+            }
           } else if (replyContent.msgtype === MsgType.Video) {
-            replyContentText = '🎥 Video';
+            replyContentText = 'Video';
           } else if (replyContent.msgtype === MsgType.File) {
-            replyContentText = '📎 File';
+            replyContentText = 'File';
           } else {
             replyContentText = 'Message';
           }
@@ -188,6 +260,7 @@ export function useRoomTimeline({
             content: replyContentText,
             msgtype: replyContent.msgtype,
             isOwn: replyIsOwn,
+            imageUrl: replyImageUrl,
           };
         }
       }
@@ -234,10 +307,13 @@ export function useRoomTimeline({
   /**
    * Updates the canLoadMore state based on pagination token
    */
-  const updateCanLoadMore = useCallback((timeline: ReturnType<Room['getLiveTimeline']>) => {
-    const paginationToken = timeline.getPaginationToken(Direction.Backward);
-    setCanLoadMore(!!paginationToken);
-  }, []);
+  const updateCanLoadMore = useCallback(
+    (timeline: ReturnType<Room['getLiveTimeline']>) => {
+      const paginationToken = timeline.getPaginationToken(Direction.Backward);
+      setCanLoadMore(!!paginationToken);
+    },
+    [],
+  );
 
   /**
    * Loads initial messages and paginates if needed
@@ -248,7 +324,10 @@ export function useRoomTimeline({
     let { messageItems, timeline } = extractMessagesFromTimeline();
 
     // Auto-paginate if we have too few messages on initial load
-    if (messageItems.length < MIN_MESSAGES_FOR_INITIAL_LOAD && isInitialLoad.current) {
+    if (
+      messageItems.length < MIN_MESSAGES_FOR_INITIAL_LOAD &&
+      isInitialLoad.current
+    ) {
       const paginationToken = timeline.getPaginationToken(Direction.Backward);
       if (paginationToken) {
         await mx.paginateEventTimeline(timeline, {
@@ -294,7 +373,8 @@ export function useRoomTimeline({
         limit: PAGINATION_LIMIT,
       });
 
-      const { messageItems, timeline: newTimeline } = extractMessagesFromTimeline();
+      const { messageItems, timeline: newTimeline } =
+        extractMessagesFromTimeline();
       setMessages(messageItems);
       updateCanLoadMore(newTimeline);
     } catch (error) {
@@ -303,7 +383,14 @@ export function useRoomTimeline({
     } finally {
       setLoadingMore(false);
     }
-  }, [mx, room, loadingMore, canLoadMore, extractMessagesFromTimeline, updateCanLoadMore]);
+  }, [
+    mx,
+    room,
+    loadingMore,
+    canLoadMore,
+    extractMessagesFromTimeline,
+    updateCanLoadMore,
+  ]);
 
   /**
    * Refreshes messages from timeline (for use after reactions, etc.)

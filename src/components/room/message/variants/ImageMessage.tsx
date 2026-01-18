@@ -47,8 +47,9 @@ export const ImageMessage = ({
   ];
 
   // Hide caption if it's the default placeholder or looks like a filename
-  const isFilename = content && /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(content);
-  const showCaption = content && content !== '📷 Image' && !isFilename;
+  const isFilename =
+    content && /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(content);
+  const showCaption = content && content !== 'Image' && !isFilename;
 
   return (
     <Pressable
@@ -56,8 +57,14 @@ export const ImageMessage = ({
       onLongPress={onLongPress}
       delayLongPress={500}
     >
-      <Image source={{ uri: imageUrl }} style={imageStyle} resizeMode="contain" />
-      {showCaption && <Text style={[textStyle, styles.caption]}>{content}</Text>}
+      <Image
+        source={{ uri: imageUrl }}
+        style={imageStyle}
+        resizeMode="contain"
+      />
+      {showCaption && (
+        <Text style={[textStyle, styles.caption]}>{content}</Text>
+      )}
     </Pressable>
   );
 };
