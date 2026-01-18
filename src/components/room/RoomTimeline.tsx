@@ -18,10 +18,15 @@ import {
   ModalPosition,
 } from './message';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
+import { FounderWelcomeCard } from './FounderWelcomeCard';
 import { useRoomTimeline, useTimelineScroll } from '../../hooks/room';
 import { useReply } from '../../context/ReplyContext';
 import { useInputHeight } from '../../context/InputHeightContext';
 import { colors } from '../../theme';
+import {
+  FOUNDER_ROOM_NAME,
+  FOUNDER_ROOM_NAME_LEGACY,
+} from '../../constants/founder';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const mx = getMatrixClient();
@@ -256,6 +261,10 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     return ids;
   }, [messages]);
 
+  // ─── Founder Room Check ─────────────────────────────────────────────────────
+  const isFounderRoom =
+    room.name === FOUNDER_ROOM_NAME || room.name === FOUNDER_ROOM_NAME_LEGACY;
+
   // ─── Render Helpers ─────────────────────────────────────────────────────────
   const renderHeader = useCallback(() => {
     if (!loadingMore) return null;
@@ -266,6 +275,11 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       </View>
     );
   }, [loadingMore]);
+
+  const renderFooter = useCallback(() => {
+    if (!isFounderRoom) return null;
+    return <FounderWelcomeCard />;
+  }, [isFounderRoom]);
 
   const renderMessage = useCallback(
     ({ item }: { item: MessageItem }) => (
@@ -316,6 +330,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
         onContentSizeChange={handleContentSizeChange}
         onScrollToIndexFailed={onScrollToIndexFailed}
         removeClippedSubviews
