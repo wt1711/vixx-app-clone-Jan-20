@@ -118,8 +118,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   replyImage: {
-    width: 80,
-    height: 60,
+    width: 144,
+    height: 144,
     borderRadius: 12,
   },
 });

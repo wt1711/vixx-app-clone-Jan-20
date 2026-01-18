@@ -69,6 +69,22 @@ export function DirectMessageListScreen({
     onOpenPendingInvitations?.();
   }, [onOpenPendingInvitations]);
 
+  const handleChatWithFounderPress = useCallback(() => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+    handleChatWithFounder();
+  }, [handleChatWithFounder]);
+
+  const handleSettingsPress = useCallback(() => {
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+    onOpenSettings?.();
+  }, [onOpenSettings]);
+
   // Load room data with async message fetching
   const loadRoomItems = useCallback(async () => {
     if (!mx || loadingRef.current) return;
@@ -205,7 +221,12 @@ export function DirectMessageListScreen({
   return (
     <View style={styles.container}>
       {/* Solid black background */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]} />
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: colors.background.black },
+        ]}
+      />
       {/* Carbon fiber weave texture */}
       <CarbonFiberTexture opacity={0.6} scale={0.5} />
       {syncing ? (
@@ -250,14 +271,14 @@ export function DirectMessageListScreen({
               {/* Subtle border */}
               <View style={styles.pillGlassHighlight} pointerEvents="none" />
               <TouchableOpacity
-                onPress={handleChatWithFounder}
+                onPress={handleChatWithFounderPress}
                 style={styles.pillButton}
                 activeOpacity={0.7}
               >
                 <Image source={founderAvatar} style={styles.founderAvatar} />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={onOpenSettings}
+                onPress={handleSettingsPress}
                 style={styles.pillButton}
                 activeOpacity={0.7}
               >
@@ -390,7 +411,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyStateButton: {
-    marginTop: 24,
     width: 56,
     height: 56,
   },
