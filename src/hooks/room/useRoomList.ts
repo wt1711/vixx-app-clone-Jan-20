@@ -33,18 +33,16 @@ export const useRoomList = () => {
 
     const visibleRooms = client.getVisibleRooms();
 
-    console.log('visibleRooms:', visibleRooms);
-
     // Filter out invalid rooms
-    const validRooms = visibleRooms.filter((room) => !shouldHideRoom(room));
+    const validRooms = visibleRooms.filter(room => !shouldHideRoom(room));
 
     // Sort by last active timestamp (most recent first)
     const sortedRooms = validRooms.sort((a, b) => {
       return b.getLastActiveTimestamp() - a.getLastActiveTimestamp();
     });
 
-    const transformedRooms = sortedRooms.map((room) =>
-      transformRoom(room, client)
+    const transformedRooms = sortedRooms.map(room =>
+      transformRoom(room, client),
     );
 
     setRooms(transformedRooms);
@@ -57,26 +55,21 @@ export const useRoomList = () => {
 
     const visibleRooms = client
       .getVisibleRooms()
-      .filter((room) => !shouldHideRoom(room));
+      .filter(room => !shouldHideRoom(room));
     const roomsToPreload = visibleRooms.filter(
-      (room) => !preloadedRooms.current.has(room.roomId)
+      room => !preloadedRooms.current.has(room.roomId),
     );
 
     if (roomsToPreload.length === 0) return;
 
     setIsPreloading(true);
-    console.log(
-      '[useRoomList] Preloading messages for',
-      roomsToPreload.length,
-      'rooms'
-    );
 
     for (const room of roomsToPreload) {
       try {
         const timeline = room.getLiveTimeline();
         const events = timeline.getEvents();
         const messageCount = events.filter(
-          (e) => e.getType() === MessageEvent.RoomMessage
+          e => e.getType() === MessageEvent.RoomMessage,
         ).length;
 
         // Only paginate if we don't have enough messages
@@ -95,7 +88,7 @@ export const useRoomList = () => {
         console.error(
           '[useRoomList] Failed to preload room:',
           room.roomId,
-          error
+          error,
         );
       }
     }
@@ -103,7 +96,6 @@ export const useRoomList = () => {
     setIsPreloading(false);
     // Update rooms after preloading to show correct last messages
     updateRooms();
-    console.log('[useRoomList] Preloading complete');
   }, [client, isPreloading, updateRooms]);
 
   useEffect(() => {

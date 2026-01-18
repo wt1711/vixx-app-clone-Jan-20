@@ -127,8 +127,6 @@ export function SettingsScreen({ onBack, onSelectRoom }: SettingsScreenProps) {
     { width: progressWidth as `${number}%` },
   ];
 
-  console.log(`creditsInfo`, creditsInfo);
-
   return (
     <View style={styles.container}>
       {/* Solid black background */}

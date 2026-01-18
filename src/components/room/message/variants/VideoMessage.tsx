@@ -102,7 +102,6 @@ export const VideoMessage = ({
       if (await fs.exists(localPath)) {
         // Use file:// prefix for iOS compatibility
         const fileUri = `file://${localPath}`;
-        console.log('Video already cached, using existing file:', fileUri);
         // Store in cache
         videoCache.set(videoUrl, fileUri);
         setLocalVideoUri(fileUri);
@@ -117,21 +116,10 @@ export const VideoMessage = ({
         overwrite: true,
       };
 
-      console.log('Downloading video from:', videoUrl);
-      console.log('Saving to:', localPath);
-
       const response = await config(downloadOptions).fetch('GET', videoUrl);
-
-      console.log('Download response status:', response.respInfo.status);
-      console.log(
-        'Content-Type:',
-        response.respInfo.headers['Content-Type'] ||
-          response.respInfo.headers['content-type'],
-      );
 
       if (response.respInfo.status === 200) {
         const finalPath = response.path();
-        console.log('Download complete, file path:', finalPath);
 
         // Verify file exists and has content
         const fileExists = await fs.exists(finalPath);
@@ -140,7 +128,6 @@ export const VideoMessage = ({
         }
 
         const fileInfo = await fs.stat(finalPath);
-        console.log('File size:', fileInfo.size, 'bytes');
 
         if (fileInfo.size === 0) {
           throw new Error('Downloaded file is empty');
@@ -163,7 +150,6 @@ export const VideoMessage = ({
         const fileUri = finalPath.startsWith('file://')
           ? finalPath
           : `file://${finalPath}`;
-        console.log('Setting video URI to:', fileUri);
         // Store in cache for future use
         videoCache.set(videoUrl, fileUri);
         setLocalVideoUri(fileUri);
