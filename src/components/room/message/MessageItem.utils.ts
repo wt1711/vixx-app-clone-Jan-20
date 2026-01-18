@@ -1,36 +1,4 @@
-import { MessageItem } from '../types';
-import { MsgType } from '../../../types/matrix/room';
-import {
-  getInstagramUrl,
-  getInstagramStoryReplyData,
-} from '../../../utils/urlParser';
 import type { MessageItemProps } from './MessageItem';
-
-export type MessageVariant =
-  | 'instagram-story-reply'
-  | 'instagram-image'
-  | 'instagram-video'
-  | 'gif'
-  | 'image'
-  | 'video'
-  | 'text';
-
-export function getMessageVariant(item: MessageItem): MessageVariant {
-  const instagramUrl = getInstagramUrl(item.content);
-  const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
-  const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
-
-  if (isImageMessage && instagramUrl) {
-    const storyData = getInstagramStoryReplyData(item.content);
-    return storyData ? 'instagram-story-reply' : 'instagram-image';
-  }
-
-  if (isVideoMessage && instagramUrl) return 'instagram-video';
-  if (isImageMessage && item.imageInfo?.mimetype === 'image/gif') return 'gif';
-  if (isImageMessage) return 'image';
-  if (isVideoMessage) return 'video';
-  return 'text';
-}
 
 export function areReactionsEqual(
   prev: MessageItemProps['item']['reactions'],

@@ -28,9 +28,9 @@ import {
 } from '../../../utils/urlParser';
 import {
   getMessageVariant,
-  isMessageItemEqual,
   MessageVariant,
-} from './MessageItem.utils';
+} from '../../../utils/room';
+import { isMessageItemEqual } from './MessageItem.utils';
 
 export type MessageItemProps = {
   item: MessageItem;

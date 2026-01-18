@@ -15,6 +15,10 @@ import {
   ContentKey,
 } from '../types/matrix/room';
 import {
+  getInstagramUrl,
+  getInstagramStoryReplyData,
+} from './urlParser';
+import {
   FOUNDER_MATRIX_ID,
   FOUNDER_ROOM_NAME,
   FOUNDER_ROOM_NAME_LEGACY,
@@ -425,3 +429,40 @@ export const getLastReceivedMessageBatch = (
     batch.length > 0 ? reversed[startIndex].timestamp : fallback.timestampStr;
   return { messageBatch, timestampStr };
 };
+
+// Message variant utilities
+export type MessageVariant =
+  | 'instagram-story-reply'
+  | 'instagram-image'
+  | 'instagram-video'
+  | 'gif'
+  | 'image'
+  | 'video'
+  | 'text';
+
+export type MessageVariantInput = {
+  content: string;
+  msgtype?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  imageInfo?: {
+    mimetype?: string;
+  };
+};
+
+export function getMessageVariant(item: MessageVariantInput): MessageVariant {
+  const instagramUrl = getInstagramUrl(item.content);
+  const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
+  const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
+
+  if (isImageMessage && instagramUrl) {
+    const storyData = getInstagramStoryReplyData(item.content);
+    return storyData ? 'instagram-story-reply' : 'instagram-image';
+  }
+
+  if (isVideoMessage && instagramUrl) return 'instagram-video';
+  if (isImageMessage && item.imageInfo?.mimetype === 'image/gif') return 'gif';
+  if (isImageMessage) return 'image';
+  if (isVideoMessage) return 'video';
+  return 'text';
+}
