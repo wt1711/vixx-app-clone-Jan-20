@@ -9,7 +9,11 @@ import {
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
 import { getMatrixClient } from '../../matrixClient';
-import { getEventReactions, getReactionContent } from '../../utils/room';
+import {
+  getEventReactions,
+  getReactionContent,
+  isFounderRoom,
+} from '../../utils/room';
 import { MessageEvent } from '../../types/matrix/room';
 import { MessageItem, RoomTimelineProps } from './types';
 import {
@@ -18,6 +22,7 @@ import {
   ModalPosition,
 } from './message';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
+import { FounderWelcomeCard } from './FounderWelcomeCard';
 import { useRoomTimeline, useTimelineScroll } from '../../hooks/room';
 import { useReply } from '../../context/ReplyContext';
 import { useInputHeight } from '../../context/InputHeightContext';
@@ -256,6 +261,9 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     return ids;
   }, [messages]);
 
+  // ─── Founder Room Check ─────────────────────────────────────────────────────
+  const isFounderRoomChat = isFounderRoom(room.name);
+
   // ─── Render Helpers ─────────────────────────────────────────────────────────
   const renderHeader = useCallback(() => {
     if (!loadingMore) return null;
@@ -266,6 +274,11 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       </View>
     );
   }, [loadingMore]);
+
+  const renderFooter = useCallback(() => {
+    if (!isFounderRoomChat) return null;
+    return <FounderWelcomeCard />;
+  }, [isFounderRoomChat]);
 
   const renderMessage = useCallback(
     ({ item }: { item: MessageItem }) => (
@@ -316,6 +329,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
         onContentSizeChange={handleContentSizeChange}
         onScrollToIndexFailed={onScrollToIndexFailed}
         removeClippedSubviews

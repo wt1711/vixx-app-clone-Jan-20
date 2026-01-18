@@ -30,6 +30,7 @@ import ForceLogOutModal from '../components/ForceLogOutModal';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { colors } from '../theme';
 import { useChatWithFounder } from '../hooks/useChatWithFounder';
+import { Membership } from '../types/matrix/room';
 
 type DirectMessageListScreenProps = {
   onSelectRoom: (roomId: string) => void;
@@ -76,9 +77,18 @@ export function DirectMessageListScreen({
     setLoading(true);
 
     const items: RoomItemData[] = [];
+    const myUserId = mx.getUserId();
 
     // First pass: create items with basic data (fast)
     for (const room of directRooms) {
+      // Skip rooms where user has left
+      const myMembership = myUserId
+        ? room.getMember(myUserId)?.membership
+        : null;
+      if (myMembership === Membership.Leave) {
+        continue;
+      }
+
       const name = room.name || 'Unknown';
       const unreadCount = room.getUnreadNotificationCount() || 0;
       const avatarUrl = getRoomAvatarUrl(mx, room, 96, true);
@@ -102,7 +112,6 @@ export function DirectMessageListScreen({
     setLoading(false);
 
     // Second pass: fetch actual last messages (async)
-    const myUserId = mx.getUserId();
     const updatedItems = await Promise.all(
       items.map(async item => {
         const { message, timestamp, senderId, senderName } =
