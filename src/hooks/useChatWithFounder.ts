@@ -14,6 +14,10 @@ export function useChatWithFounder(onSelectRoom: (roomId: string) => void) {
     const allRooms = mx.getVisibleRooms();
     // Check if we already have a DM room with the founder
     for (const room of allRooms) {
+      if (room.name === FOUNDER_ROOM_NAME) {
+        onSelectRoom(room.roomId);
+        return;
+      }
       const members = room.getJoinedMembers();
       const hasFounder = members.some(
         member =>
