@@ -14,10 +14,7 @@ import {
   RelationType,
   ContentKey,
 } from '../types/matrix/room';
-import {
-  getInstagramUrl,
-  getInstagramStoryReplyData,
-} from './urlParser';
+import { getInstagramUrl, getInstagramStoryReplyData } from './urlParser';
 import {
   FOUNDER_MATRIX_ID,
   FOUNDER_ROOM_NAME,

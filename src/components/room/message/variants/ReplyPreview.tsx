@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { ReplyToData } from '../../types';
 import { colors } from '../../../../theme';
+import { MsgType } from '../../../../types/matrix/room';
 
 export type ReplyPreviewProps = {
   replyTo: ReplyToData;
@@ -40,9 +41,19 @@ export const ReplyPreview = React.memo<ReplyPreviewProps>(
                 replyTo.isOwn ? colors.message.own : colors.message.other
               }
             />
-            <Text style={styles.quotedText} numberOfLines={2}>
-              {replyTo.content}
-            </Text>
+            {replyTo.imageUrl && replyTo.msgtype === MsgType.Image ? (
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{ uri: replyTo.imageUrl }}
+                  style={styles.replyImage}
+                  resizeMode="cover"
+                />
+              </View>
+            ) : (
+              <Text style={styles.quotedText} numberOfLines={2}>
+                {replyTo.content}
+              </Text>
+            )}
           </View>
           {isOwn && <View style={styles.barRight} />}
         </View>
@@ -100,5 +111,14 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     flexShrink: 1,
     color: colors.text.secondary,
+  },
+  imageContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  replyImage: {
+    width: 80,
+    height: 60,
+    borderRadius: 12,
   },
 });

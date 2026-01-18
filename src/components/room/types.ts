@@ -13,6 +13,7 @@ export type ReplyToData = {
   content: string;
   msgtype?: string;
   isOwn: boolean;
+  imageUrl?: string;
 };
 
 export type MessageItem = {
