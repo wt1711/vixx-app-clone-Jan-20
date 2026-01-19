@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createMatrixClient, getMatrixClient, initMatrixClient, stopMatrixClient } from '../matrixClient';
+import {
+  createMatrixClient,
+  getMatrixClient,
+  initMatrixClient,
+  stopMatrixClient,
+} from '../matrixClient';
 import { MatrixClient } from 'matrix-js-sdk';
 import { ENV } from '../constants/env';
 import { MATRIX_CREDENTIALS_KEY } from '../constants/localStorege';
@@ -40,7 +45,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const matrixCredentials = JSON.parse(values);
-      if (!matrixCredentials.userId || !matrixCredentials.deviceId || !matrixCredentials.accessToken || !matrixCredentials.matrixHost) {
+      if (
+        !matrixCredentials.userId ||
+        !matrixCredentials.deviceId ||
+        !matrixCredentials.accessToken ||
+        !matrixCredentials.matrixHost
+      ) {
         setIsLoading(false);
         return;
       }
@@ -66,13 +76,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       // Use Matrix server URL from environment configuration
       const matrixServerUrl = ENV.MATRIX_SERVER_URL;
-      
+
       let matrixClient = getMatrixClient() as MatrixClient;
       if (!matrixClient) {
         matrixClient = await createMatrixClient(matrixServerUrl);
       }
-      
-      
+
       // Step 1: Matrix Auth
       const mSession = await matrixClient.login(LoginType.Password, {
         user: username,
@@ -80,12 +89,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       // Step 3: Persist - use Matrix server URL from environment
-      await AsyncStorage.setItem(MATRIX_CREDENTIALS_KEY, JSON.stringify({
-        userId: mSession.user_id,
-        deviceId: mSession.device_id,
-        accessToken: mSession.access_token,
-        matrixHost: matrixServerUrl,
-      }));
+      await AsyncStorage.setItem(
+        MATRIX_CREDENTIALS_KEY,
+        JSON.stringify({
+          userId: mSession.user_id,
+          deviceId: mSession.device_id,
+          accessToken: mSession.access_token,
+          matrixHost: matrixServerUrl,
+        }),
+      );
 
       // Step 4: Initialize Matrix client
       await initMatrixClient({
@@ -112,7 +124,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       stopMatrixClient();
 
       await AsyncStorage.removeItem(MATRIX_CREDENTIALS_KEY);
-
 
       setToken(null);
       setMatrixToken(null);

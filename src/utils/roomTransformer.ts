@@ -35,7 +35,7 @@ const HIDDEN_MESSAGE_PATTERNS: RegExp[] = [
 ];
 
 function shouldHideMessage(text: string): boolean {
-  return HIDDEN_MESSAGE_PATTERNS.some((pattern) => pattern.test(text));
+  return HIDDEN_MESSAGE_PATTERNS.some(pattern => pattern.test(text));
 }
 
 /**

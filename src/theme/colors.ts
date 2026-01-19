@@ -2,8 +2,8 @@ export const colors = {
   // Backgrounds
   background: {
     primary: '#0A0A0F',
-    secondary: '#1A1A2E',  // dark blue
-    tertiary: '#16213E',   // deeper blue
+    secondary: '#1A1A2E', // dark blue
+    tertiary: '#16213E', // deeper blue
     elevated: '#2A2A3E',
     header: '#2A2A3E',
     input: '#1A1A2E',
@@ -25,7 +25,7 @@ export const colors = {
 
   // Accent / Brand
   accent: {
-    primary: '#1A7575',  // dark teal (matches bubble)
+    primary: '#1A7575', // dark teal (matches bubble)
     blue: '#3B82F6',
     purple: '#A855F7',
     instagram: '#E4405F',
@@ -33,8 +33,8 @@ export const colors = {
 
   // Message bubbles
   message: {
-    own: '#0D3B3B',  // electric cyan - dark teal base
-    other: '#18181C',  // stealth dark - low friction
+    own: '#0D3B3B', // electric cyan - dark teal base
+    other: '#18181C', // stealth dark - low friction
     otherGradientStart: '#35384A',
     otherGradientEnd: '#252833',
     otherBorder: 'rgba(255, 255, 255, 0.08)',

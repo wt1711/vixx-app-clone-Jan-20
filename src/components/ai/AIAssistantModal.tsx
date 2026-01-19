@@ -49,7 +49,10 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
             <Text style={styles.title}>AI Assistant</Text>
             <View style={styles.headerActions}>
               {chatHistory.length > 0 && (
-                <TouchableOpacity onPress={clearChatHistory} style={styles.clearButton}>
+                <TouchableOpacity
+                  onPress={clearChatHistory}
+                  style={styles.clearButton}
+                >
                   <Text style={styles.clearButtonText}>Clear</Text>
                 </TouchableOpacity>
               )}
@@ -62,7 +65,9 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
           <ScrollView style={styles.content}>
             {showEmptyState ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>Ask me anything about this conversation</Text>
+                <Text style={styles.emptyStateText}>
+                  Ask me anything about this conversation
+                </Text>
                 <TouchableOpacity
                   style={styles.generateButton}
                   onPress={() => generateInitialResponse()}
@@ -71,7 +76,9 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                   {isGeneratingResponse ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={styles.generateButtonText}>Generate Response</Text>
+                    <Text style={styles.generateButtonText}>
+                      Generate Response
+                    </Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -79,8 +86,12 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
               <>
                 {generatedResponse && (
                   <View style={styles.generatedResponseContainer}>
-                    <Text style={styles.generatedResponseLabel}>Generated Response:</Text>
-                    <Text style={styles.generatedResponseText}>{generatedResponse}</Text>
+                    <Text style={styles.generatedResponseLabel}>
+                      Generated Response:
+                    </Text>
+                    <Text style={styles.generatedResponseText}>
+                      {generatedResponse}
+                    </Text>
                     <View style={styles.generatedResponseActions}>
                       <TouchableOpacity
                         style={styles.useButton}
@@ -96,7 +107,9 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                         {isGeneratingResponse ? (
                           <ActivityIndicator color="#E4405F" />
                         ) : (
-                          <Text style={styles.regenerateButtonText}>Regenerate</Text>
+                          <Text style={styles.regenerateButtonText}>
+                            Regenerate
+                          </Text>
                         )}
                       </TouchableOpacity>
                     </View>
@@ -111,13 +124,17 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                       <View
                         style={[
                           styles.messageBubble,
-                          item.sender === 'user' ? styles.messageUser : styles.messageAI,
+                          item.sender === 'user'
+                            ? styles.messageUser
+                            : styles.messageAI,
                         ]}
                       >
                         <Text
                           style={[
                             styles.messageText,
-                            item.sender === 'user' ? styles.messageTextUser : styles.messageTextAI,
+                            item.sender === 'user'
+                              ? styles.messageTextUser
+                              : styles.messageTextAI,
                           ]}
                         >
                           {item.text}
@@ -142,7 +159,10 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
               editable={!isLoading}
             />
             <TouchableOpacity
-              style={[styles.sendButton, (!inputValue.trim() || isLoading) && styles.sendButtonDisabled]}
+              style={[
+                styles.sendButton,
+                (!inputValue.trim() || isLoading) && styles.sendButtonDisabled,
+              ]}
               onPress={handleSend}
               disabled={!inputValue.trim() || isLoading}
             >
@@ -342,5 +362,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
-

@@ -31,7 +31,9 @@ export async function getOpenAIConsultation({
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch suggestion from server.');
+      throw new Error(
+        errorData.error || 'Failed to fetch suggestion from server.',
+      );
     }
 
     const data = await response.json();
@@ -72,7 +74,9 @@ export async function generateResponseFromMessage({
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to generate response from server.');
+      throw new Error(
+        errorData.error || 'Failed to generate response from server.',
+      );
     }
 
     const data = await response.json();
@@ -113,7 +117,9 @@ export async function generateResponseWithIdea({
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to generate response with idea from server.');
+      throw new Error(
+        errorData.error || 'Failed to generate response with idea from server.',
+      );
     }
 
     const data = await response.json();
@@ -145,7 +151,9 @@ export async function gradeMessage({
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to grade message from server.');
+      throw new Error(
+        errorData.error || 'Failed to grade message from server.',
+      );
     }
 
     const data = await response.json();
@@ -161,10 +169,14 @@ export type CreditsInfo = {
   totalCredits: number | string;
 };
 
-export async function getCreditsRemaining(userId: string): Promise<CreditsInfo> {
+export async function getCreditsRemaining(
+  userId: string,
+): Promise<CreditsInfo> {
   try {
     const response = await fetch(
-      `${API_ENDPOINTS.AI.CREDITS_REMAINING}?userId=${encodeURIComponent(userId)}`,
+      `${API_ENDPOINTS.AI.CREDITS_REMAINING}?userId=${encodeURIComponent(
+        userId,
+      )}`,
       {
         method: 'GET',
         headers: {

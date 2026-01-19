@@ -6,7 +6,9 @@ import { AccountDataType } from '../types/matrix/room';
  * Get m.direct account data and extract direct room IDs
  * This matches the NextJS implementation
  */
-export const getMDirects = (mDirectEvent: MatrixEvent | undefined): Set<string> => {
+export const getMDirects = (
+  mDirectEvent: MatrixEvent | undefined,
+): Set<string> => {
   const roomIds = new Set<string>();
   if (!mDirectEvent) return roomIds;
 
@@ -14,10 +16,10 @@ export const getMDirects = (mDirectEvent: MatrixEvent | undefined): Set<string> 
 
   if (userIdToDirects === undefined) return roomIds;
 
-  Object.keys(userIdToDirects).forEach((userId) => {
+  Object.keys(userIdToDirects).forEach(userId => {
     const directs = userIdToDirects[userId];
     if (Array.isArray(directs)) {
-      directs.forEach((id) => {
+      directs.forEach(id => {
         if (typeof id === 'string') roomIds.add(id);
       });
     }
@@ -61,4 +63,3 @@ export const useMDirects = (mx: MatrixClient | null): Set<string> => {
 
   return mDirects;
 };
-

@@ -363,7 +363,9 @@ export default function LoginInstagramModal({
     <Modal visible={open} animationType="slide">
       <SafeAreaProvider>
         <SafeAreaView edges={['top', 'bottom']} style={styles.modalContainer}>
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]} />
+          <View
+            style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]}
+          />
           <CarbonFiberTexture opacity={0.6} scale={0.5} />
           <View style={styles.header}>
             <View style={styles.headerSpacer} />
@@ -385,7 +387,12 @@ export default function LoginInstagramModal({
               presentationStyle="fullScreen"
             >
               <View style={styles.loggedInModalOverlay}>
-                <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]} />
+                <View
+                  style={[
+                    StyleSheet.absoluteFill,
+                    { backgroundColor: '#000000' },
+                  ]}
+                />
                 <CarbonFiberTexture opacity={0.6} scale={0.5} />
                 <View style={styles.loggedInModalContent}>
                   <View style={styles.instagramIconContainer}>

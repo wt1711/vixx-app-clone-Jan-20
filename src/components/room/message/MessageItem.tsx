@@ -26,10 +26,7 @@ import {
   getInstagramUrl,
   getInstagramStoryReplyData,
 } from '../../../utils/urlParser';
-import {
-  getMessageVariant,
-  MessageVariant,
-} from '../../../utils/room';
+import { getMessageVariant, MessageVariant } from '../../../utils/room';
 import { isMessageItemEqual } from './MessageItem.utils';
 
 export type MessageItemProps = {
@@ -199,7 +196,8 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
       variant === 'image' && styles.messageBubbleContentImage,
-      (variant === 'video' || variant === 'gif') && styles.messageBubbleContentVideo,
+      (variant === 'video' || variant === 'gif') &&
+        styles.messageBubbleContentVideo,
       variant === 'instagram-story-reply' && styles.messageBubbleContentImage,
     ];
 

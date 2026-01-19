@@ -423,7 +423,9 @@ export const getLastReceivedMessageBatch = (
   const messageBatch =
     batch.length > 0 ? batch.join('\n') : fallback.messageBatch;
   const timestampStr =
-    batch.length > 0 ? reversed[startIndex].timestamp : Date.now().toLocaleString();
+    batch.length > 0
+      ? reversed[startIndex].timestamp
+      : Date.now().toLocaleString();
   return { messageBatch, timestampStr };
 };
 

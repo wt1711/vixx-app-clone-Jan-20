@@ -66,7 +66,9 @@ export function AIAssistantProvider({
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [generatedResponse, setGeneratedResponse] = useState('');
-  const [parsedResponse, setParsedResponse] = useState<ParsedAIResponse | null>(null);
+  const [parsedResponse, setParsedResponse] = useState<ParsedAIResponse | null>(
+    null,
+  );
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [prediction, setPrediction] = useState<{
@@ -117,11 +119,14 @@ export function AIAssistantProvider({
     [isMobile],
   );
 
-  const generateInitialResponse = useCallback(async (idea?: string) => {
-    toggleAIAssistant(true);
-    const spec = idea ? { idea } : {};
-    await regenerateResponse(spec);
-  }, [toggleAIAssistant]); // eslint-disable-line react-hooks/exhaustive-deps
+  const generateInitialResponse = useCallback(
+    async (idea?: string) => {
+      toggleAIAssistant(true);
+      const spec = idea ? { idea } : {};
+      await regenerateResponse(spec);
+    },
+    [toggleAIAssistant],
+  ); // eslint-disable-line react-hooks/exhaustive-deps
 
   const regenerateResponse = useCallback(
     async (spec = {}) => {
@@ -159,8 +164,11 @@ export function AIAssistantProvider({
           getLastReceivedMessageBatch(roomContext);
 
         // Use different endpoint based on whether idea is provided
-        const hasIdea = spec && 'idea' in spec && (spec as { idea?: string }).idea;
-        const generateFn = hasIdea ? generateResponseWithIdea : generateResponseFromMessage;
+        const hasIdea =
+          spec && 'idea' in spec && (spec as { idea?: string }).idea;
+        const generateFn = hasIdea
+          ? generateResponseWithIdea
+          : generateResponseFromMessage;
 
         const response = await generateFn({
           message: messageBatch,

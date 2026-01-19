@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import { launchImageLibrary, launchCamera, Asset } from 'react-native-image-picker';
+import {
+  launchImageLibrary,
+  launchCamera,
+  Asset,
+} from 'react-native-image-picker';
 import { useMatrixClient } from '../useMatrixClient';
 import { EventType, MsgType } from 'matrix-js-sdk';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -75,20 +79,26 @@ export const useImageSender = (roomId: string | null) => {
     setIsUploading(true);
 
     try {
-
       // Upload to Matrix media repository (direct fetch - SDK adds trailing slash)
       const baseUrl = client.getHomeserverUrl();
       const accessToken = client.getAccessToken();
       const uploadUrl = `${baseUrl}/_matrix/media/v3/upload`;
 
-      const uploadRes = await ReactNativeBlobUtil.fetch("POST", uploadUrl, {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': imageInfo.mimeType,
-      }, ReactNativeBlobUtil.wrap(imageInfo.uri));
+      const uploadRes = await ReactNativeBlobUtil.fetch(
+        'POST',
+        uploadUrl,
+        {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': imageInfo.mimeType,
+        },
+        ReactNativeBlobUtil.wrap(imageInfo.uri),
+      );
 
       if (!uploadRes.respInfo.status || uploadRes.respInfo.status !== 200) {
         const errorText = await uploadRes.text();
-        throw new Error(`Upload failed: ${uploadRes.respInfo.status} ${errorText}`);
+        throw new Error(
+          `Upload failed: ${uploadRes.respInfo.status} ${errorText}`,
+        );
       }
 
       const uploadResult = await uploadRes.json();
@@ -96,7 +106,8 @@ export const useImageSender = (roomId: string | null) => {
 
       // Send m.image message
       await client.sendEvent(roomId, EventType.RoomMessage, {
-        msgtype: imageInfo.mimeType === 'video/mp4' ? MsgType.Video : MsgType.Image,
+        msgtype:
+          imageInfo.mimeType === 'video/mp4' ? MsgType.Video : MsgType.Image,
         body: imageInfo.fileName,
         filename: imageInfo.fileName,
         url: contentUri,

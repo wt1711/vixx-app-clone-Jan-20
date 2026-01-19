@@ -71,7 +71,7 @@ function MessageListWrapper() {
 
   return (
     <DirectMessageListScreen
-      onSelectRoom={(roomId) => navigation.navigate('MessageDetail', { roomId })}
+      onSelectRoom={roomId => navigation.navigate('MessageDetail', { roomId })}
       onOpenSettings={() => navigation.navigate('Settings')}
       onOpenPendingInvitations={() => navigation.navigate('PendingInvitations')}
       selectedRoomId={undefined}
@@ -97,7 +97,7 @@ function SettingsWrapper() {
   return (
     <SettingsScreen
       onBack={() => navigation.goBack()}
-      onSelectRoom={(roomId) => {
+      onSelectRoom={roomId => {
         // Navigate directly to MessageDetail, replacing Settings in the stack
         navigation.replace('MessageDetail', { roomId });
       }}

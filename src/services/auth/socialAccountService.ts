@@ -1,13 +1,17 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ACCESS_TOKEN_KEY, LAST_SOCIAL_ACCOUNTS_SYNC_KEY } from "../../constants/localStorege";
-import { API_ENDPOINTS } from "../../constants/env";
-import { HTTPError } from "matrix-js-sdk";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  ACCESS_TOKEN_KEY,
+  LAST_SOCIAL_ACCOUNTS_SYNC_KEY,
+} from '../../constants/localStorege';
+import { API_ENDPOINTS } from '../../constants/env';
+import { HTTPError } from 'matrix-js-sdk';
 
 export const SocialAccountType = {
-  Instagram: "instagram",
+  Instagram: 'instagram',
 };
 
-export type SocialAccountTypeType = (typeof SocialAccountType)[keyof typeof SocialAccountType];
+export type SocialAccountTypeType =
+  (typeof SocialAccountType)[keyof typeof SocialAccountType];
 
 export interface SocialAccount {
   id: string;
@@ -27,12 +31,14 @@ export class SocialAccountService {
   public needSync: boolean | null = null;
 
   private constructor() {
-      AsyncStorage.getItem(ACCESS_TOKEN_KEY).then((token) => {
-          this.accessToken = token;
-      });
-      AsyncStorage.getItem(LAST_SOCIAL_ACCOUNTS_SYNC_KEY).then((lastSync) => {
-        this.needSync = lastSync ? new Date(lastSync) < new Date(Date.now() - 1000 * 60 * 60 * 24) : false; // 24 hours
-      });
+    AsyncStorage.getItem(ACCESS_TOKEN_KEY).then(token => {
+      this.accessToken = token;
+    });
+    AsyncStorage.getItem(LAST_SOCIAL_ACCOUNTS_SYNC_KEY).then(lastSync => {
+      this.needSync = lastSync
+        ? new Date(lastSync) < new Date(Date.now() - 1000 * 60 * 60 * 24)
+        : false; // 24 hours
+    });
   }
 
   public static getInstance(): SocialAccountService {
@@ -42,11 +48,13 @@ export class SocialAccountService {
     return SocialAccountService.instance;
   }
 
-  async getSocialAccounts(onLogout?: () => void): Promise<SocialAccount[] | null> {
+  async getSocialAccounts(
+    onLogout?: () => void,
+  ): Promise<SocialAccount[] | null> {
     try {
       const response = await fetch(`${this.baseUrl}`, {
         headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${this.accessToken}`,
         },
       });
       if (!response.ok) {
@@ -72,7 +80,7 @@ export class SocialAccountService {
       const response = await fetch(API_ENDPOINTS.SOCIAL_ACCOUNTS.SYNC, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${this.accessToken}`,
         },
       });
       if (!response.ok) {
@@ -82,11 +90,13 @@ export class SocialAccountService {
         }
         return false;
       }
-      await AsyncStorage.setItem(LAST_SOCIAL_ACCOUNTS_SYNC_KEY, new Date().toISOString());
+      await AsyncStorage.setItem(
+        LAST_SOCIAL_ACCOUNTS_SYNC_KEY,
+        new Date().toISOString(),
+      );
       this.needSync = false;
       return true;
-    }
-    catch (error) {
+    } catch (error) {
       console.log('Error syncing social accounts:', error);
       if (error instanceof HTTPError && error.httpStatus === 401) {
         onLogout?.();
@@ -96,6 +106,9 @@ export class SocialAccountService {
   }
 
   instagramAccountConnected = (data: SocialAccount[] | null) => {
-    return data?.find((account) => account.type === SocialAccountType.Instagram && account.connected);
-  }
+    return data?.find(
+      account =>
+        account.type === SocialAccountType.Instagram && account.connected,
+    );
+  };
 }

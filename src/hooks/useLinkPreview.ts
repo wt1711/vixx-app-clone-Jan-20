@@ -45,7 +45,7 @@ const VIDEO_URL_PATTERNS = [
 type Platform = keyof typeof PLATFORM_PATTERNS;
 
 export function isVideoUrl(url: string): boolean {
-  return VIDEO_URL_PATTERNS.some((pattern) => pattern.test(url));
+  return VIDEO_URL_PATTERNS.some(pattern => pattern.test(url));
 }
 
 function detectPlatform(url: string): Platform | null {
@@ -154,12 +154,12 @@ export function useLinkPreview(url: string | null): {
       setError(null);
 
       fetchOEmbed(url)
-        .then((data) => {
+        .then(data => {
           setCachedPreview(url, data);
           setPreview(data);
           setLoading(false);
         })
-        .catch((err) => {
+        .catch(err => {
           setCachedPreview(url, null);
           setError(err);
           setPreview(null);

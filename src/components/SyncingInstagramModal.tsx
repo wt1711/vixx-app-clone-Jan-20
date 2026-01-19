@@ -80,7 +80,9 @@ export default function SyncingInstagramModal({
     >
       <SafeAreaProvider>
         <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]} />
+          <View
+            style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]}
+          />
           <CarbonFiberTexture opacity={0.6} scale={0.5} />
           <View style={styles.content}>
             {/* Logo positioned at 20% from top like login screen */}

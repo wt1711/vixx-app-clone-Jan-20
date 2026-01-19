@@ -27,7 +27,7 @@ export const useActiveRoom = (targetRoomId?: string) => {
       } else if (rooms.length > 0) {
         // Default: Sort by last active timestamp descending
         selected = rooms.sort(
-          (a, b) => b.getLastActiveTimestamp() - a.getLastActiveTimestamp()
+          (a, b) => b.getLastActiveTimestamp() - a.getLastActiveTimestamp(),
         )[0];
       }
 

@@ -50,7 +50,7 @@ function shouldHideMessage(text: string): boolean {
 
   // Filter pattern matches
   if (MESSAGE_FILTERS.filterHiddenPatterns) {
-    if (HIDDEN_MESSAGE_PATTERNS.some((pattern) => pattern.test(text))) {
+    if (HIDDEN_MESSAGE_PATTERNS.some(pattern => pattern.test(text))) {
       return true;
     }
   }
@@ -60,7 +60,7 @@ function shouldHideMessage(text: string): boolean {
 
 function mapEventToMessage(
   evt: MatrixEvent,
-  myUserId: string
+  myUserId: string,
 ): NativeMessage | null {
   if (evt.getType() !== MessageEvent.RoomMessage) {
     return null;
@@ -106,10 +106,10 @@ export const useChatTimeline = (roomId: string | null) => {
   const extractMessages = useCallback(
     (events: MatrixEvent[], myUserId: string): NativeMessage[] => {
       return events
-        .map((evt) => mapEventToMessage(evt, myUserId))
+        .map(evt => mapEventToMessage(evt, myUserId))
         .filter((msg): msg is NativeMessage => msg !== null);
     },
-    []
+    [],
   );
 
   // Load older messages (pagination)
@@ -177,7 +177,7 @@ export const useChatTimeline = (roomId: string | null) => {
     const handleTimeline = (
       event: MatrixEvent,
       eventRoom: Room | undefined,
-      toStartOfTimeline: boolean
+      toStartOfTimeline: boolean,
     ) => {
       if (eventRoom?.roomId !== roomId) {
         return;
@@ -189,7 +189,7 @@ export const useChatTimeline = (roomId: string | null) => {
 
       const newMessage = mapEventToMessage(event, myUserId);
       if (newMessage) {
-        setMessages((prev) => [...prev, newMessage]);
+        setMessages(prev => [...prev, newMessage]);
       }
     };
 
@@ -212,7 +212,7 @@ export const useChatTimeline = (roomId: string | null) => {
         '[useChatTimeline] Auto-loading: only',
         messages.length,
         'messages, need',
-        MIN_MESSAGES_TO_DISPLAY
+        MIN_MESSAGES_TO_DISPLAY,
       );
       loadMoreMessages();
     } else {
