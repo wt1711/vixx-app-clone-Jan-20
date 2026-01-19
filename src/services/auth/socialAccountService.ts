@@ -2,8 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ACCESS_TOKEN_KEY,
   LAST_SOCIAL_ACCOUNTS_SYNC_KEY,
-} from 'src/constants/localStorege';
-import { API_ENDPOINTS } from 'src/constants/env';
+} from 'src/config/localStorage';
+import { API_ENDPOINTS } from 'src/config/env';
 import { HTTPError } from 'matrix-js-sdk';
 
 export const SocialAccountType = {

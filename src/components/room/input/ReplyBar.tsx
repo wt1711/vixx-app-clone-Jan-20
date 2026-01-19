@@ -7,8 +7,8 @@ import {
   Animated,
 } from 'react-native';
 import { X } from 'lucide-react-native';
-import { colors } from 'src/theme';
-import { MsgType } from 'src/types/matrix/room';
+import { colors } from 'src/config';
+import { MsgType } from 'src/types';
 
 export type ReplyPreviewInput = {
   content: string;

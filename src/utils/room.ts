@@ -13,7 +13,7 @@ import {
   StateEvent,
   RelationType,
   ContentKey,
-} from 'src/types/matrix/room';
+} from 'src/types';
 import {
   getInstagramUrl,
   getInstagramStoryReplyData,
@@ -23,7 +23,7 @@ import {
   FOUNDER_ROOM_NAME,
   FOUNDER_ROOM_NAME_LEGACY,
   FOUNDER_AVATAR_URL,
-} from 'src/constants/founder';
+} from 'src/config/founder';
 
 /**
  * Check if a room is the founder/team chat room (supports both old and new names)

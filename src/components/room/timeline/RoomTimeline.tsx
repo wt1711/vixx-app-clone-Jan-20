@@ -8,13 +8,13 @@ import {
   Alert,
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import {
   getEventReactions,
   getReactionContent,
   isFounderRoom,
 } from 'src/utils/room';
-import { MessageEvent } from 'src/types/matrix/room';
+import { MessageEvent } from 'src/types';
 import { MessageItem, RoomTimelineProps } from '../types';
 import {
   MessageItemComponent,
@@ -24,9 +24,9 @@ import {
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { FounderWelcomeCard } from './FounderWelcomeCard';
 import { useRoomTimeline, useTimelineScroll } from 'src/hooks/room';
-import { useReply } from 'src/context/ReplyContext';
-import { useInputHeight } from 'src/context/InputHeightContext';
-import { colors } from 'src/theme';
+import { useReply } from 'src/hooks/context/ReplyContext';
+import { useInputHeight } from 'src/hooks/context/InputHeightContext';
+import { colors } from 'src/config';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const mx = getMatrixClient();

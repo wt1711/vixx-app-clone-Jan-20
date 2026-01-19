@@ -1,6 +1,6 @@
 import React from 'react';
 import { MatrixClient, MatrixEvent, ClientEvent } from 'matrix-js-sdk';
-import { AccountDataType } from 'src/types/matrix/room';
+import { AccountDataType } from 'src/types';
 
 /**
  * Get m.direct account data and extract direct room IDs

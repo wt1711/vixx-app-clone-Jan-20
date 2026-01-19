@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 import { StyleSheet, Text, View, Modal, Image } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { ParticleSparkles } from 'src/components/ui/ParticleSparkles';

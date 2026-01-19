@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Room, RoomEvent, ClientEvent } from 'matrix-js-sdk';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import { useMDirects } from 'src/utils/mDirectUtils';
 import { IsBotPrivateChat, isInvite, isRoom } from 'src/utils/room';
 

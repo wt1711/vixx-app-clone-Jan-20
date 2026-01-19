@@ -6,8 +6,8 @@ import {
   Direction,
   ReceiptType,
 } from 'matrix-js-sdk';
-import { getMatrixClient } from 'src/matrixClient';
-import { MsgType, MessageEvent, ContentKey } from 'src/types/matrix/room';
+import { getMatrixClient } from 'src/services/matrixClient';
+import { MsgType, MessageEvent, ContentKey } from 'src/types';
 import {
   getMemberAvatarMxc,
   getRoomAvatarUrl,

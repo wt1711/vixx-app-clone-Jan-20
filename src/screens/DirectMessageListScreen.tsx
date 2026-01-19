@@ -15,22 +15,22 @@ import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
 import { Settings, Plus } from 'lucide-react-native';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { useDirectRooms } from 'src/hooks/room';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import {
   getRoomAvatarUrl,
   getLastRoomMessageAsync,
   isMessageFromMe,
 } from 'src/utils/room';
-import { useAuth } from 'src/context/AuthContext';
+import { useAuth } from 'src/hooks/context/AuthContext';
 import { RoomListItem, RoomItemData } from 'src/components/room';
 import { LoadingScreen } from 'src/components/common/LoadingScreen';
 import { EmptyState } from 'src/components/common/EmptyState';
 import { SocialAccountService } from 'src/services/apiService';
 import { ForceLogOutModal } from 'src/components/auth';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 import { useChatWithFounder } from 'src/hooks/useChatWithFounder';
-import { Membership } from 'src/types/matrix/room';
+import { Membership } from 'src/types';
 
 type DirectMessageListScreenProps = {
   onSelectRoom: (roomId: string) => void;

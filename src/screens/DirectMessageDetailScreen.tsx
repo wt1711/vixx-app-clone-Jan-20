@@ -13,15 +13,15 @@ import {
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import { useKeyboardHeight } from 'src/hooks/useKeyboardHeight';
 import { RoomTimeline, RoomInput, RoomViewHeader } from 'src/components/room';
-import { AIAssistantProvider } from 'src/context/AIAssistantContext';
-import { ReplyProvider } from 'src/context/ReplyContext';
-import { InputHeightProvider } from 'src/context/InputHeightContext';
+import { AIAssistantProvider } from 'src/hooks/context/AIAssistantContext';
+import { ReplyProvider } from 'src/hooks/context/ReplyContext';
+import { InputHeightProvider } from 'src/hooks/context/InputHeightContext';
 import LinearGradient from 'react-native-linear-gradient';
 import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
-import { colors, gradients } from 'src/theme';
+import { colors, gradients } from 'src/config';
 
 type DirectMessageDetailScreenProps = {
   roomId: string;

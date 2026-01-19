@@ -11,7 +11,7 @@ import {
 import { WebView } from 'react-native-webview';
 import { stripePaymentService } from 'src/services/payment/stripePaymentService';
 import { paymentStorageService } from 'src/services/payment/paymentStorageService';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 type PaymentModalProps = {
   visible: boolean;

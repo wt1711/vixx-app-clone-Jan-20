@@ -2,12 +2,12 @@ import React, { useState, useCallback } from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { Send } from 'lucide-react-native';
-import { useAIAssistant } from 'src/context/AIAssistantContext';
-import { useReply } from 'src/context/ReplyContext';
-import { useInputHeight } from 'src/context/InputHeightContext';
+import { useAIAssistant } from 'src/hooks/context/AIAssistantContext';
+import { useReply } from 'src/hooks/context/ReplyContext';
+import { useInputHeight } from 'src/hooks/context/InputHeightContext';
 import { EventType, Room } from 'matrix-js-sdk';
-import { MsgType, ContentKey } from 'src/types/matrix/room';
-import { getMatrixClient } from 'src/matrixClient';
+import { MsgType, ContentKey } from 'src/types';
+import { getMatrixClient } from 'src/services/matrixClient';
 import { useImageSender } from 'src/hooks/message/useImageSender';
 import { useSparkleAnimation } from 'src/hooks/animation/useSparkleAnimation';
 import { useAnimatedHeight } from 'src/hooks/animation/useAnimatedHeight';
@@ -15,7 +15,7 @@ import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { ReasoningPill } from './ReasoningPill';
 import { ReplyBar } from './ReplyBar';
 import { InputBar } from './InputBar';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 import { isFounderRoom as checkIsFounderRoom } from 'src/utils/room';
 
 // Re-export for backwards compatibility

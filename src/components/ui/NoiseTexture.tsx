@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, StyleProp, ViewStyle } from 'react-native';
 import Svg, { Defs, Pattern, Line, Rect } from 'react-native-svg';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 type CarbonFiberTextureProps = {
   opacity?: number;

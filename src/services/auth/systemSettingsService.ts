@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from 'src/constants/env';
+import { API_ENDPOINTS } from 'src/config/env';
 import { decrypt } from 'src/services/encrypt';
 
 export enum SystemSettingKey {

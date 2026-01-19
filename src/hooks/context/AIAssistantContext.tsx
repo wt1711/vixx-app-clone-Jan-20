@@ -7,7 +7,7 @@ import React, {
   useMemo,
 } from 'react';
 import { Room } from 'matrix-js-sdk';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import {
   getOpenAIConsultation,
   generateResponseFromMessage,

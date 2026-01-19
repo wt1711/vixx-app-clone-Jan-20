@@ -7,7 +7,7 @@ import {
   Pressable,
   Linking,
 } from 'react-native';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 type InstagramStoryReplyMessageProps = {
   instagramUrl: string;

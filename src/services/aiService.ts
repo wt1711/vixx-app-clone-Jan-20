@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from 'src/constants/env';
+import { API_ENDPOINTS } from 'src/config/env';
 
 export type Message = {
   sender: string;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, Pressable, Linking } from 'react-native';
 import { Instagram } from 'lucide-react-native';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 type ViewOnInstagramLinkProps = {
   instagramUrl: string;

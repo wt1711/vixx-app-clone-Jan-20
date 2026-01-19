@@ -1,5 +1,5 @@
 import { Room, MatrixClient } from 'matrix-js-sdk';
-import { MessageEvent } from 'src/types/matrix/room';
+import { MessageEvent } from 'src/types';
 import { formatRelativeTime } from 'src/utils/timeFormatter';
 
 /**
