@@ -7,7 +7,7 @@ import { useReply } from 'src/hooks/context/ReplyContext';
 import { useInputHeight } from 'src/hooks/context/InputHeightContext';
 import { EventType, Room } from 'matrix-js-sdk';
 import { MsgType, ContentKey } from 'src/types';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import { useImageSender } from 'src/hooks/message/useImageSender';
 import { useSparkleAnimation } from 'src/hooks/animation/useSparkleAnimation';
 import { useAnimatedHeight } from 'src/hooks/animation/useAnimatedHeight';

@@ -15,7 +15,7 @@ import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
 import { Settings, Plus } from 'lucide-react-native';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { useDirectRooms } from 'src/hooks/room';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import {
   getRoomAvatarUrl,
   getLastRoomMessageAsync,

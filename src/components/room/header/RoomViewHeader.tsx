@@ -5,7 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { ChevronLeft, User } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import { getRoomAvatarUrl } from 'src/utils/room';
 import { colors, gradients } from 'src/config';
 

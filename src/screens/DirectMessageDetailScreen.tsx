@@ -13,7 +13,7 @@ import {
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import { useKeyboardHeight } from 'src/hooks/useKeyboardHeight';
 import { RoomTimeline, RoomInput, RoomViewHeader } from 'src/components/room';
 import { AIAssistantProvider } from 'src/hooks/context/AIAssistantContext';

@@ -17,7 +17,7 @@ import Svg, { Path } from 'react-native-svg';
 // import { useAuth } from 'src/hooks/context/AuthContext';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { colors } from 'src/config';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import { getCreditsRemaining } from 'src/services/aiService';
 import { useChatWithFounder } from 'src/hooks/useChatWithFounder';
 

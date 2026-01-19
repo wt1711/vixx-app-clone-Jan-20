@@ -5,7 +5,7 @@ import {
   getMatrixClient,
   initMatrixClient,
   stopMatrixClient,
-} from 'src/matrixClient';
+} from 'src/services/matrixClient';
 import { MatrixClient } from 'matrix-js-sdk';
 import { ENV } from 'src/config/env';
 import { MATRIX_CREDENTIALS_KEY } from 'src/config/localStorage';

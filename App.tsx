@@ -1,6 +1,6 @@
 import React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AuthProvider } from './src/context/AuthContext';
+import { AuthProvider } from './src/hooks/context/AuthContext';
 import Home from './src/screens/Home';
 
 export default function App() {

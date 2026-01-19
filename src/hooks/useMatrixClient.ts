@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MatrixClient } from 'matrix-js-sdk';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 
 export const useMatrixClient = () => {
   const [client, setClient] = useState<MatrixClient | null>(null);

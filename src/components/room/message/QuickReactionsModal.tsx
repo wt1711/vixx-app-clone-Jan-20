@@ -18,7 +18,7 @@ import { MessageItem } from 'src/components/room/types';
 import { ReplyPreview } from 'src/components/room/message/variants';
 import { colors } from 'src/config';
 import { MsgType } from 'src/types';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 
 const QUICK_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 

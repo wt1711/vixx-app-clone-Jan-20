@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
-import { getMatrixClient } from 'src/matrixClient';
+import { getMatrixClient } from 'src/services/matrixClient';
 import {
   getEventReactions,
   getReactionContent,
