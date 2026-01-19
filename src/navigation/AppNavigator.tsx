@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DirectMessageListScreen } from 'src/screens/DirectMessageListScreen';
 import { DirectMessageDetailScreen } from 'src/screens/DirectMessageDetailScreen';
 import { SettingsScreen } from 'src/screens/SettingsScreen';
-import PendingInvitationsModal from 'src/components/PendingInvitationsModal';
+import { PendingInvitationsModal } from 'src/components/auth';
 import { useDirectRooms } from 'src/hooks/room';
 import { getMatrixClient } from 'src/matrixClient';
 

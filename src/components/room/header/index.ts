@@ -1,0 +1,1 @@
+export { RoomViewHeader } from './RoomViewHeader';

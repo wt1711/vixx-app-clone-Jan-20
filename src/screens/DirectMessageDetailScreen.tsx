@@ -15,9 +15,7 @@ import {
 import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/matrixClient';
 import { useKeyboardHeight } from 'src/hooks/useKeyboardHeight';
-import { RoomTimeline } from 'src/components/room/RoomTimeline';
-import { RoomInput } from 'src/components/room/RoomInput';
-import { RoomViewHeader } from 'src/components/room/RoomViewHeader';
+import { RoomTimeline, RoomInput, RoomViewHeader } from 'src/components/room';
 import { AIAssistantProvider } from 'src/context/AIAssistantContext';
 import { ReplyProvider } from 'src/context/ReplyContext';
 import { InputHeightProvider } from 'src/context/InputHeightContext';

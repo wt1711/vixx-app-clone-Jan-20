@@ -10,8 +10,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { ParticleSparkles } from 'src/components/ui/ParticleSparkles';
-import LoginInstagramModal from 'src/components/LoginInstagramModal';
-import LoginCredentialsModal from 'src/components/LoginCredentialsModal';
+import {
+  LoginInstagramModal,
+  LoginCredentialsModal,
+} from 'src/components/auth';
 import { InstagramIcon, KeyRound } from 'lucide-react-native';
 import {
   AuthService,

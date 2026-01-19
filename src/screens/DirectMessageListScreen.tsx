@@ -22,11 +22,11 @@ import {
   isMessageFromMe,
 } from 'src/utils/room';
 import { useAuth } from 'src/context/AuthContext';
-import { RoomListItem, RoomItemData } from 'src/components/room/RoomListItem';
+import { RoomListItem, RoomItemData } from 'src/components/room';
 import { LoadingScreen } from 'src/components/common/LoadingScreen';
 import { EmptyState } from 'src/components/common/EmptyState';
 import { SocialAccountService } from 'src/services/apiService';
-import ForceLogOutModal from 'src/components/ForceLogOutModal';
+import { ForceLogOutModal } from 'src/components/auth';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { colors } from 'src/theme';
 import { useChatWithFounder } from 'src/hooks/useChatWithFounder';

@@ -15,14 +15,14 @@ import {
   isFounderRoom,
 } from 'src/utils/room';
 import { MessageEvent } from 'src/types/matrix/room';
-import { MessageItem, RoomTimelineProps } from 'src/components/room/types';
+import { MessageItem, RoomTimelineProps } from '../types';
 import {
   MessageItemComponent,
   QuickReactionsModal,
   ModalPosition,
-} from 'src/components/room/message';
-import { ScrollToBottomButton } from 'src/components/room/ScrollToBottomButton';
-import { FounderWelcomeCard } from 'src/components/room/FounderWelcomeCard';
+} from '../message';
+import { ScrollToBottomButton } from './ScrollToBottomButton';
+import { FounderWelcomeCard } from './FounderWelcomeCard';
 import { useRoomTimeline, useTimelineScroll } from 'src/hooks/room';
 import { useReply } from 'src/context/ReplyContext';
 import { useInputHeight } from 'src/context/InputHeightContext';

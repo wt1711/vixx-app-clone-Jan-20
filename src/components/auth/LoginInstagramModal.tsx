@@ -16,7 +16,7 @@ import { ArrowRight, Instagram } from 'lucide-react-native';
 import { colors, gradients } from 'src/theme';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
-import SyncingInstagramModal from 'src/components/SyncingInstagramModal';
+import SyncingInstagramModal from './SyncingInstagramModal';
 
 interface LoginInstagramModalProps {
   open: boolean;

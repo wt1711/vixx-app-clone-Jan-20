@@ -12,17 +12,14 @@ import { useImageSender } from 'src/hooks/message/useImageSender';
 import { useSparkleAnimation } from 'src/hooks/animation/useSparkleAnimation';
 import { useAnimatedHeight } from 'src/hooks/animation/useAnimatedHeight';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
-import { ReasoningPill } from 'src/components/room/ReasoningPill';
-import { ReplyBar } from 'src/components/room/ReplyBar';
-import { InputBar } from 'src/components/room/InputBar';
+import { ReasoningPill } from './ReasoningPill';
+import { ReplyBar } from './ReplyBar';
+import { InputBar } from './InputBar';
 import { colors } from 'src/theme';
 import { isFounderRoom as checkIsFounderRoom } from 'src/utils/room';
 
 // Re-export for backwards compatibility
-export {
-  getReplyPreviewText,
-  type ReplyPreviewInput,
-} from 'src/components/room/ReplyBar';
+export { getReplyPreviewText, type ReplyPreviewInput } from './ReplyBar';
 
 type RoomInputProps = {
   room: Room;
