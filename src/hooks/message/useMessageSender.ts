@@ -1,6 +1,6 @@
 import { useMatrixClient } from 'src/hooks/useMatrixClient';
 import { parseMessageContent } from 'src/utils/slashCommands';
-import { MessageEvent } from 'src/types/matrix';
+import { MessageEvent } from 'src/types';
 
 export const useMessageSender = (roomId: string | null) => {
   const { client } = useMatrixClient();

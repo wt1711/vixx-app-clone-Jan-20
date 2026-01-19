@@ -14,7 +14,7 @@ import {
   getReactionContent,
   isFounderRoom,
 } from 'src/utils/room';
-import { MessageEvent } from 'src/types/matrix';
+import { MessageEvent } from 'src/types';
 import { MessageItem, RoomTimelineProps } from '../types';
 import {
   MessageItemComponent,

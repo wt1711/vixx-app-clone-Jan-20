@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { ReplyToData } from 'src/components/room/types';
 import { colors } from 'src/config';
-import { MsgType } from 'src/types/matrix';
+import { MsgType } from 'src/types';
 
 export type ReplyPreviewProps = {
   replyTo: ReplyToData;

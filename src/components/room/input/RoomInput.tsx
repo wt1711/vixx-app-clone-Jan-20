@@ -6,7 +6,7 @@ import { useAIAssistant } from 'src/context/AIAssistantContext';
 import { useReply } from 'src/context/ReplyContext';
 import { useInputHeight } from 'src/context/InputHeightContext';
 import { EventType, Room } from 'matrix-js-sdk';
-import { MsgType, ContentKey } from 'src/types/matrix';
+import { MsgType, ContentKey } from 'src/types';
 import { getMatrixClient } from 'src/matrixClient';
 import { useImageSender } from 'src/hooks/message/useImageSender';
 import { useSparkleAnimation } from 'src/hooks/animation/useSparkleAnimation';

@@ -3,7 +3,7 @@ import { Image } from 'react-native';
 import { getMatrixClient } from 'src/matrixClient';
 import { FOUNDER_MATRIX_ID, FOUNDER_ROOM_NAME } from 'src/config/founder';
 import { isFounderRoom } from 'src/utils/room';
-import { Membership } from 'src/types/matrix';
+import { Membership } from 'src/types';
 
 const founderAvatar = require('../../assets/founder.png');
 

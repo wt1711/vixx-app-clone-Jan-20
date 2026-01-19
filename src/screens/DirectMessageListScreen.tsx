@@ -30,7 +30,7 @@ import { ForceLogOutModal } from 'src/components/auth';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { colors } from 'src/config';
 import { useChatWithFounder } from 'src/hooks/useChatWithFounder';
-import { Membership } from 'src/types/matrix';
+import { Membership } from 'src/types';
 
 type DirectMessageListScreenProps = {
   onSelectRoom: (roomId: string) => void;

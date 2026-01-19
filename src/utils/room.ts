@@ -13,7 +13,7 @@ import {
   StateEvent,
   RelationType,
   ContentKey,
-} from 'src/types/matrix';
+} from 'src/types';
 import {
   getInstagramUrl,
   getInstagramStoryReplyData,
