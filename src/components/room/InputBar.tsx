@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { ImageIcon, Sparkles } from 'lucide-react-native';
-import { colors } from '../../theme';
+import { colors } from 'src/theme';
 
 type InputBarProps = {
   value: string;
@@ -92,7 +92,9 @@ export function InputBar({
             }
           >
             <Sparkles
-              color={isGeneratingResponse ? sparkleColor : colors.accent.primary}
+              color={
+                isGeneratingResponse ? sparkleColor : colors.accent.primary
+              }
               size={20}
             />
           </Animated.View>

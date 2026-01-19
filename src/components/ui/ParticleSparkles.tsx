@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
-import { colors } from '../../theme';
+import { colors } from 'src/theme';
 
 type Particle = {
   id: number;

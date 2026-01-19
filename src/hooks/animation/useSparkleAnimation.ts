@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { Animated, Easing } from 'react-native';
-import { colors } from '../../theme';
+import { colors } from 'src/theme';
 
 type ColorStop = {
   pos: number;

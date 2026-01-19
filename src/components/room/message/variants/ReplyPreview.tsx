@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { ReplyToData } from '../../types';
-import { colors } from '../../../../theme';
-import { MsgType } from '../../../../types/matrix/room';
+import { ReplyToData } from 'src/components/room/types';
+import { colors } from 'src/theme';
+import { MsgType } from 'src/types/matrix/room';
 
 export type ReplyPreviewProps = {
   replyTo: ReplyToData;

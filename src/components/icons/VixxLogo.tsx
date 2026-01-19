@@ -1,6 +1,6 @@
 import React from 'react';
 import Svg, { G, Line, Rect, Path } from 'react-native-svg';
-import { colors } from '../../theme';
+import { colors } from 'src/theme';
 
 type VixxLogoProps = {
   size?: number;

@@ -1,8 +1,14 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Animated } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+} from 'react-native';
 import { X } from 'lucide-react-native';
-import { colors } from '../../theme';
-import { MsgType } from '../../types/matrix/room';
+import { colors } from 'src/theme';
+import { MsgType } from 'src/types/matrix/room';
 
 export type ReplyPreviewInput = {
   content: string;

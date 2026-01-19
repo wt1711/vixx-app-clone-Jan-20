@@ -2,12 +2,12 @@ import React, { useCallback } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { LiquidGlassButton } from '../ui/LiquidGlassButton';
+import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { ChevronLeft, User } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
-import { getMatrixClient } from '../../matrixClient';
-import { getRoomAvatarUrl } from '../../utils/room';
-import { colors, gradients } from '../../theme';
+import { getMatrixClient } from 'src/matrixClient';
+import { getRoomAvatarUrl } from 'src/utils/room';
+import { colors, gradients } from 'src/theme';
 
 type RoomViewHeaderProps = {
   room: Room;

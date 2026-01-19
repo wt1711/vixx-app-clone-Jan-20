@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { Room } from 'matrix-js-sdk';
-import { formatRelativeTimeWithRecent } from '../../utils/timeFormatter';
-import { getInitials } from '../../utils/stringUtils';
-import { colors } from '../../theme';
+import { formatRelativeTimeWithRecent } from 'src/utils/timeFormatter';
+import { getInitials } from 'src/utils/stringUtils';
+import { colors } from 'src/theme';
 
 export type RoomItemData = {
   roomId: string;

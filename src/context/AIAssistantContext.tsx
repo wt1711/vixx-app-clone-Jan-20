@@ -7,15 +7,15 @@ import React, {
   useMemo,
 } from 'react';
 import { Room } from 'matrix-js-sdk';
-import { getMatrixClient } from '../matrixClient';
+import { getMatrixClient } from 'src/matrixClient';
 import {
   getOpenAIConsultation,
   generateResponseFromMessage,
   generateResponseWithIdea,
   gradeMessage,
-} from '../services/aiService';
-import { isMessageFromMe, getLastReceivedMessageBatch } from '../utils/room';
-import { parseAIResponse, ParsedAIResponse } from '../utils/aiResponseParser';
+} from 'src/services/aiService';
+import { isMessageFromMe, getLastReceivedMessageBatch } from 'src/utils/room';
+import { parseAIResponse, ParsedAIResponse } from 'src/utils/aiResponseParser';
 
 type ChatMessage = {
   sender: 'user' | 'ai';

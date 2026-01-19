@@ -1,12 +1,12 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { DirectMessageListScreen } from '../screens/DirectMessageListScreen';
-import { DirectMessageDetailScreen } from '../screens/DirectMessageDetailScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
-import PendingInvitationsModal from '../components/PendingInvitationsModal';
-import { useDirectRooms } from '../hooks/room';
-import { getMatrixClient } from '../matrixClient';
+import { DirectMessageListScreen } from 'src/screens/DirectMessageListScreen';
+import { DirectMessageDetailScreen } from 'src/screens/DirectMessageDetailScreen';
+import { SettingsScreen } from 'src/screens/SettingsScreen';
+import PendingInvitationsModal from 'src/components/PendingInvitationsModal';
+import { useDirectRooms } from 'src/hooks/room';
+import { getMatrixClient } from 'src/matrixClient';
 
 export type RootStackParamList = {
   MessageList: undefined;

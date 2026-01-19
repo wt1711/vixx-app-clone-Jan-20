@@ -1,11 +1,11 @@
-export { MessageItemComponent } from './MessageItem';
-export type { MessageItemProps } from './MessageItem';
-export { ReactionsList } from './Reactions';
-export type { ReactionsListProps } from './Reactions';
-export { QuickReactionsModal } from './QuickReactionsModal';
+export { MessageItemComponent } from 'src/components/room/message/MessageItem';
+export type { MessageItemProps } from 'src/components/room/message/MessageItem';
+export { ReactionsList } from 'src/components/room/message/Reactions';
+export type { ReactionsListProps } from 'src/components/room/message/Reactions';
+export { QuickReactionsModal } from 'src/components/room/message/QuickReactionsModal';
 export type {
   ModalPosition,
   QuickReactionsModalProps,
-} from './QuickReactionsModal';
-export { ReplyPreview } from './variants';
-export type { ReplyPreviewProps } from './variants';
+} from 'src/components/room/message/QuickReactionsModal';
+export { ReplyPreview } from 'src/components/room/message/variants';
+export type { ReplyPreviewProps } from 'src/components/room/message/variants';

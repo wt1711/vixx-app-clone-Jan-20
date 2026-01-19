@@ -13,14 +13,17 @@ import {
   StateEvent,
   RelationType,
   ContentKey,
-} from '../types/matrix/room';
-import { getInstagramUrl, getInstagramStoryReplyData } from './urlParser';
+} from 'src/types/matrix/room';
+import {
+  getInstagramUrl,
+  getInstagramStoryReplyData,
+} from 'src/utils/urlParser';
 import {
   FOUNDER_MATRIX_ID,
   FOUNDER_ROOM_NAME,
   FOUNDER_ROOM_NAME_LEGACY,
   FOUNDER_AVATAR_URL,
-} from '../constants/founder';
+} from 'src/constants/founder';
 
 /**
  * Check if a room is the founder/team chat room (supports both old and new names)
@@ -52,7 +55,7 @@ export const getRoomAvatarUrl = (
 ): string | undefined => {
   const mxcUrl = room.getMxcAvatarUrl();
   const avatarUrl = mxcUrl
-    ? mx.mxcUrlToHttp(
+    ? (mx.mxcUrlToHttp(
         mxcUrl,
         size,
         size,
@@ -60,7 +63,7 @@ export const getRoomAvatarUrl = (
         undefined,
         false,
         useAuthentication,
-      ) ?? undefined
+      ) ?? undefined)
     : undefined;
 
   // Fallback to founder avatar if this is the founder room

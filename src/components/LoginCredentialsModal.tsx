@@ -11,8 +11,8 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
 import { X } from 'lucide-react-native';
-import { colors } from '../theme';
-import { CarbonFiberTexture } from './ui/NoiseTexture';
+import { colors } from 'src/theme';
+import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
 
 interface LoginCredentialsModalProps {
   visible: boolean;

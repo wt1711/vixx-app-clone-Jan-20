@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { colors } from '../theme';
+import { colors } from 'src/theme';
 import { StyleSheet, Text, View, Modal, Image } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import { ParticleSparkles } from './ui/ParticleSparkles';
-import { CarbonFiberTexture } from './ui/NoiseTexture';
+import { ParticleSparkles } from 'src/components/ui/ParticleSparkles';
+import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
 
 const LOGO_URL =
   'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/90ic679nh3wp43mbosisg';

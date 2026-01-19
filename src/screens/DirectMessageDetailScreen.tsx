@@ -13,17 +13,17 @@ import {
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
-import { getMatrixClient } from '../matrixClient';
-import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
-import { RoomTimeline } from '../components/room/RoomTimeline';
-import { RoomInput } from '../components/room/RoomInput';
-import { RoomViewHeader } from '../components/room/RoomViewHeader';
-import { AIAssistantProvider } from '../context/AIAssistantContext';
-import { ReplyProvider } from '../context/ReplyContext';
-import { InputHeightProvider } from '../context/InputHeightContext';
+import { getMatrixClient } from 'src/matrixClient';
+import { useKeyboardHeight } from 'src/hooks/useKeyboardHeight';
+import { RoomTimeline } from 'src/components/room/RoomTimeline';
+import { RoomInput } from 'src/components/room/RoomInput';
+import { RoomViewHeader } from 'src/components/room/RoomViewHeader';
+import { AIAssistantProvider } from 'src/context/AIAssistantContext';
+import { ReplyProvider } from 'src/context/ReplyContext';
+import { InputHeightProvider } from 'src/context/InputHeightContext';
 import LinearGradient from 'react-native-linear-gradient';
-import { CarbonFiberTexture } from '../components/ui/NoiseTexture';
-import { colors, gradients } from '../theme';
+import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
+import { colors, gradients } from 'src/theme';
 
 type DirectMessageDetailScreenProps = {
   roomId: string;

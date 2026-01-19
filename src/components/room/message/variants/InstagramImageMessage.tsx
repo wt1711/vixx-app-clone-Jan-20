@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Image, Pressable } from 'react-native';
-import { ViewOnInstagramLink } from './ViewOnInstagramLink';
+import { ViewOnInstagramLink } from 'src/components/room/message/variants/ViewOnInstagramLink';
 
 type InstagramImageMessageProps = {
   instagramUrl: string;

@@ -6,8 +6,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { MatrixEvent, Room, Direction } from 'matrix-js-sdk';
-import { useMatrixClient } from '../useMatrixClient';
-import { MessageEvent } from '../../types/matrix/room';
+import { useMatrixClient } from 'src/hooks/useMatrixClient';
+import { MessageEvent } from 'src/types/matrix/room';
 
 export interface NativeMessage {
   id: string;

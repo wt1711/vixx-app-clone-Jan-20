@@ -6,16 +6,16 @@ import {
   Direction,
   ReceiptType,
 } from 'matrix-js-sdk';
-import { getMatrixClient } from '../../matrixClient';
-import { MsgType, MessageEvent, ContentKey } from '../../types/matrix/room';
+import { getMatrixClient } from 'src/matrixClient';
+import { MsgType, MessageEvent, ContentKey } from 'src/types/matrix/room';
 import {
   getMemberAvatarMxc,
   getRoomAvatarUrl,
   messageEventOnly,
   isMessageFromMe,
-} from '../../utils/room';
-import { MessageItem, ReplyToData } from '../../components/room/types';
-import { getReactionsForEvent } from '../../components/room/utils';
+} from 'src/utils/room';
+import { MessageItem, ReplyToData } from 'src/components/room/types';
+import { getReactionsForEvent } from 'src/components/room/utils';
 
 const MIN_MESSAGES_FOR_INITIAL_LOAD = 10;
 const PAGINATION_LIMIT = 50;

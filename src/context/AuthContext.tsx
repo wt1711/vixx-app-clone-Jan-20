@@ -5,11 +5,11 @@ import {
   getMatrixClient,
   initMatrixClient,
   stopMatrixClient,
-} from '../matrixClient';
+} from 'src/matrixClient';
 import { MatrixClient } from 'matrix-js-sdk';
-import { ENV } from '../constants/env';
-import { MATRIX_CREDENTIALS_KEY } from '../constants/localStorege';
-import { LoginType } from '../types/matrix/room';
+import { ENV } from 'src/constants/env';
+import { MATRIX_CREDENTIALS_KEY } from 'src/constants/localStorege';
+import { LoginType } from 'src/types/matrix/room';
 
 type MatrixSession = {
   accessToken: string;

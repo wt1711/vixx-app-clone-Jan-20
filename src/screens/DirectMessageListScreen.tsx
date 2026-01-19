@@ -11,26 +11,26 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
-import { CarbonFiberTexture } from '../components/ui/NoiseTexture';
+import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
 import { Settings, Plus } from 'lucide-react-native';
-import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
-import { useDirectRooms } from '../hooks/room';
-import { getMatrixClient } from '../matrixClient';
+import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
+import { useDirectRooms } from 'src/hooks/room';
+import { getMatrixClient } from 'src/matrixClient';
 import {
   getRoomAvatarUrl,
   getLastRoomMessageAsync,
   isMessageFromMe,
-} from '../utils/room';
-import { useAuth } from '../context/AuthContext';
-import { RoomListItem, RoomItemData } from '../components/room/RoomListItem';
-import { LoadingScreen } from '../components/common/LoadingScreen';
-import { EmptyState } from '../components/common/EmptyState';
-import { SocialAccountService } from '../services/apiService';
-import ForceLogOutModal from '../components/ForceLogOutModal';
+} from 'src/utils/room';
+import { useAuth } from 'src/context/AuthContext';
+import { RoomListItem, RoomItemData } from 'src/components/room/RoomListItem';
+import { LoadingScreen } from 'src/components/common/LoadingScreen';
+import { EmptyState } from 'src/components/common/EmptyState';
+import { SocialAccountService } from 'src/services/apiService';
+import ForceLogOutModal from 'src/components/ForceLogOutModal';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { colors } from '../theme';
-import { useChatWithFounder } from '../hooks/useChatWithFounder';
-import { Membership } from '../types/matrix/room';
+import { colors } from 'src/theme';
+import { useChatWithFounder } from 'src/hooks/useChatWithFounder';
+import { Membership } from 'src/types/matrix/room';
 
 type DirectMessageListScreenProps = {
   onSelectRoom: (roomId: string) => void;

@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { ReplyToData } from '../components/room/types';
+import { ReplyToData } from 'src/components/room/types';
 
 type ReplyContextType = {
   replyingTo: ReplyToData | null;

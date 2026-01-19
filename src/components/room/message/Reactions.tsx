@@ -7,8 +7,8 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { ReactionData } from '../types';
-import { colors } from '../../../theme';
+import { ReactionData } from 'src/components/room/types';
+import { colors } from 'src/theme';
 
 type ReactionButtonProps = {
   reaction: ReactionData;
