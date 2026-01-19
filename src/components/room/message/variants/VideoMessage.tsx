@@ -16,6 +16,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import { Play } from 'lucide-react-native';
 import { MessageItem } from '../../types';
 import { styles } from '../MessageItem.styles';
+import { colors } from '../../../../theme';
 
 // Cache map: videoUrl -> localVideoUri (only for iOS)
 const videoCache = new Map<string, string>();
@@ -225,7 +226,7 @@ export const VideoMessage = ({
           <View
             style={[StyleSheet.absoluteFill, styles.videoDownloadingOverlay]}
           >
-            <ActivityIndicator size="large" color="#fff" />
+            <ActivityIndicator size="large" color={colors.text.primary} />
             <Text style={styles.videoDownloadingText}>
               Downloading video...
             </Text>
@@ -259,7 +260,7 @@ export const VideoMessage = ({
                 style={[StyleSheet.absoluteFill, styles.videoThumbnailOverlay]}
               >
                 <View style={styles.videoPlayButton}>
-                  <Play size={32} color="#fff" fill="#fff" />
+                  <Play size={32} color={colors.text.primary} fill={colors.text.primary} />
                 </View>
               </View>
             )}
@@ -277,7 +278,7 @@ export const VideoMessage = ({
               style={[StyleSheet.absoluteFill, styles.videoThumbnailOverlay]}
             >
               <View style={styles.videoPlayButton}>
-                <Play size={32} color="#fff" fill="#fff" />
+                <Play size={32} color={colors.text.primary} fill={colors.text.primary} />
               </View>
               <Text style={styles.videoMessageLabel}>Tap to load</Text>
             </View>

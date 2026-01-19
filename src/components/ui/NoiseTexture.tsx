@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, StyleProp, ViewStyle } from 'react-native';
 import Svg, { Defs, Pattern, Line, Rect } from 'react-native-svg';
+import { colors } from '../../theme';
 
 type CarbonFiberTextureProps = {
   opacity?: number;
@@ -38,7 +39,7 @@ export function CarbonFiberTexture({
               y1="0"
               x2={cellSize}
               y2={cellSize}
-              stroke="rgba(255,255,255,0.12)"
+              stroke={colors.transparent.white12}
               strokeWidth={strokeWidth}
             />
             <Line
@@ -46,7 +47,7 @@ export function CarbonFiberTexture({
               y1={cellSize}
               x2={cellSize * 2}
               y2={cellSize * 2}
-              stroke="rgba(255,255,255,0.08)"
+              stroke={colors.transparent.white08}
               strokeWidth={strokeWidth}
             />
             {/* Diagonal lines going other direction */}
@@ -55,7 +56,7 @@ export function CarbonFiberTexture({
               y1="0"
               x2="0"
               y2={cellSize}
-              stroke="rgba(255,255,255,0.06)"
+              stroke={colors.transparent.white06}
               strokeWidth={strokeWidth}
             />
             <Line
@@ -63,7 +64,7 @@ export function CarbonFiberTexture({
               y1={cellSize}
               x2={cellSize}
               y2={cellSize * 2}
-              stroke="rgba(255,255,255,0.1)"
+              stroke={colors.transparent.white10}
               strokeWidth={strokeWidth}
             />
           </Pattern>

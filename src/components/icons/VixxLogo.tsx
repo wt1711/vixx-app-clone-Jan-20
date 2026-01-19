@@ -1,12 +1,16 @@
 import React from 'react';
 import Svg, { G, Line, Rect, Path } from 'react-native-svg';
+import { colors } from '../../theme';
 
 type VixxLogoProps = {
   size?: number;
   color?: string;
 };
 
-export function VixxLogo({ size = 20, color = '#ffffff' }: VixxLogoProps) {
+export function VixxLogo({
+  size = 20,
+  color = colors.text.primary,
+}: VixxLogoProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 512 512">
       {/* Left eye (X) */}

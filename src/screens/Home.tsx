@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Login from './Login';
 import { AppNavigator } from '../navigation/AppNavigator';
 import { LoadingScreen } from '../components/common/LoadingScreen';
+import { colors } from '../theme';
 
 export default function Home() {
   const { matrixToken, isLoading } = useAuth();
@@ -27,6 +28,6 @@ export default function Home() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.background.black,
   },
 });

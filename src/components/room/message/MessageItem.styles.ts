@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
     // Slightly sharper bottom-right for own messages
     borderBottomRightRadius: 6,
     // Subtle glow to lift off carbon fibre background
-    shadowColor: '#00FFFF',
+    shadowColor: colors.shadow.cyanGlow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
@@ -98,11 +98,11 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   messageVideo: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.transparent.white06,
     overflow: 'hidden',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.transparent.white12,
   },
   messageVideoWithRatio: {
     maxWidth: 150,
@@ -140,12 +140,12 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   videoThumbnailPlaceholder: {
-    backgroundColor: '#000',
+    backgroundColor: colors.background.black,
     justifyContent: 'center',
     alignItems: 'center',
   },
   videoThumbnailPlayIcon: {
-    color: '#fff',
+    color: colors.text.primary,
     fontSize: 48,
   },
   videoThumbnailOverlay: {
@@ -157,13 +157,13 @@ export const styles = StyleSheet.create({
     // width: 56,
     // height: 56,
     // borderRadius: 28,
-    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // backgroundColor: colors.transparent.black50,
     // justifyContent: 'center',
     // alignItems: 'center',
     marginBottom: 8,
   },
   videoMessageLabel: {
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: colors.transparent.white90,
     fontSize: 13,
     fontWeight: '500',
     marginBottom: 4,
@@ -171,19 +171,19 @@ export const styles = StyleSheet.create({
   videoDownloadingOverlay: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.transparent.black50,
   },
   videoDownloadingText: {
-    color: '#fff',
+    color: colors.text.primary,
     marginTop: 10,
   },
   videoErrorOverlay: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.transparent.black50,
   },
   videoErrorText: {
-    color: '#fff',
+    color: colors.text.primary,
     textAlign: 'center',
     padding: 20,
   },
@@ -194,20 +194,20 @@ export const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)', // subtle white top highlight
-    borderLeftColor: 'rgba(255, 255, 255, 0.05)', // subtle white left
-    borderBottomColor: 'rgba(255, 255, 255, 0.12)', // white catchlight bottom
-    borderRightColor: 'rgba(255, 255, 255, 0.08)', // white catchlight right
+    borderTopColor: colors.transparent.white08, // subtle white top highlight
+    borderLeftColor: colors.transparent.white05, // subtle white left
+    borderBottomColor: colors.transparent.white12, // white catchlight bottom
+    borderRightColor: colors.transparent.white08, // white catchlight right
   },
   stealthBorder: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: 20,
     borderBottomRightRadius: 6,
     borderWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)', // subtle white top
-    borderLeftColor: 'rgba(255, 255, 255, 0.05)', // subtle white left
-    borderBottomColor: 'rgba(255, 255, 255, 0.12)', // white catchlight bottom
-    borderRightColor: 'rgba(255, 255, 255, 0.08)', // white catchlight right
+    borderTopColor: colors.transparent.white08, // subtle white top
+    borderLeftColor: colors.transparent.white05, // subtle white left
+    borderBottomColor: colors.transparent.white12, // white catchlight bottom
+    borderRightColor: colors.transparent.white08, // white catchlight right
   },
   // System message styles (welcome message, etc.) - whiter frosted glass like reasoning pill
   systemMessageContainer: {
@@ -216,7 +216,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   systemMessageBubble: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)', // whiter frosted glass
+    backgroundColor: colors.transparent.white12, // whiter frosted glass
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -227,10 +227,10 @@ export const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderRadius: 16,
     borderWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.20)', // brighter white top
-    borderLeftColor: 'rgba(255, 255, 255, 0.12)', // white left
-    borderBottomColor: 'rgba(255, 255, 255, 0.25)', // bright white catchlight bottom
-    borderRightColor: 'rgba(255, 255, 255, 0.15)', // white right
+    borderTopColor: colors.transparent.white20, // brighter white top
+    borderLeftColor: colors.transparent.white12, // white left
+    borderBottomColor: colors.transparent.white25, // bright white catchlight bottom
+    borderRightColor: colors.transparent.white15, // white right
   },
   systemMessageText: {
     fontSize: 14,

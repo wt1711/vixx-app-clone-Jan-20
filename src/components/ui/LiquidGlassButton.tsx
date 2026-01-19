@@ -12,6 +12,7 @@ import {
   LiquidGlassView,
   isLiquidGlassSupported,
 } from '@callstack/liquid-glass';
+import { colors } from '../../theme';
 
 type LiquidGlassButtonProps = {
   children: React.ReactNode;
@@ -113,7 +114,7 @@ export function LiquidGlassButton({
         style={[StyleSheet.absoluteFill, { borderRadius }]}
         blurType="thinMaterialDark"
         blurAmount={25}
-        reducedTransparencyFallbackColor="rgba(30, 35, 45, 0.9)"
+        reducedTransparencyFallbackColor={colors.transparent.blurFallbackLight}
       />
       {/* Layer 2: Dark overlay for deeper black */}
       <View style={[styles.darkOverlay, { borderRadius }]} />
@@ -141,16 +142,16 @@ const styles = StyleSheet.create({
   // Dark overlay for deeper black (matches input field)
   darkOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: colors.transparent.black70,
   },
   // Directional border for liquid glass effect - light from top-left
   border: {
     ...StyleSheet.absoluteFillObject,
     borderWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.25)',
-    borderLeftColor: 'rgba(255, 255, 255, 0.18)',
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
-    borderRightColor: 'rgba(255, 255, 255, 0.10)',
+    borderTopColor: colors.transparent.white25,
+    borderLeftColor: colors.transparent.white18,
+    borderBottomColor: colors.transparent.white08,
+    borderRightColor: colors.transparent.white10,
   },
   content: {
     flexDirection: 'row',

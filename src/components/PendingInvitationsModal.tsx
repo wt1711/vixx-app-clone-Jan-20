@@ -16,7 +16,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Search, Check, ChevronLeft } from 'lucide-react-native';
 import { LiquidGlassButton } from './ui/LiquidGlassButton';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { colors } from '../theme';
+import { colors, gradients } from '../theme';
 import { RoomItemData } from './room/RoomListItem';
 import { getRoomAvatarUrl } from '../utils/room';
 import { getInitials } from '../utils/stringUtils';
@@ -183,7 +183,7 @@ const PendingInvitationsModal = ({
     <View style={styles.container}>
       {/* Subtle gradient for glass refraction effect */}
       <LinearGradient
-        colors={['#0D0D0D', '#151518', '#0D0D0D']}
+        colors={[...gradients.screenDark]}
         locations={[0, 0.5, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -214,7 +214,7 @@ const PendingInvitationsModal = ({
         {/* Success Toast */}
         {successBanner ? (
           <View style={styles.successfullyAddedToast}>
-            <Check color="#22C55E" size={24} />
+            <Check color={colors.status.online} size={24} />
             <View style={styles.toastContent}>
               <Text style={styles.toastTitle}>{successBanner} added</Text>
             </View>
@@ -225,7 +225,7 @@ const PendingInvitationsModal = ({
         <View style={styles.searchContainer}>
           {searchQuery.length === 0 && (
             <View style={styles.searchPlaceholder} pointerEvents="none">
-              <Search color="#9CA3AF" size={18} />
+              <Search color={colors.text.secondary} size={18} />
               <Text style={styles.searchPlaceholderText}>Search</Text>
             </View>
           )}
@@ -262,7 +262,7 @@ const PendingInvitationsModal = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: colors.background.screenDark,
   },
   header: {
     flexDirection: 'row',
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.transparent.white08,
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 12,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   searchPlaceholderText: {
-    color: '#9CA3AF',
+    color: colors.text.secondary,
     fontSize: 16,
     marginLeft: 6,
   },
@@ -349,10 +349,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     // Inverted border lighting - darker on top/left (shadowed), lighter on bottom/right
     borderWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.3)',
-    borderLeftColor: 'rgba(0, 0, 0, 0.2)',
-    borderBottomColor: 'rgba(255, 255, 255, 0.03)',
-    borderRightColor: 'rgba(255, 255, 255, 0.02)',
+    borderTopColor: colors.transparent.black30,
+    borderLeftColor: colors.transparent.black20,
+    borderBottomColor: colors.transparent.white03,
+    borderRightColor: colors.transparent.white02,
   },
   roomItem: {
     flexDirection: 'row',
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: colors.transparent.white30,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 70,

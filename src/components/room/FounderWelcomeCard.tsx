@@ -13,7 +13,7 @@ export function FounderWelcomeCard() {
           style={StyleSheet.absoluteFill}
           blurType="dark"
           blurAmount={10}
-          reducedTransparencyFallbackColor="rgba(30, 30, 30, 0.4)"
+          reducedTransparencyFallbackColor={colors.transparent.blurFallbackDark}
         />
         <CarbonFiberTexture opacity={0.8} scale={0.5} />
         <View style={styles.glassHighlight} pointerEvents="none" />
@@ -45,10 +45,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 20,
     borderWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
-    borderLeftColor: 'rgba(255, 255, 255, 0.15)',
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-    borderRightColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: colors.transparent.white20,
+    borderLeftColor: colors.transparent.white15,
+    borderBottomColor: colors.transparent.white05,
+    borderRightColor: colors.transparent.white08,
   },
   content: {
     paddingHorizontal: 24,

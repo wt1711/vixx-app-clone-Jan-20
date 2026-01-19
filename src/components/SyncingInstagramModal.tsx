@@ -81,7 +81,10 @@ export default function SyncingInstagramModal({
       <SafeAreaProvider>
         <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
           <View
-            style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: colors.background.black },
+            ]}
           />
           <CarbonFiberTexture opacity={0.6} scale={0.5} />
           <View style={styles.content}>
@@ -96,7 +99,7 @@ export default function SyncingInstagramModal({
                 width={180}
                 height={180}
                 particleCount={3}
-                color="rgba(255, 255, 255, 0.8)"
+                color={colors.transparent.white80}
               />
             </View>
             {/* Text positioned at 50% like login buttons */}

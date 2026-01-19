@@ -23,7 +23,7 @@ import { ReplyProvider } from '../context/ReplyContext';
 import { InputHeightProvider } from '../context/InputHeightContext';
 import LinearGradient from 'react-native-linear-gradient';
 import { CarbonFiberTexture } from '../components/ui/NoiseTexture';
-import { colors } from '../theme';
+import { colors, gradients } from '../theme';
 
 type DirectMessageDetailScreenProps = {
   roomId: string;
@@ -106,7 +106,7 @@ export function DirectMessageDetailScreen({
     return (
       <View style={styles.container}>
         <LinearGradient
-          colors={['#0D0D0D', '#151518', '#0D0D0D']}
+          colors={[...gradients.screenDark]}
           locations={[0, 0.5, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -124,7 +124,7 @@ export function DirectMessageDetailScreen({
     return (
       <View style={styles.container}>
         <LinearGradient
-          colors={['#0D0D0D', '#151518', '#0D0D0D']}
+          colors={[...gradients.screenDark]}
           locations={[0, 0.5, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -167,7 +167,7 @@ export function DirectMessageDetailScreen({
                   </Animated.View>
 
                   <LinearGradient
-                    colors={['transparent', 'rgba(0, 0, 0, 1)']}
+                    colors={[...gradients.bottomFadeBlack]}
                     style={styles.bottomFadeOverlay}
                     pointerEvents="none"
                   />

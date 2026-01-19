@@ -13,7 +13,7 @@ import CookieManager from '@react-native-cookies/cookies';
 import LinearGradient from 'react-native-linear-gradient';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { ArrowRight, Instagram } from 'lucide-react-native';
-import { colors } from '../theme';
+import { colors, gradients } from '../theme';
 import { LiquidGlassButton } from './ui/LiquidGlassButton';
 import { CarbonFiberTexture } from './ui/NoiseTexture';
 import SyncingInstagramModal from './SyncingInstagramModal';
@@ -364,7 +364,10 @@ export default function LoginInstagramModal({
       <SafeAreaProvider>
         <SafeAreaView edges={['top', 'bottom']} style={styles.modalContainer}>
           <View
-            style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: colors.background.black },
+            ]}
           />
           <CarbonFiberTexture opacity={0.6} scale={0.5} />
           <View style={styles.header}>
@@ -390,25 +393,19 @@ export default function LoginInstagramModal({
                 <View
                   style={[
                     StyleSheet.absoluteFill,
-                    { backgroundColor: '#000000' },
+                    { backgroundColor: colors.background.black },
                   ]}
                 />
                 <CarbonFiberTexture opacity={0.6} scale={0.5} />
                 <View style={styles.loggedInModalContent}>
                   <View style={styles.instagramIconContainer}>
                     <LinearGradient
-                      colors={[
-                        '#f09433',
-                        '#e6683c',
-                        '#dc2743',
-                        '#cc2366',
-                        '#bc1888',
-                      ]}
+                      colors={[...gradients.instagram]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={styles.instagramIconGradient}
                     >
-                      <Instagram color="#FFFFFF" size={32} />
+                      <Instagram color={colors.text.primary} size={32} />
                     </LinearGradient>
                   </View>
                   <Text style={styles.loggedInTitle}>Instagram Connected</Text>
@@ -476,7 +473,7 @@ export default function LoginInstagramModal({
 const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 1,
-    backgroundColor: '#BDBDBD',
+    backgroundColor: colors.modal.buttonDisabled,
   },
   modalContainer: {
     flex: 1,
@@ -488,7 +485,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.modal.border,
   },
   headerSpacer: {
     flex: 1,
