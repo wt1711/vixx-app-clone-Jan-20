@@ -1,5 +1,9 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { FlatList, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import {
+  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from 'react-native';
 import { MessageItem } from '../../components/room/types';
 
 // For inverted list: offset 0 = bottom, large offset = top
@@ -26,7 +30,10 @@ interface UseTimelineScrollReturn {
 /**
  * Determines if we should auto-scroll to bottom when new messages arrive.
  */
-function shouldAutoScroll(isNearBottom: boolean, isOwnMessage: boolean): boolean {
+function shouldAutoScroll(
+  isNearBottom: boolean,
+  isOwnMessage: boolean,
+): boolean {
   return isOwnMessage || isNearBottom;
 }
 
@@ -96,7 +103,8 @@ export function useTimelineScroll({
   // Handle scroll events
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
 
       // Cache dimensions for load-more calculation
       contentHeight.current = contentSize.height;

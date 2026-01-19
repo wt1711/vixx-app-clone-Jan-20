@@ -18,7 +18,7 @@ export function useKeyboardHeight(options: UseKeyboardHeightOptions = {}) {
   const { defaultPadding = 0 } = options;
 
   const keyboardHeight = useRef(new Animated.Value(defaultPadding)).current;
-  const KEYBOARD_TOGGLE_SPEED = 0.73
+  const KEYBOARD_TOGGLE_SPEED = 0.73;
 
   useEffect(() => {
     const showEvent =

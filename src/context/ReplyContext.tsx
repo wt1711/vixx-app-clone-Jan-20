@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+  useMemo,
+} from 'react';
 import { ReplyToData } from '../components/room/types';
 
 type ReplyContextType = {
@@ -33,7 +40,9 @@ export function ReplyProvider({ children }: ReplyProviderProps) {
     [replyingTo, setReplyingTo, clearReply],
   );
 
-  return <ReplyContext.Provider value={value}>{children}</ReplyContext.Provider>;
+  return (
+    <ReplyContext.Provider value={value}>{children}</ReplyContext.Provider>
+  );
 }
 
 export function useReply() {

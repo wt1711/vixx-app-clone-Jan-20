@@ -18,7 +18,11 @@ type PaymentModalProps = {
   onSuccess: () => void;
 };
 
-export function PaymentModal({ visible, onClose, onSuccess }: PaymentModalProps) {
+export function PaymentModal({
+  visible,
+  onClose,
+  onSuccess,
+}: PaymentModalProps) {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
@@ -40,37 +44,39 @@ export function PaymentModal({ visible, onClose, onSuccess }: PaymentModalProps)
     setError(null);
 
     try {
-
       // Create payment intent
-      const { paymentIntentId: intentId } = 
+      const { paymentIntentId: intentId } =
         await stripePaymentService.createAIAssistancePayment();
-      
+
       setPaymentIntentId(intentId);
 
       // For React Native, we'll use Stripe Checkout in a WebView
       // The backend should provide a checkout URL
       // In a real implementation, your backend should return a checkout session URL
-      
+
       // Alternative: Use Stripe's hosted checkout
       // This requires your backend to create a Checkout Session
       // For now, we'll show a message that payment integration is in progress
-      
+
       setProcessing(false);
-      setError('Payment integration: Please implement Stripe Checkout Session creation in your backend API');
-      
+      setError(
+        'Payment integration: Please implement Stripe Checkout Session creation in your backend API',
+      );
+
       // TODO: Once backend provides checkout URL, uncomment:
       // setCheckoutUrl(checkoutSessionUrl);
       // setShowWebView(true);
-      
     } catch (err) {
       setProcessing(false);
-      setError(err instanceof Error ? err.message : 'Failed to initiate payment');
+      setError(
+        err instanceof Error ? err.message : 'Failed to initiate payment',
+      );
     }
   };
 
   const handleWebViewNavigation = (navState: any) => {
     const { url } = navState;
-    
+
     // Check if payment was successful
     if (url.includes('payment-success') || url.includes('success')) {
       handlePaymentSuccess();
@@ -89,13 +95,15 @@ export function PaymentModal({ visible, onClose, onSuccess }: PaymentModalProps)
       // Validate and store payment
       await paymentStorageService.validateAndStorePayment(
         paymentIntentId,
-        paymentIntentId // Using paymentIntentId as stripePaymentIntentId
+        paymentIntentId, // Using paymentIntentId as stripePaymentIntentId
       );
 
       setShowWebView(false);
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete payment');
+      setError(
+        err instanceof Error ? err.message : 'Failed to complete payment',
+      );
     }
   };
 
@@ -110,7 +118,10 @@ export function PaymentModal({ visible, onClose, onSuccess }: PaymentModalProps)
         <View style={styles.webViewContainer}>
           <View style={styles.webViewHeader}>
             <Text style={styles.webViewTitle}>Complete Payment</Text>
-            <TouchableOpacity onPress={() => setShowWebView(false)} style={styles.closeButton}>
+            <TouchableOpacity
+              onPress={() => setShowWebView(false)}
+              style={styles.closeButton}
+            >
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -142,14 +153,19 @@ export function PaymentModal({ visible, onClose, onSuccess }: PaymentModalProps)
 
           <ScrollView style={styles.content}>
             <Text style={styles.description}>
-              To access AI Assistant features, a one-time payment of $9.99 is required.
+              To access AI Assistant features, a one-time payment of $9.99 is
+              required.
             </Text>
 
             <View style={styles.featuresList}>
-              <Text style={styles.featureItem}>✓ AI-powered message suggestions</Text>
+              <Text style={styles.featureItem}>
+                ✓ AI-powered message suggestions
+              </Text>
               <Text style={styles.featureItem}>✓ Message tone analysis</Text>
               <Text style={styles.featureItem}>✓ Context-aware responses</Text>
-              <Text style={styles.featureItem}>✓ Real-time message grading</Text>
+              <Text style={styles.featureItem}>
+                ✓ Real-time message grading
+              </Text>
             </View>
 
             <View style={styles.priceContainer}>
@@ -311,5 +327,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-

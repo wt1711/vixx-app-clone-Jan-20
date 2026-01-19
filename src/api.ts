@@ -6,13 +6,16 @@ type LoginResponse = {
   deviceId?: string;
   accessToken?: string;
   matrixHost?: string;
-  user: { 
-    username: string; 
+  user: {
+    username: string;
     accessToken: string;
   };
 };
 
-export async function apiLogin(username: string, password: string): Promise<LoginResponse> {
+export async function apiLogin(
+  username: string,
+  password: string,
+): Promise<LoginResponse> {
   const res = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -25,7 +28,9 @@ export async function apiLogin(username: string, password: string): Promise<Logi
   return res.json();
 }
 
-export async function apiCheckInstagram(token: string): Promise<{ isInstagramConnected: boolean }> {
+export async function apiCheckInstagram(
+  token: string,
+): Promise<{ isInstagramConnected: boolean }> {
   const res = await fetch(API_ENDPOINTS.INSTAGRAM.CHECK, {
     method: 'GET',
     headers: {
@@ -54,7 +59,10 @@ export type InstagramConnectPayload = {
   csrftoken: string;
 };
 
-export async function apiConnectInstagram(token: string, payload: InstagramConnectPayload): Promise<{ success: boolean; message: string }> {
+export async function apiConnectInstagram(
+  token: string,
+  payload: InstagramConnectPayload,
+): Promise<{ success: boolean; message: string }> {
   const res = await fetch(API_ENDPOINTS.INSTAGRAM.CONNECT, {
     method: 'POST',
     headers: {

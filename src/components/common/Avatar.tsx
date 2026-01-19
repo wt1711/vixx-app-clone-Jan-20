@@ -26,7 +26,9 @@ export const Avatar = ({
   };
 
   if (avatarUrl) {
-    return <Image source={{ uri: avatarUrl }} style={[styles.avatar, sizeStyle]} />;
+    return (
+      <Image source={{ uri: avatarUrl }} style={[styles.avatar, sizeStyle]} />
+    );
   }
 
   return (

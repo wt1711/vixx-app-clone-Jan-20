@@ -1,11 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { LiquidGlassButton } from '../ui/LiquidGlassButton';
@@ -43,7 +37,11 @@ RoomViewHeaderProps) {
     <View style={[styles.header, { paddingTop: insets.top }]}>
       {/* Gradient overlay - 85% at top with smooth fade for glass pill effect */}
       <LinearGradient
-        colors={['rgba(0, 0, 0, 0.85)', 'rgba(0, 0, 0, 0.4)', 'rgba(0, 0, 0, 0)']}
+        colors={[
+          'rgba(0, 0, 0, 0.85)',
+          'rgba(0, 0, 0, 0.4)',
+          'rgba(0, 0, 0, 0)',
+        ]}
         locations={[0, 0.6, 1]}
         style={[styles.gradientOverlay, { height: overlayHeight }]}
         pointerEvents="none"

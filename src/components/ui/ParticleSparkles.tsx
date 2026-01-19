@@ -27,12 +27,21 @@ function getRandomEdgePosition(width: number, height: number) {
     case 0: // top
       return { x: padding + Math.random() * (width - padding * 2), y: padding };
     case 1: // right
-      return { x: width - padding, y: padding + Math.random() * (height - padding * 2) };
+      return {
+        x: width - padding,
+        y: padding + Math.random() * (height - padding * 2),
+      };
     case 2: // bottom
-      return { x: padding + Math.random() * (width - padding * 2), y: height - padding };
+      return {
+        x: padding + Math.random() * (width - padding * 2),
+        y: height - padding,
+      };
     case 3: // left
     default:
-      return { x: padding, y: padding + Math.random() * (height - padding * 2) };
+      return {
+        x: padding,
+        y: padding + Math.random() * (height - padding * 2),
+      };
   }
 }
 
@@ -161,7 +170,7 @@ export function ParticleSparkles({
           marginTop: -height / 2,
           left: '50%',
           top: '50%',
-        }
+        },
       ]}
       pointerEvents="none"
     >

@@ -51,7 +51,12 @@ const LoginCredentialsModal = ({
     >
       <SafeAreaProvider>
         <SafeAreaView edges={['top', 'bottom']} style={styles.modalContainer}>
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background.black }]} />
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: colors.background.black },
+            ]}
+          />
           <CarbonFiberTexture opacity={0.6} scale={0.5} />
           <BlurView
             style={StyleSheet.absoluteFill}
@@ -92,7 +97,10 @@ const LoginCredentialsModal = ({
             {error && <Text style={styles.errorText}>{error}</Text>}
 
             <TouchableOpacity
-              style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+              style={[
+                styles.submitButton,
+                isLoading && styles.submitButtonDisabled,
+              ]}
               onPress={handleSubmit}
               disabled={isLoading || !username || !password}
             >

@@ -1,15 +1,15 @@
 /**
  * Environment Configuration
- * 
+ *
  * This file centralizes all environment variables and API endpoints.
  * Uses react-native-config for .env file support with fallback to defaults.
- * 
+ *
  * Setup:
  *   1. Copy .env.example to .env
  *   2. Update .env with your values
  *   3. For iOS: Run 'cd ios && pod install' after adding new env vars
  *   4. Rebuild the app
- * 
+ *
  * Usage:
  *   import { ENV, API_ENDPOINTS } from '../constants/env';
  *   const apiUrl = ENV.API_BASE_URL;
@@ -34,21 +34,23 @@ const getEnvVar = (key: string, defaultValue: string): string => {
     // Ignore errors if react-native-config is not properly configured
     // This can happen during development or if .env file is missing
     if (__DEV__) {
-      console.warn(`❌ Error getting env var ${key}, using default value:`, error);
+      console.warn(
+        `❌ Error getting env var ${key}, using default value:`,
+        error,
+      );
     }
   }
   return defaultValue;
 };
 
-
 // API Base URLs
 export const ENV = {
   // Main API Base URL (for auth, payments, social accounts)
   API_BASE_URL: getEnvVar('API_BASE_URL', ''),
-  
+
   // Matrix Server URL
   MATRIX_SERVER_URL: getEnvVar('MATRIX_SERVER_URL', ''),
-  
+
   // AI Service Base URL
   AI_SERVICE_BASE_URL: getEnvVar('AI_SERVICE_BASE_URL', ''),
 
@@ -69,20 +71,20 @@ export const ENV = {
 export const API_ENDPOINTS = {
   // System Settings endpoints
   SYSTEM_SETTINGS: `${ENV.API_BASE_URL}/api/system-settings`,
-  
+
   // Auth endpoints
   AUTH: {
     LOGIN: `${ENV.API_BASE_URL}/api/auth/login`,
     LOGIN_ALTERNATIVE: `${ENV.API_BASE_URL}/api/auth/login/al`,
     STATUS: `${ENV.API_BASE_URL}/api/auth`,
   },
-  
+
   // Social Accounts endpoints
   SOCIAL_ACCOUNTS: {
     BASE: `${ENV.API_BASE_URL}/api/social-accounts`,
     SYNC: `${ENV.API_BASE_URL}/api/social-accounts/sync-status`,
   },
-  
+
   // Payment endpoints
   PAYMENTS: {
     BASE: `${ENV.API_BASE_URL}/api/payments`,
@@ -90,13 +92,13 @@ export const API_ENDPOINTS = {
     VALIDATE: `${ENV.API_BASE_URL}/api/payments/payment`,
     CREATE_INTENT: `${ENV.API_BASE_URL}/api/payments/create-intent`,
   },
-  
+
   // Instagram endpoints
   INSTAGRAM: {
     CHECK: `${ENV.API_BASE_URL}/api/instagram`,
     CONNECT: `${ENV.API_BASE_URL}/api/instagram/connect`,
   },
-  
+
   // AI Service endpoints
   AI: {
     SUGGESTION: `${ENV.AI_SERVICE_BASE_URL}/suggestion`,

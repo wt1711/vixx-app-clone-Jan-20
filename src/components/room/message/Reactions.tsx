@@ -1,5 +1,12 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { ReactionData } from '../types';
 import { colors } from '../../../theme';
 

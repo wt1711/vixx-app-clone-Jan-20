@@ -47,4 +47,3 @@ if (typeof global.importMeta === 'undefined') {
     url: 'https://react-native',
   };
 }
-

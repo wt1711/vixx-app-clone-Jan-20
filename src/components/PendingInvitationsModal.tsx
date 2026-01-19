@@ -123,7 +123,13 @@ const PendingInvitationsModal = ({
   //   }
   // };
 
-  const renderItem = ({ item, index }: { item: RoomItemData; index: number }) => {
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: RoomItemData;
+    index: number;
+  }) => {
     const isProcessing =
       processingRoomId?.roomId === item.roomId &&
       processingRoomId.action === 'accept';
@@ -175,80 +181,80 @@ const PendingInvitationsModal = ({
 
   return (
     <View style={styles.container}>
-        {/* Subtle gradient for glass refraction effect */}
-        <LinearGradient
-          colors={['#0D0D0D', '#151518', '#0D0D0D']}
-          locations={[0, 0.5, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
+      {/* Subtle gradient for glass refraction effect */}
+      <LinearGradient
+        colors={['#0D0D0D', '#151518', '#0D0D0D']}
+        locations={[0, 0.5, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
 
-        {/* Header - flat title like Chats header */}
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-          {/* Back pill - liquid glass */}
-          <LiquidGlassButton
-            style={styles.backPill}
-            contentStyle={styles.backPillContent}
-            borderRadius={22}
-            onPress={onClose}
-          >
-            <ChevronLeft color={colors.text.primary} size={24} />
-          </LiquidGlassButton>
+      {/* Header - flat title like Chats header */}
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        {/* Back pill - liquid glass */}
+        <LiquidGlassButton
+          style={styles.backPill}
+          contentStyle={styles.backPillContent}
+          borderRadius={22}
+          onPress={onClose}
+        >
+          <ChevronLeft color={colors.text.primary} size={24} />
+        </LiquidGlassButton>
 
-          {/* Flat title - like Chats header */}
-          <Text style={styles.headerTitle}>Add Chat</Text>
+        {/* Flat title - like Chats header */}
+        <Text style={styles.headerTitle}>Add Chat</Text>
 
-          {/* Spacer for balance */}
-          <View style={styles.headerSpacer} />
-        </View>
+        {/* Spacer for balance */}
+        <View style={styles.headerSpacer} />
+      </View>
 
-        {/* Content */}
-        <View style={styles.content}>
-          {/* Success Toast */}
-          {successBanner ? (
-            <View style={styles.successfullyAddedToast}>
-              <Check color="#22C55E" size={24} />
-              <View style={styles.toastContent}>
-                <Text style={styles.toastTitle}>{successBanner} added</Text>
-              </View>
+      {/* Content */}
+      <View style={styles.content}>
+        {/* Success Toast */}
+        {successBanner ? (
+          <View style={styles.successfullyAddedToast}>
+            <Check color="#22C55E" size={24} />
+            <View style={styles.toastContent}>
+              <Text style={styles.toastTitle}>{successBanner} added</Text>
             </View>
-          ) : null}
-
-          {/* Search Input - icon next to placeholder text */}
-          <View style={styles.searchContainer}>
-            {searchQuery.length === 0 && (
-              <View style={styles.searchPlaceholder} pointerEvents="none">
-                <Search color="#9CA3AF" size={18} />
-                <Text style={styles.searchPlaceholderText}>Search</Text>
-              </View>
-            )}
-            <TextInput
-              style={styles.searchInput}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
           </View>
+        ) : null}
 
-          {/* List with inverted border for recessed effect */}
-          {filteredRooms.length > 0 ? (
-            <View style={styles.listSection}>
-              <FlatList
-                data={filteredRooms}
-                renderItem={renderItem}
-                keyExtractor={keyExtractor}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-              />
-            </View>
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                {searchQuery ? 'No rooms found' : 'No pending invitations'}
-              </Text>
+        {/* Search Input - icon next to placeholder text */}
+        <View style={styles.searchContainer}>
+          {searchQuery.length === 0 && (
+            <View style={styles.searchPlaceholder} pointerEvents="none">
+              <Search color="#9CA3AF" size={18} />
+              <Text style={styles.searchPlaceholderText}>Search</Text>
             </View>
           )}
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
+
+        {/* List with inverted border for recessed effect */}
+        {filteredRooms.length > 0 ? (
+          <View style={styles.listSection}>
+            <FlatList
+              data={filteredRooms}
+              renderItem={renderItem}
+              keyExtractor={keyExtractor}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              {searchQuery ? 'No rooms found' : 'No pending invitations'}
+            </Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 };

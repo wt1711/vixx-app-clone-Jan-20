@@ -1,11 +1,20 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+  useMemo,
+} from 'react';
 
 type HeaderColorContextType = {
   tintColor: string | null;
   setTintColor: (color: string | null) => void;
 };
 
-const HeaderColorContext = createContext<HeaderColorContextType | undefined>(undefined);
+const HeaderColorContext = createContext<HeaderColorContextType | undefined>(
+  undefined,
+);
 
 type HeaderColorProviderProps = {
   children: ReactNode;
@@ -26,7 +35,11 @@ export function HeaderColorProvider({ children }: HeaderColorProviderProps) {
     [tintColor, setTintColor],
   );
 
-  return <HeaderColorContext.Provider value={value}>{children}</HeaderColorContext.Provider>;
+  return (
+    <HeaderColorContext.Provider value={value}>
+      {children}
+    </HeaderColorContext.Provider>
+  );
 }
 
 export function useHeaderColor() {

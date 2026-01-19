@@ -1,11 +1,19 @@
-import React, { createContext, useContext, ReactNode, useState, useMemo } from 'react';
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useMemo,
+} from 'react';
 
 type InputHeightContextType = {
   inputHeight: number;
   setInputHeight: (height: number) => void;
 };
 
-const InputHeightContext = createContext<InputHeightContextType | undefined>(undefined);
+const InputHeightContext = createContext<InputHeightContextType | undefined>(
+  undefined,
+);
 
 type InputHeightProviderProps = {
   children: ReactNode;
@@ -23,13 +31,19 @@ export function InputHeightProvider({ children }: InputHeightProviderProps) {
     [inputHeight],
   );
 
-  return <InputHeightContext.Provider value={value}>{children}</InputHeightContext.Provider>;
+  return (
+    <InputHeightContext.Provider value={value}>
+      {children}
+    </InputHeightContext.Provider>
+  );
 }
 
 export function useInputHeight() {
   const context = useContext(InputHeightContext);
   if (context === undefined) {
-    throw new Error('useInputHeight must be used within an InputHeightProvider');
+    throw new Error(
+      'useInputHeight must be used within an InputHeightProvider',
+    );
   }
   return context;
 }

@@ -28,7 +28,7 @@ export class StripePaymentService {
   private token: string | null = null;
 
   private constructor() {
-    AsyncStorage.getItem(ACCESS_TOKEN_KEY).then((token) => {
+    AsyncStorage.getItem(ACCESS_TOKEN_KEY).then(token => {
       this.token = token;
     });
   }
@@ -43,13 +43,15 @@ export class StripePaymentService {
   /**
    * Create a payment intent for AI assistance feature
    */
-  public async createPaymentIntent(data: PaymentIntentData): Promise<PaymentIntentResponse> {
+  public async createPaymentIntent(
+    data: PaymentIntentData,
+  ): Promise<PaymentIntentResponse> {
     try {
       const response = await fetch(API_ENDPOINTS.PAYMENTS.CREATE_INTENT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`,
+          Authorization: `Bearer ${this.token}`,
         },
         body: JSON.stringify({
           amount: data.amount,
@@ -82,7 +84,7 @@ export class StripePaymentService {
    */
   public async createAIAssistancePayment(): Promise<PaymentIntentResponse> {
     const AI_ASSISTANCE_PRICE = 9.99; // $9.99 one-time payment
-    
+
     return this.createPaymentIntent({
       amount: AI_ASSISTANCE_PRICE * 100, // Convert to cents
       currency: 'usd',
@@ -99,7 +101,9 @@ export class StripePaymentService {
     // This will be handled by PaymentModal using WebView
     // The WebView will redirect to Stripe Checkout
     // On success, it will call onSuccess with the paymentIntentId
-    throw new Error('Use PaymentModal with WebView integration for payment processing');
+    throw new Error(
+      'Use PaymentModal with WebView integration for payment processing',
+    );
   }
 
   /**
@@ -116,7 +120,8 @@ export class StripePaymentService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error:
+          error instanceof Error ? error.message : 'Unknown error occurred',
       };
     }
   }
