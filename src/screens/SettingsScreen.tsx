@@ -14,7 +14,7 @@ import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { ChevronLeft, Sparkles } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
-// import { useAuth } from 'src/context/AuthContext';
+// import { useAuth } from 'src/hooks/context/AuthContext';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { colors } from 'src/config';
 import { getMatrixClient } from 'src/matrixClient';

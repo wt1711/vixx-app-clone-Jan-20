@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Room } from 'matrix-js-sdk';
-import { useAIAssistant } from 'src/context/AIAssistantContext';
+import { useAIAssistant } from 'src/hooks/context/AIAssistantContext';
 import { colors } from 'src/config';
 
 type AIAssistantModalProps = {

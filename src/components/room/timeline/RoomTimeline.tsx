@@ -24,8 +24,8 @@ import {
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { FounderWelcomeCard } from './FounderWelcomeCard';
 import { useRoomTimeline, useTimelineScroll } from 'src/hooks/room';
-import { useReply } from 'src/context/ReplyContext';
-import { useInputHeight } from 'src/context/InputHeightContext';
+import { useReply } from 'src/hooks/context/ReplyContext';
+import { useInputHeight } from 'src/hooks/context/InputHeightContext';
 import { colors } from 'src/config';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {

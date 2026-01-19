@@ -21,7 +21,7 @@ import {
   getLastRoomMessageAsync,
   isMessageFromMe,
 } from 'src/utils/room';
-import { useAuth } from 'src/context/AuthContext';
+import { useAuth } from 'src/hooks/context/AuthContext';
 import { RoomListItem, RoomItemData } from 'src/components/room';
 import { LoadingScreen } from 'src/components/common/LoadingScreen';
 import { EmptyState } from 'src/components/common/EmptyState';
