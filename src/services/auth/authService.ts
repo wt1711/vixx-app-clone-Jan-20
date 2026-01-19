@@ -3,8 +3,8 @@ import {
   ACCESS_TOKEN_KEY,
   LAST_SOCIAL_ACCOUNTS_SYNC_KEY,
   MATRIX_CREDENTIALS_KEY,
-} from 'src/constants/localStorege';
-import { API_ENDPOINTS } from 'src/constants/env';
+} from 'src/config/localStorage';
+import { API_ENDPOINTS } from 'src/config/env';
 
 export class AuthService {
   private static instance: AuthService;

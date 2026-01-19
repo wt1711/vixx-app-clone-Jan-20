@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { ImageIcon, Sparkles } from 'lucide-react-native';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 type InputBarProps = {
   value: string;

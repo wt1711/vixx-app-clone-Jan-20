@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image } from 'react-native';
 import { getInitials } from 'src/utils/stringUtils';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 export type AvatarProps = {
   avatarUrl?: string;

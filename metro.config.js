@@ -18,7 +18,7 @@ const config = {
       // Text encoding polyfills
       'text-encoding': require.resolve('text-encoding-polyfill'),
       // Mock WASM module to prevent import.meta errors
-      '@matrix-org/matrix-sdk-crypto-wasm': require.resolve('./src/mocks/matrix-sdk-crypto-wasm.js'),
+      '@matrix-org/matrix-sdk-crypto-wasm': require.resolve('./mocks/matrix-sdk-crypto-wasm.js'),
     },
     // Exclude WASM files from source extensions - treat them as assets or ignore
     sourceExts: defaultConfig.resolver.sourceExts.filter(ext => ext !== 'wasm'),

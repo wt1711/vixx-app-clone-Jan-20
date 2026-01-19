@@ -1,6 +1,6 @@
 import crypto from 'react-native-quick-crypto';
 import { Buffer } from 'buffer';
-import { ENV } from 'src/constants/env';
+import { ENV } from 'src/config/env';
 
 const getKeyAndIv = () => {
   const key = Buffer.from(

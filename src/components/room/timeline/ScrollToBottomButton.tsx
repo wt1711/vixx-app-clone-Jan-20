@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useInputHeight } from 'src/context/InputHeightContext';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 interface ScrollToBottomButtonProps {
   visible: boolean;

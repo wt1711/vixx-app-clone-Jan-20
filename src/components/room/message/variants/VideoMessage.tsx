@@ -16,7 +16,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import { Play } from 'lucide-react-native';
 import { MessageItem } from 'src/components/room/types';
 import { styles } from 'src/components/room/message/MessageItem.styles';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 // Cache map: videoUrl -> localVideoUri (only for iOS)
 const videoCache = new Map<string, string>();

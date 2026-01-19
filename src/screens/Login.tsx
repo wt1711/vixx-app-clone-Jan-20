@@ -22,7 +22,7 @@ import {
   SystemSettingsService,
 } from 'src/services/apiService';
 import { useAuth } from 'src/context/AuthContext';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
 

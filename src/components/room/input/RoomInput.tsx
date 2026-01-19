@@ -6,7 +6,7 @@ import { useAIAssistant } from 'src/context/AIAssistantContext';
 import { useReply } from 'src/context/ReplyContext';
 import { useInputHeight } from 'src/context/InputHeightContext';
 import { EventType, Room } from 'matrix-js-sdk';
-import { MsgType, ContentKey } from 'src/types/matrix/room';
+import { MsgType, ContentKey } from 'src/types/matrix';
 import { getMatrixClient } from 'src/matrixClient';
 import { useImageSender } from 'src/hooks/message/useImageSender';
 import { useSparkleAnimation } from 'src/hooks/animation/useSparkleAnimation';
@@ -15,7 +15,7 @@ import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { ReasoningPill } from './ReasoningPill';
 import { ReplyBar } from './ReplyBar';
 import { InputBar } from './InputBar';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 import { isFounderRoom as checkIsFounderRoom } from 'src/utils/room';
 
 // Re-export for backwards compatibility

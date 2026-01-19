@@ -28,9 +28,9 @@ import { EmptyState } from 'src/components/common/EmptyState';
 import { SocialAccountService } from 'src/services/apiService';
 import { ForceLogOutModal } from 'src/components/auth';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 import { useChatWithFounder } from 'src/hooks/useChatWithFounder';
-import { Membership } from 'src/types/matrix/room';
+import { Membership } from 'src/types/matrix';
 
 type DirectMessageListScreenProps = {
   onSelectRoom: (roomId: string) => void;

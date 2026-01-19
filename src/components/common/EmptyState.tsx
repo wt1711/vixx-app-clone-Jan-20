@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 type EmptyStateProps = {
   title: string;

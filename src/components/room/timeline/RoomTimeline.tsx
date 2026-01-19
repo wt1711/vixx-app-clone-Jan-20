@@ -14,7 +14,7 @@ import {
   getReactionContent,
   isFounderRoom,
 } from 'src/utils/room';
-import { MessageEvent } from 'src/types/matrix/room';
+import { MessageEvent } from 'src/types/matrix';
 import { MessageItem, RoomTimelineProps } from '../types';
 import {
   MessageItemComponent,
@@ -26,7 +26,7 @@ import { FounderWelcomeCard } from './FounderWelcomeCard';
 import { useRoomTimeline, useTimelineScroll } from 'src/hooks/room';
 import { useReply } from 'src/context/ReplyContext';
 import { useInputHeight } from 'src/context/InputHeightContext';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const mx = getMatrixClient();

@@ -7,7 +7,7 @@ import { ChevronLeft, User } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/matrixClient';
 import { getRoomAvatarUrl } from 'src/utils/room';
-import { colors, gradients } from 'src/theme';
+import { colors, gradients } from 'src/config';
 
 type RoomViewHeaderProps = {
   room: Room;

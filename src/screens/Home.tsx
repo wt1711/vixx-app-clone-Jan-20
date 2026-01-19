@@ -3,9 +3,9 @@ import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuth } from 'src/context/AuthContext';
 import Login from 'src/screens/Login';
-import { AppNavigator } from 'src/navigation/AppNavigator';
+import { AppNavigator } from 'src/screens/AppNavigator';
 import { LoadingScreen } from 'src/components/common/LoadingScreen';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 export default function Home() {
   const { matrixToken, isLoading } = useAuth();

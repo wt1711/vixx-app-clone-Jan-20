@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Link } from 'lucide-react-native';
 import { useLinkPreview } from 'src/hooks/useLinkPreview';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 type LinkPreviewProps = {
   url: string;

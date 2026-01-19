@@ -8,7 +8,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { ReactionData } from 'src/components/room/types';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 type ReactionButtonProps = {
   reaction: ReactionData;

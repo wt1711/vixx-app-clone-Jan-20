@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 export const styles = StyleSheet.create({
   messageContainer: {

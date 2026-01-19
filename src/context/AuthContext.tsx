@@ -7,9 +7,9 @@ import {
   stopMatrixClient,
 } from 'src/matrixClient';
 import { MatrixClient } from 'matrix-js-sdk';
-import { ENV } from 'src/constants/env';
-import { MATRIX_CREDENTIALS_KEY } from 'src/constants/localStorege';
-import { LoginType } from 'src/types/matrix/room';
+import { ENV } from 'src/config/env';
+import { MATRIX_CREDENTIALS_KEY } from 'src/config/localStorage';
+import { LoginType } from 'src/types/matrix';
 
 type MatrixSession = {
   accessToken: string;

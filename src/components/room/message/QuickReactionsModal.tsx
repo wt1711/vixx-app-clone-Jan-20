@@ -16,8 +16,8 @@ import { Reply, Plus, Trash2 } from 'lucide-react-native';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { MessageItem } from 'src/components/room/types';
 import { ReplyPreview } from 'src/components/room/message/variants';
-import { colors } from 'src/theme';
-import { MsgType } from 'src/types/matrix/room';
+import { colors } from 'src/config';
+import { MsgType } from 'src/types/matrix';
 import { getMatrixClient } from 'src/matrixClient';
 
 const QUICK_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍'];

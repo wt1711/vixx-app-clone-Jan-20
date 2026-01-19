@@ -21,7 +21,7 @@ import { ReplyProvider } from 'src/context/ReplyContext';
 import { InputHeightProvider } from 'src/context/InputHeightContext';
 import LinearGradient from 'react-native-linear-gradient';
 import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
-import { colors, gradients } from 'src/theme';
+import { colors, gradients } from 'src/config';
 
 type DirectMessageDetailScreenProps = {
   roomId: string;

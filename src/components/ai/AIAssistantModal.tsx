@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Room } from 'matrix-js-sdk';
 import { useAIAssistant } from 'src/context/AIAssistantContext';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 type AIAssistantModalProps = {
   visible: boolean;

@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Linking } from 'react-native';
 import { parseTextWithUrls, getFirstUrl } from 'src/utils/urlParser';
 import { isVideoUrl } from 'src/hooks/useLinkPreview';
 import { LinkPreview } from 'src/components/room/message/variants/LinkPreview';
-import { colors } from 'src/theme';
+import { colors } from 'src/config';
 
 type MessageTextWithLinksProps = {
   content: string;

@@ -11,7 +11,7 @@
  *   4. Rebuild the app
  *
  * Usage:
- *   import { ENV, API_ENDPOINTS } from 'src/constants/env';
+ *   import { ENV, API_ENDPOINTS } from 'src/config/env';
  *   const apiUrl = ENV.API_BASE_URL;
  *   const loginUrl = API_ENDPOINTS.AUTH.LOGIN;
  */

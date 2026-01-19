@@ -7,7 +7,7 @@ import {
   ReceiptType,
 } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/matrixClient';
-import { MsgType, MessageEvent, ContentKey } from 'src/types/matrix/room';
+import { MsgType, MessageEvent, ContentKey } from 'src/types/matrix';
 import {
   getMemberAvatarMxc,
   getRoomAvatarUrl,
