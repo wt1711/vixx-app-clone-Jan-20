@@ -4,7 +4,7 @@ import {
   launchCamera,
   Asset,
 } from 'react-native-image-picker';
-import { useMatrixClient } from '../useMatrixClient';
+import { useMatrixClient } from 'src/hooks/useMatrixClient';
 import { EventType, MsgType } from 'matrix-js-sdk';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 

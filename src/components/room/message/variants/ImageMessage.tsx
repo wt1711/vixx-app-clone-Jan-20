@@ -7,7 +7,7 @@ import {
   StyleProp,
   ImageStyle,
 } from 'react-native';
-import { colors } from '../../../../theme';
+import { colors } from 'src/theme';
 
 export type ImageMessageProps = {
   imageUrl: string;

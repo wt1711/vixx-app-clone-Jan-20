@@ -1,7 +1,13 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Animated } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+} from 'react-native';
 import { X } from 'lucide-react-native';
-import { colors } from '../../theme';
+import { colors } from 'src/theme';
 
 type ReasoningPillProps = {
   reason: string;

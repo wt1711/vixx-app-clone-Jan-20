@@ -8,21 +8,21 @@ import {
   Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
-import { ParticleSparkles } from '../components/ui/ParticleSparkles';
-import LoginInstagramModal from '../components/LoginInstagramModal';
-import LoginCredentialsModal from '../components/LoginCredentialsModal';
+import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
+import { ParticleSparkles } from 'src/components/ui/ParticleSparkles';
+import LoginInstagramModal from 'src/components/LoginInstagramModal';
+import LoginCredentialsModal from 'src/components/LoginCredentialsModal';
 import { InstagramIcon, KeyRound } from 'lucide-react-native';
 import {
   AuthService,
   SystemSettingKey,
   SystemSettings,
   SystemSettingsService,
-} from '../services/apiService';
-import { useAuth } from '../context/AuthContext';
-import { colors } from '../theme';
+} from 'src/services/apiService';
+import { useAuth } from 'src/context/AuthContext';
+import { colors } from 'src/theme';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { CarbonFiberTexture } from '../components/ui/NoiseTexture';
+import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
 
 export default function Login() {
   const [open, setOpen] = useState(false);

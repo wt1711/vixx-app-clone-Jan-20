@@ -1,1 +1,1 @@
-export { VixxLogo } from './VixxLogo';
+export { VixxLogo } from 'src/components/icons/VixxLogo';

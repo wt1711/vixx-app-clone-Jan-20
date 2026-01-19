@@ -1,6 +1,6 @@
 import { Room, MatrixClient } from 'matrix-js-sdk';
-import { MessageEvent } from '../types/matrix/room';
-import { formatRelativeTime } from './timeFormatter';
+import { MessageEvent } from 'src/types/matrix/room';
+import { formatRelativeTime } from 'src/utils/timeFormatter';
 
 /**
  * UI-ready room item for FlatList consumption

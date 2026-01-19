@@ -1,6 +1,6 @@
 import { Room } from 'matrix-js-sdk';
-import { getEventReactions } from '../../utils/room';
-import { ReactionData } from './types';
+import { getEventReactions } from 'src/utils/room';
+import { ReactionData } from 'src/components/room/types';
 
 /**
  * Get reactions for a specific event in a room

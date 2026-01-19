@@ -14,11 +14,11 @@ import {
 import { BlurView } from '@react-native-community/blur';
 import { Reply, Plus, Trash2 } from 'lucide-react-native';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
-import { MessageItem } from '../types';
-import { ReplyPreview } from './variants';
-import { colors } from '../../../theme';
-import { MsgType } from '../../../types/matrix/room';
-import { getMatrixClient } from '../../../matrixClient';
+import { MessageItem } from 'src/components/room/types';
+import { ReplyPreview } from 'src/components/room/message/variants';
+import { colors } from 'src/theme';
+import { MsgType } from 'src/types/matrix/room';
+import { getMatrixClient } from 'src/matrixClient';
 
 const QUICK_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍'];
 

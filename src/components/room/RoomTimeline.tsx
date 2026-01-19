@@ -8,25 +8,25 @@ import {
   Alert,
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
-import { getMatrixClient } from '../../matrixClient';
+import { getMatrixClient } from 'src/matrixClient';
 import {
   getEventReactions,
   getReactionContent,
   isFounderRoom,
-} from '../../utils/room';
-import { MessageEvent } from '../../types/matrix/room';
-import { MessageItem, RoomTimelineProps } from './types';
+} from 'src/utils/room';
+import { MessageEvent } from 'src/types/matrix/room';
+import { MessageItem, RoomTimelineProps } from 'src/components/room/types';
 import {
   MessageItemComponent,
   QuickReactionsModal,
   ModalPosition,
-} from './message';
-import { ScrollToBottomButton } from './ScrollToBottomButton';
-import { FounderWelcomeCard } from './FounderWelcomeCard';
-import { useRoomTimeline, useTimelineScroll } from '../../hooks/room';
-import { useReply } from '../../context/ReplyContext';
-import { useInputHeight } from '../../context/InputHeightContext';
-import { colors } from '../../theme';
+} from 'src/components/room/message';
+import { ScrollToBottomButton } from 'src/components/room/ScrollToBottomButton';
+import { FounderWelcomeCard } from 'src/components/room/FounderWelcomeCard';
+import { useRoomTimeline, useTimelineScroll } from 'src/hooks/room';
+import { useReply } from 'src/context/ReplyContext';
+import { useInputHeight } from 'src/context/InputHeightContext';
+import { colors } from 'src/theme';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const mx = getMatrixClient();

@@ -1,4 +1,4 @@
-import { colors } from './colors';
+import { colors } from 'src/theme/colors';
 
 export const gradients = {
   // Main app background gradient (used in screens)

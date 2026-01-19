@@ -1,5 +1,5 @@
-export { colors } from './colors';
-export type { Colors } from './colors';
+export { colors } from 'src/theme/colors';
+export type { Colors } from 'src/theme/colors';
 
-export { gradients } from './gradients';
-export type { Gradients } from './gradients';
+export { gradients } from 'src/theme/gradients';
+export type { Gradients } from 'src/theme/gradients';

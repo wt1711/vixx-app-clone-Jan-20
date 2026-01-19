@@ -1,5 +1,5 @@
-import { API_ENDPOINTS } from '../../constants/env';
-import { decrypt } from '../encrypt';
+import { API_ENDPOINTS } from 'src/constants/env';
+import { decrypt } from 'src/services/encrypt';
 
 export enum SystemSettingKey {
   USE_ALTERNATIVE_LOGIN_METHOD = 'use_alternative_login_method',

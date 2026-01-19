@@ -1,6 +1,6 @@
 import { ActivityIndicator, Modal, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../theme';
+import { colors } from 'src/theme';
 
 const ForceLogOutModal = ({ visible }: { visible: boolean }) => {
   return (

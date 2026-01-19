@@ -1,4 +1,4 @@
-import type { MessageItemProps } from './MessageItem';
+import type { MessageItemProps } from 'src/components/room/message/MessageItem';
 
 export function areReactionsEqual(
   prev: MessageItemProps['item']['reactions'],

@@ -10,16 +10,16 @@ import {
   Easing,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CarbonFiberTexture } from '../components/ui/NoiseTexture';
-import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
+import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
+import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { ChevronLeft, Sparkles } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
-// import { useAuth } from '../context/AuthContext';
+// import { useAuth } from 'src/context/AuthContext';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { colors } from '../theme';
-import { getMatrixClient } from '../matrixClient';
-import { getCreditsRemaining } from '../services/aiService';
-import { useChatWithFounder } from '../hooks/useChatWithFounder';
+import { colors } from 'src/theme';
+import { getMatrixClient } from 'src/matrixClient';
+import { getCreditsRemaining } from 'src/services/aiService';
+import { useChatWithFounder } from 'src/hooks/useChatWithFounder';
 
 type SettingsScreenProps = {
   onBack: () => void;

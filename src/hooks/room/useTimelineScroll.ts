@@ -4,7 +4,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from 'react-native';
-import { MessageItem } from '../../components/room/types';
+import { MessageItem } from 'src/components/room/types';
 
 // For inverted list: offset 0 = bottom, large offset = top
 const NEAR_BOTTOM_THRESHOLD = 350;

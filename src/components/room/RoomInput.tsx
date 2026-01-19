@@ -2,24 +2,27 @@ import React, { useState, useCallback } from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { Send } from 'lucide-react-native';
-import { useAIAssistant } from '../../context/AIAssistantContext';
-import { useReply } from '../../context/ReplyContext';
-import { useInputHeight } from '../../context/InputHeightContext';
+import { useAIAssistant } from 'src/context/AIAssistantContext';
+import { useReply } from 'src/context/ReplyContext';
+import { useInputHeight } from 'src/context/InputHeightContext';
 import { EventType, Room } from 'matrix-js-sdk';
-import { MsgType, ContentKey } from '../../types/matrix/room';
-import { getMatrixClient } from '../../matrixClient';
-import { useImageSender } from '../../hooks/message/useImageSender';
-import { useSparkleAnimation } from '../../hooks/animation/useSparkleAnimation';
-import { useAnimatedHeight } from '../../hooks/animation/useAnimatedHeight';
-import { LiquidGlassButton } from '../ui/LiquidGlassButton';
-import { ReasoningPill } from './ReasoningPill';
-import { ReplyBar } from './ReplyBar';
-import { InputBar } from './InputBar';
-import { colors } from '../../theme';
-import { isFounderRoom as checkIsFounderRoom } from '../../utils/room';
+import { MsgType, ContentKey } from 'src/types/matrix/room';
+import { getMatrixClient } from 'src/matrixClient';
+import { useImageSender } from 'src/hooks/message/useImageSender';
+import { useSparkleAnimation } from 'src/hooks/animation/useSparkleAnimation';
+import { useAnimatedHeight } from 'src/hooks/animation/useAnimatedHeight';
+import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
+import { ReasoningPill } from 'src/components/room/ReasoningPill';
+import { ReplyBar } from 'src/components/room/ReplyBar';
+import { InputBar } from 'src/components/room/InputBar';
+import { colors } from 'src/theme';
+import { isFounderRoom as checkIsFounderRoom } from 'src/utils/room';
 
 // Re-export for backwards compatibility
-export { getReplyPreviewText, type ReplyPreviewInput } from './ReplyBar';
+export {
+  getReplyPreviewText,
+  type ReplyPreviewInput,
+} from 'src/components/room/ReplyBar';
 
 type RoomInputProps = {
   room: Room;
@@ -178,7 +181,9 @@ export function RoomInput({ room }: RoomInputProps) {
           ) : (
             <Send
               color={
-                inputValue.trim() ? colors.text.messageOwn : colors.text.tertiary
+                inputValue.trim()
+                  ? colors.text.messageOwn
+                  : colors.text.tertiary
               }
               size={20}
             />

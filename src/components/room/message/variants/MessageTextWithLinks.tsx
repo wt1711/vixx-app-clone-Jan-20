@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, Linking } from 'react-native';
-import { parseTextWithUrls, getFirstUrl } from '../../../../utils/urlParser';
-import { isVideoUrl } from '../../../../hooks/useLinkPreview';
-import { LinkPreview } from './LinkPreview';
-import { colors } from '../../../../theme';
+import { parseTextWithUrls, getFirstUrl } from 'src/utils/urlParser';
+import { isVideoUrl } from 'src/hooks/useLinkPreview';
+import { LinkPreview } from 'src/components/room/message/variants/LinkPreview';
+import { colors } from 'src/theme';
 
 type MessageTextWithLinksProps = {
   content: string;

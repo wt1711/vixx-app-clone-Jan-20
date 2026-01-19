@@ -14,12 +14,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { Search, Check, ChevronLeft } from 'lucide-react-native';
-import { LiquidGlassButton } from './ui/LiquidGlassButton';
+import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { colors, gradients } from '../theme';
-import { RoomItemData } from './room/RoomListItem';
-import { getRoomAvatarUrl } from '../utils/room';
-import { getInitials } from '../utils/stringUtils';
+import { colors, gradients } from 'src/theme';
+import { RoomItemData } from 'src/components/room/RoomListItem';
+import { getRoomAvatarUrl } from 'src/utils/room';
+import { getInitials } from 'src/utils/stringUtils';
 
 const PendingInvitationsModal = ({
   invitedRooms,

@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { Image } from 'react-native';
-import { getMatrixClient } from '../matrixClient';
-import { FOUNDER_MATRIX_ID, FOUNDER_ROOM_NAME } from '../constants/founder';
-import { isFounderRoom } from '../utils/room';
-import { Membership } from '../types/matrix/room';
+import { getMatrixClient } from 'src/matrixClient';
+import { FOUNDER_MATRIX_ID, FOUNDER_ROOM_NAME } from 'src/constants/founder';
+import { isFounderRoom } from 'src/utils/room';
+import { Membership } from 'src/types/matrix/room';
 
 const founderAvatar = require('../../assets/founder.png');
 

@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, StyleProp, TextStyle } from 'react-native';
-import { ViewOnInstagramLink } from './ViewOnInstagramLink';
-import { VideoMessage } from './VideoMessage';
-import { MessageItem } from '../../types';
+import { ViewOnInstagramLink } from 'src/components/room/message/variants/ViewOnInstagramLink';
+import { VideoMessage } from 'src/components/room/message/variants/VideoMessage';
+import { MessageItem } from 'src/components/room/types';
 
 type InstagramVideoMessageProps = {
   instagramUrl: string;

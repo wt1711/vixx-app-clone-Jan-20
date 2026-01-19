@@ -1,8 +1,8 @@
 // Stripe Payment Service for React Native
 // Based on external/src/app/services/stripePaymentService.ts
 
-import { API_ENDPOINTS } from '../../constants/env';
-import { ACCESS_TOKEN_KEY } from '../../constants/localStorege';
+import { API_ENDPOINTS } from 'src/constants/env';
+import { ACCESS_TOKEN_KEY } from 'src/constants/localStorege';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface PaymentIntentData {

@@ -12,7 +12,7 @@ import {
   LiquidGlassView,
   isLiquidGlassSupported,
 } from '@callstack/liquid-glass';
-import { colors } from '../../theme';
+import { colors } from 'src/theme';
 
 type LiquidGlassButtonProps = {
   children: React.ReactNode;

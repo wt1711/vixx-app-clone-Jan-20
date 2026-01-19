@@ -1,18 +1,18 @@
 // Re-export all auth services for backwards compatibility
-export { AuthService } from './auth/authService';
+export { AuthService } from 'src/services/auth/authService';
 export {
   SystemSettingsService,
   SystemSettingKey,
-} from './auth/systemSettingsService';
+} from 'src/services/auth/systemSettingsService';
 export type {
   SystemSettings,
   SystemSettingKeyType,
-} from './auth/systemSettingsService';
+} from 'src/services/auth/systemSettingsService';
 export {
   SocialAccountService,
   SocialAccountType,
-} from './auth/socialAccountService';
+} from 'src/services/auth/socialAccountService';
 export type {
   SocialAccount,
   SocialAccountTypeType,
-} from './auth/socialAccountService';
+} from 'src/services/auth/socialAccountService';

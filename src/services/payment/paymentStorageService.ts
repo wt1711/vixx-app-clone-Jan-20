@@ -1,8 +1,8 @@
 // Payment storage service using external service database
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_ENDPOINTS } from '../../constants/env';
-import { ACCESS_TOKEN_KEY } from '../../constants/localStorege';
+import { API_ENDPOINTS } from 'src/constants/env';
+import { ACCESS_TOKEN_KEY } from 'src/constants/localStorege';
 
 export enum PaymentStatus {
   Pending = 'pending',

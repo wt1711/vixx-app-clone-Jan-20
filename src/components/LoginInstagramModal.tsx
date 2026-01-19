@@ -13,10 +13,10 @@ import CookieManager from '@react-native-cookies/cookies';
 import LinearGradient from 'react-native-linear-gradient';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { ArrowRight, Instagram } from 'lucide-react-native';
-import { colors, gradients } from '../theme';
-import { LiquidGlassButton } from './ui/LiquidGlassButton';
-import { CarbonFiberTexture } from './ui/NoiseTexture';
-import SyncingInstagramModal from './SyncingInstagramModal';
+import { colors, gradients } from 'src/theme';
+import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
+import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
+import SyncingInstagramModal from 'src/components/SyncingInstagramModal';
 
 interface LoginInstagramModalProps {
   open: boolean;

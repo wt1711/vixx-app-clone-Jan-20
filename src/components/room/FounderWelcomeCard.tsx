@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { CarbonFiberTexture } from '../ui/NoiseTexture';
-import { FOUNDER_WELCOME_MESSAGE } from '../../constants/founder';
-import { colors } from '../../theme';
+import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
+import { FOUNDER_WELCOME_MESSAGE } from 'src/constants/founder';
+import { colors } from 'src/theme';
 
 export function FounderWelcomeCard() {
   return (

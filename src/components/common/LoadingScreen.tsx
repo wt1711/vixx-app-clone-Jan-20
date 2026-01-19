@@ -4,8 +4,8 @@ import { BlurView } from '@react-native-community/blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Settings } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
-import { colors } from '../../theme';
-import { CarbonFiberTexture } from '../ui/NoiseTexture';
+import { colors } from 'src/theme';
+import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
 
 type LoadingScreenProps = {
   message?: string;

@@ -8,9 +8,9 @@ import {
   ViewStyle,
 } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { MessageItem } from '../types';
-import { formatTimeWithDay } from '../../../utils/timeFormatter';
-import { ReactionsList } from './Reactions';
+import { MessageItem } from 'src/components/room/types';
+import { formatTimeWithDay } from 'src/utils/timeFormatter';
+import { ReactionsList } from 'src/components/room/message/Reactions';
 import {
   GifMessage,
   ImageMessage,
@@ -20,14 +20,14 @@ import {
   InstagramVideoMessage,
   MessageTextWithLinks,
   VideoMessage,
-} from './variants';
-import { styles } from './MessageItem.styles';
+} from 'src/components/room/message/variants';
+import { styles } from 'src/components/room/message/MessageItem.styles';
 import {
   getInstagramUrl,
   getInstagramStoryReplyData,
-} from '../../../utils/urlParser';
-import { getMessageVariant, MessageVariant } from '../../../utils/room';
-import { isMessageItemEqual } from './MessageItem.utils';
+} from 'src/utils/urlParser';
+import { getMessageVariant, MessageVariant } from 'src/utils/room';
+import { isMessageItemEqual } from 'src/components/room/message/MessageItem.utils';
 
 export type MessageItemProps = {
   item: MessageItem;
