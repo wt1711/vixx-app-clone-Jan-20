@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
   containerOwn: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.transparent.white10,
   },
   containerOther: {
     backgroundColor: colors.transparent.white10,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   descOwn: {
-    color: 'rgba(228, 231, 235, 0.8)',
+    color: colors.transparent.textOwnDescription,
   },
   descOther: {
     color: colors.text.secondary,

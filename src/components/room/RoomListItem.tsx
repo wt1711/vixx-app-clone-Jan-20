@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.15)',
+    borderBottomColor: colors.transparent.white15,
   },
   roomItemSelected: {
     backgroundColor: colors.transparent.white05,

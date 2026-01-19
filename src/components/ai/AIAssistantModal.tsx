@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Room } from 'matrix-js-sdk';
 import { useAIAssistant } from '../../context/AIAssistantContext';
+import { colors } from '../../theme';
 
 type AIAssistantModalProps = {
   visible: boolean;
@@ -74,7 +75,7 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                   disabled={isGeneratingResponse}
                 >
                   {isGeneratingResponse ? (
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color={colors.modal.background} />
                   ) : (
                     <Text style={styles.generateButtonText}>
                       Generate Response
@@ -105,7 +106,7 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                         disabled={isGeneratingResponse}
                       >
                         {isGeneratingResponse ? (
-                          <ActivityIndicator color="#E4405F" />
+                          <ActivityIndicator color={colors.accent.instagram} />
                         ) : (
                           <Text style={styles.regenerateButtonText}>
                             Regenerate
@@ -152,7 +153,7 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
             <TextInput
               style={styles.input}
               placeholder="Ask AI assistant..."
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.modal.textPlaceholder}
               value={inputValue}
               onChangeText={setInputValue}
               multiline
@@ -167,7 +168,10 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
               disabled={!inputValue.trim() || isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator
+                  size="small"
+                  color={colors.modal.background}
+                />
               ) : (
                 <Text style={styles.sendButtonText}>Send</Text>
               )}
@@ -182,11 +186,11 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.modal.overlay,
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.modal.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '80%',
@@ -198,12 +202,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.modal.border,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.modal.textPrimary,
   },
   headerActions: {
     flexDirection: 'row',
@@ -215,7 +219,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   clearButtonText: {
-    color: '#666',
+    color: colors.modal.textSecondary,
     fontSize: 14,
   },
   closeButton: {
@@ -223,7 +227,7 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     fontSize: 24,
-    color: '#666',
+    color: colors.modal.textSecondary,
   },
   content: {
     flex: 1,
@@ -237,36 +241,36 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#666',
+    color: colors.modal.textSecondary,
     marginBottom: 24,
     textAlign: 'center',
   },
   generateButton: {
-    backgroundColor: '#E4405F',
+    backgroundColor: colors.accent.instagram,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   generateButtonText: {
-    color: '#fff',
+    color: colors.modal.background,
     fontSize: 16,
     fontWeight: '600',
   },
   generatedResponseContainer: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.modal.surfaceLight,
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
   },
   generatedResponseLabel: {
     fontSize: 12,
-    color: '#666',
+    color: colors.modal.textSecondary,
     marginBottom: 8,
     fontWeight: '600',
   },
   generatedResponseText: {
     fontSize: 15,
-    color: '#333',
+    color: colors.modal.textPrimary,
     marginBottom: 12,
     lineHeight: 22,
   },
@@ -276,27 +280,27 @@ const styles = StyleSheet.create({
   },
   useButton: {
     flex: 1,
-    backgroundColor: '#E4405F',
+    backgroundColor: colors.accent.instagram,
     paddingVertical: 8,
     borderRadius: 6,
     alignItems: 'center',
   },
   useButtonText: {
-    color: '#fff',
+    color: colors.modal.background,
     fontSize: 14,
     fontWeight: '600',
   },
   regenerateButton: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.modal.background,
     borderWidth: 1,
-    borderColor: '#E4405F',
+    borderColor: colors.accent.instagram,
     paddingVertical: 8,
     borderRadius: 6,
     alignItems: 'center',
   },
   regenerateButtonText: {
-    color: '#E4405F',
+    color: colors.accent.instagram,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -307,11 +311,11 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
   },
   messageUser: {
-    backgroundColor: '#E4405F',
+    backgroundColor: colors.accent.instagram,
     alignSelf: 'flex-end',
   },
   messageAI: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.modal.surfaceLighter,
     alignSelf: 'flex-start',
   },
   messageText: {
@@ -319,16 +323,16 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   messageTextUser: {
-    color: '#fff',
+    color: colors.modal.background,
   },
   messageTextAI: {
-    color: '#333',
+    color: colors.modal.textPrimary,
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: colors.modal.border,
     gap: 8,
     alignItems: 'flex-end',
   },
@@ -337,15 +341,15 @@ const styles = StyleSheet.create({
     minHeight: 40,
     maxHeight: 100,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: colors.modal.border,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 15,
-    color: '#333',
+    color: colors.modal.textPrimary,
   },
   sendButton: {
-    backgroundColor: '#E4405F',
+    backgroundColor: colors.accent.instagram,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
@@ -357,7 +361,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   sendButtonText: {
-    color: '#fff',
+    color: colors.modal.background,
     fontSize: 15,
     fontWeight: '600',
   },

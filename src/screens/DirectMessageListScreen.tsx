@@ -164,13 +164,11 @@ export function DirectMessageListScreen({
   const handleCheckConnectedAccount = async () => {
     try {
       setSyncing(true);
-      const synced = await socialAccountService.syncSocialAccounts(
-        onForceLogout,
-      );
+      const synced =
+        await socialAccountService.syncSocialAccounts(onForceLogout);
       if (synced) {
-        const result = await socialAccountService.getSocialAccounts(
-          onForceLogout,
-        );
+        const result =
+          await socialAccountService.getSocialAccounts(onForceLogout);
         const isInstagramAccountConnected =
           socialAccountService.instagramAccountConnected(result);
         if (!isInstagramAccountConnected) {
@@ -264,7 +262,9 @@ export function DirectMessageListScreen({
                 style={StyleSheet.absoluteFill}
                 blurType="thinMaterialDark"
                 blurAmount={25}
-                reducedTransparencyFallbackColor="rgba(30, 35, 45, 0.9)"
+                reducedTransparencyFallbackColor={
+                  colors.transparent.blurFallbackLight
+                }
               />
               {/* Dark overlay for deeper black */}
               <View style={styles.pillDarkOverlay} pointerEvents="none" />
@@ -323,7 +323,7 @@ export function DirectMessageListScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.background.black,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -361,17 +361,17 @@ const styles = StyleSheet.create({
   },
   pillDarkOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: colors.transparent.black70,
     borderRadius: 22,
   },
   pillGlassHighlight: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: 22,
     borderWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.25)',
-    borderLeftColor: 'rgba(255, 255, 255, 0.18)',
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
-    borderRightColor: 'rgba(255, 255, 255, 0.10)',
+    borderTopColor: colors.transparent.white25,
+    borderLeftColor: colors.transparent.white18,
+    borderBottomColor: colors.transparent.white08,
+    borderRightColor: colors.transparent.white10,
   },
   pillButton: {
     width: 44,
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     height: 12,
     marginHorizontal: 16,
     backgroundColor: 'transparent',
-    shadowColor: '#000',
+    shadowColor: colors.background.black,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 8,

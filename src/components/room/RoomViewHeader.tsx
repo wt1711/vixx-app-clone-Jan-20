@@ -7,7 +7,7 @@ import { ChevronLeft, User } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from '../../matrixClient';
 import { getRoomAvatarUrl } from '../../utils/room';
-import { colors } from '../../theme';
+import { colors, gradients } from '../../theme';
 
 type RoomViewHeaderProps = {
   room: Room;
@@ -37,11 +37,7 @@ RoomViewHeaderProps) {
     <View style={[styles.header, { paddingTop: insets.top }]}>
       {/* Gradient overlay - 85% at top with smooth fade for glass pill effect */}
       <LinearGradient
-        colors={[
-          'rgba(0, 0, 0, 0.85)',
-          'rgba(0, 0, 0, 0.4)',
-          'rgba(0, 0, 0, 0)',
-        ]}
+        colors={[...gradients.roomViewHeader]}
         locations={[0, 0.6, 1]}
         style={[styles.gradientOverlay, { height: overlayHeight }]}
         pointerEvents="none"

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
+import { colors } from '../../theme';
 
 type Particle = {
   id: number;
@@ -49,7 +50,7 @@ export function ParticleSparkles({
   width,
   height,
   particleCount = 8,
-  color = 'rgba(255, 255, 255, 0.8)',
+  color = colors.transparent.white80,
 }: ParticleSparklesProps) {
   const particlesRef = useRef<Particle[]>([]);
 

@@ -153,7 +153,7 @@ export default function Login() {
             width={180}
             height={180}
             particleCount={3}
-            color="rgba(255, 255, 255, 0.8)"
+            color={colors.transparent.white80}
           />
         </View>
 

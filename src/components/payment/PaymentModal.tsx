@@ -11,6 +11,7 @@ import {
 import { WebView } from 'react-native-webview';
 import { stripePaymentService } from '../../services/payment/stripePaymentService';
 import { paymentStorageService } from '../../services/payment/paymentStorageService';
+import { colors } from '../../theme';
 
 type PaymentModalProps = {
   visible: boolean;
@@ -185,7 +186,7 @@ export function PaymentModal({
               disabled={processing}
             >
               {processing ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.modal.background} />
               ) : (
                 <Text style={styles.payButtonText}>Proceed to Payment</Text>
               )}
@@ -204,11 +205,11 @@ export function PaymentModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.modal.overlay,
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.modal.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '80%',
@@ -219,26 +220,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.modal.border,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.modal.textPrimary,
   },
   closeButton: {
     padding: 4,
   },
   closeButtonText: {
     fontSize: 24,
-    color: '#666',
+    color: colors.modal.textSecondary,
   },
   content: {
     padding: 20,
   },
   description: {
     fontSize: 16,
-    color: '#666',
+    color: colors.modal.textSecondary,
     marginBottom: 20,
     lineHeight: 24,
   },
@@ -247,22 +248,22 @@ const styles = StyleSheet.create({
   },
   featureItem: {
     fontSize: 14,
-    color: '#333',
+    color: colors.modal.textPrimary,
     marginBottom: 8,
     lineHeight: 20,
   },
   errorContainer: {
-    backgroundColor: '#fee',
+    backgroundColor: colors.modal.errorBackground,
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
   },
   errorText: {
-    color: '#c00',
+    color: colors.modal.errorText,
     fontSize: 14,
   },
   payButton: {
-    backgroundColor: '#E4405F',
+    backgroundColor: colors.accent.instagram,
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -272,7 +273,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   payButtonText: {
-    color: '#fff',
+    color: colors.modal.background,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -281,12 +282,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#666',
+    color: colors.modal.textSecondary,
     fontSize: 16,
   },
   webViewContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.modal.background,
   },
   webViewHeader: {
     flexDirection: 'row',
@@ -295,13 +296,13 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 50,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    backgroundColor: '#fff',
+    borderBottomColor: colors.modal.border,
+    backgroundColor: colors.modal.background,
   },
   webViewTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.modal.textPrimary,
   },
   webView: {
     flex: 1,
@@ -312,18 +313,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.modal.surfaceLight,
     borderRadius: 8,
     marginBottom: 24,
   },
   priceLabel: {
     fontSize: 16,
-    color: '#666',
+    color: colors.modal.textSecondary,
     fontWeight: '500',
   },
   price: {
     fontSize: 24,
-    color: '#E4405F',
+    color: colors.accent.instagram,
     fontWeight: 'bold',
   },
 });

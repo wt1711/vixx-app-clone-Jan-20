@@ -316,7 +316,9 @@ export function RoomInput({ room }: RoomInputProps) {
             style={StyleSheet.absoluteFill}
             blurType="dark"
             blurAmount={25}
-            reducedTransparencyFallbackColor="rgba(30, 35, 45, 0.9)"
+            reducedTransparencyFallbackColor={
+              colors.transparent.blurFallbackLight
+            }
           />
           {/* Dark overlay for deeper black */}
           <View style={styles.darkOverlay} pointerEvents="none" />
@@ -432,7 +434,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: colors.transparent.black70,
     borderRadius: 22,
   },
   // Subtle uniform border for recessed look
@@ -444,7 +446,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.transparent.white12,
   },
   // Icon buttons inside the unified bar
   inputBarIcon: {
@@ -539,7 +541,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     overflow: 'hidden',
-    backgroundColor: '#2A2A3E', // lighter smoked glass
+    backgroundColor: colors.background.elevated, // lighter smoked glass
   },
   // Subtle outline border - neutral smoked glass
   reasoningBorder: {
@@ -550,10 +552,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 12,
     borderWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.10)', // subtle white top
-    borderLeftColor: 'rgba(255, 255, 255, 0.06)', // subtle white left
-    borderBottomColor: 'rgba(255, 255, 255, 0.14)', // white catchlight bottom
-    borderRightColor: 'rgba(255, 255, 255, 0.08)', // subtle white right
+    borderTopColor: colors.transparent.white10, // subtle white top
+    borderLeftColor: colors.transparent.white06, // subtle white left
+    borderBottomColor: colors.transparent.white14, // white catchlight bottom
+    borderRightColor: colors.transparent.white08, // subtle white right
   },
   reasoningText: {
     flex: 1,
