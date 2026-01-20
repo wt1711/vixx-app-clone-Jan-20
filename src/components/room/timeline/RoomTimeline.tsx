@@ -21,7 +21,6 @@ import {
   QuickReactionsModal,
   ModalPosition,
 } from '../message';
-import { ReportModal, ReportReason } from '../message/ReportModal';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { FounderWelcomeCard } from './FounderWelcomeCard';
 import { useRoomTimeline, useTimelineScroll } from 'src/hooks/room';
@@ -62,12 +61,6 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const [quickReactionsItem, setQuickReactionsItem] =
     useState<MessageItem | null>(null);
   const [modalPosition, setModalPosition] = useState<ModalPosition | null>(
-    null,
-  );
-
-  // ─── Report Modal ──────────────────────────────────────────────────────────
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [reportingMessage, setReportingMessage] = useState<MessageItem | null>(
     null,
   );
 
@@ -205,40 +198,6 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       },
     ]);
   }, [quickReactionsItem, mx, room.roomId, refresh, closeQuickReactions]);
-
-  // ─── Report Handlers ──────────────────────────────────────────────────────
-  const handleReportFromModal = useCallback(() => {
-    if (quickReactionsItem) {
-      setReportingMessage(quickReactionsItem);
-      closeQuickReactions();
-      setShowReportModal(true);
-    }
-  }, [quickReactionsItem, closeQuickReactions]);
-
-  const handleReportReasonSelect = useCallback(
-    (reason: ReportReason) => {
-      // TODO: Implement actual report submission to backend
-      console.info('Report submitted:', {
-        messageId: reportingMessage?.eventId,
-        sender: reportingMessage?.sender,
-        reason,
-      });
-
-      setShowReportModal(false);
-      setReportingMessage(null);
-
-      Alert.alert(
-        'Report Submitted',
-        'Thank you for your report. We will review it shortly.',
-      );
-    },
-    [reportingMessage],
-  );
-
-  const closeReportModal = useCallback(() => {
-    setShowReportModal(false);
-    setReportingMessage(null);
-  }, []);
 
   // ─── Scroll to Replied Message ─────────────────────────────────────────────
   const scrollToMessage = useCallback(
@@ -394,7 +353,6 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         onSelectEmoji={handleQuickReactionSelect}
         onReply={handleReplyFromModal}
         onDelete={handleDeleteFromModal}
-        onReport={handleReportFromModal}
       />
 
       <ImageViewing
@@ -402,12 +360,6 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         imageIndex={0}
         visible={viewingImageUrl !== null}
         onRequestClose={closeImageViewer}
-      />
-
-      <ReportModal
-        visible={showReportModal}
-        onClose={closeReportModal}
-        onSelectReason={handleReportReasonSelect}
       />
     </>
   );

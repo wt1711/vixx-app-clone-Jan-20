@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
-import { ChevronLeft, User } from 'lucide-react-native';
+import { ChevronLeft, User, EllipsisVertical } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import { getRoomAvatarUrl } from 'src/utils/room';
@@ -12,14 +12,14 @@ import { colors, gradients } from 'src/config';
 type RoomViewHeaderProps = {
   room: Room;
   onBack: () => void;
-  onAIAssistantClick?: () => void;
+  onOptionsPress?: () => void;
 };
 
 export function RoomViewHeader({
   room,
   onBack,
-}: // onAIAssistantClick,
-RoomViewHeaderProps) {
+  onOptionsPress,
+}: RoomViewHeaderProps) {
   const mx = getMatrixClient();
   const insets = useSafeAreaInsets();
 
@@ -75,6 +75,18 @@ RoomViewHeaderProps) {
 
         {/* Spacer for balance */}
         <View style={styles.spacer} />
+
+        {/* Options button */}
+        {onOptionsPress && (
+          <LiquidGlassButton
+            style={styles.optionsPill}
+            contentStyle={styles.optionsPillContent}
+            borderRadius={PILL_HEIGHT / 2}
+            onPress={onOptionsPress}
+          >
+            <EllipsisVertical color={colors.text.primary} size={24} />
+          </LiquidGlassButton>
+        )}
       </View>
     </View>
   );
@@ -146,5 +158,14 @@ const styles = StyleSheet.create({
   },
   spacer: {
     flex: 1,
+  },
+  optionsPill: {
+    width: PILL_HEIGHT,
+    height: PILL_HEIGHT,
+  },
+  optionsPillContent: {
+    flex: 1,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
 });
