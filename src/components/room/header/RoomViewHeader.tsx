@@ -1,9 +1,9 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, View, Text, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
-import { ChevronLeft, User, EllipsisVertical } from 'lucide-react-native';
+import { ChevronLeft, User, ChevronDown } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import { getRoomAvatarUrl, isFounderRoom } from 'src/utils/room';
@@ -58,8 +58,9 @@ export function RoomViewHeader({
           style={styles.profilePill}
           contentStyle={styles.profilePillContent}
           borderRadius={PILL_HEIGHT / 2}
+          onPress={onOptionsPress && !isFounderRoom(roomName) ? onOptionsPress : undefined}
         >
-          <TouchableOpacity style={styles.profileSection} activeOpacity={0.7}>
+          <View style={styles.profileSection}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={styles.avatar} />
             ) : (
@@ -70,23 +71,14 @@ export function RoomViewHeader({
             <Text style={styles.roomName} numberOfLines={1}>
               {roomName}
             </Text>
-          </TouchableOpacity>
+            {onOptionsPress && !isFounderRoom(roomName) && (
+              <ChevronDown color={colors.text.secondary} size={16} />
+            )}
+          </View>
         </LiquidGlassButton>
 
         {/* Spacer for balance */}
         <View style={styles.spacer} />
-
-        {/* Options button - hidden in founder room */}
-        {onOptionsPress && !isFounderRoom(roomName) && (
-          <LiquidGlassButton
-            style={styles.optionsPill}
-            contentStyle={styles.optionsPillContent}
-            borderRadius={PILL_HEIGHT / 2}
-            onPress={onOptionsPress}
-          >
-            <EllipsisVertical color={colors.text.secondary} size={24} />
-          </LiquidGlassButton>
-        )}
       </View>
     </View>
   );
@@ -136,9 +128,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 6,
-    paddingRight: 16,
+    paddingRight: 12,
     height: PILL_HEIGHT,
-    gap: 10,
+    gap: 8,
   },
   avatar: {
     width: 32,
@@ -158,14 +150,5 @@ const styles = StyleSheet.create({
   },
   spacer: {
     flex: 1,
-  },
-  optionsPill: {
-    width: PILL_HEIGHT,
-    height: PILL_HEIGHT,
-  },
-  optionsPillContent: {
-    flex: 1,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
   },
 });
