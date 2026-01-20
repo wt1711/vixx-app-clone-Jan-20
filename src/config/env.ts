@@ -99,6 +99,11 @@ export const API_ENDPOINTS = {
     CONNECT: `${ENV.API_BASE_URL}/api/instagram/connect`,
   },
 
+  // Report endpoints (hardcoded for now, will migrate later)
+  REPORTS: {
+    SUBMIT: 'https://vixx.app/api/report',
+  },
+
   // AI Service endpoints
   AI: {
     SUGGESTION: `${ENV.AI_SERVICE_BASE_URL}/suggestion`,

@@ -428,7 +428,7 @@ export const getLastReceivedMessageBatch = (
   const timestampStr =
     batch.length > 0
       ? reversed[startIndex].timestamp
-      : Date.now().toLocaleString();
+      : new Date().toISOString();
   return { messageBatch, timestampStr };
 };
 
