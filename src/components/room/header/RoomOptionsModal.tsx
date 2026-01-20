@@ -13,6 +13,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Room } from 'matrix-js-sdk';
 import { colors } from 'src/config';
 import { ReportModal, ReportReason } from '../message/ReportModal';
+import { apiSubmitReport } from 'src/services/api';
+import { getMatrixClient } from 'src/services/matrixClient';
+
+const REASON_LABELS: Record<ReportReason, string> = {
+  nudity: 'Nudity or sexual activity',
+  hate_speech: 'Hate speech or harassment',
+  scam: 'Scam or fraud',
+  spam: 'Spam',
+  other: 'Other',
+};
 
 type RoomOptionsModalProps = {
   visible: boolean;
@@ -55,21 +65,39 @@ export function RoomOptionsModal({
     setShowReportModal(true);
   };
 
-  const handleReportReasonSelect = (reason: ReportReason) => {
-    // TODO: Implement actual report submission to backend
-    console.info('Report submitted:', {
-      roomId: room.roomId,
-      roomName: room.name,
-      reason,
-    });
-
+  const handleReportReasonSelect = async (reason: ReportReason) => {
     setShowReportModal(false);
     onClose();
 
-    Alert.alert(
-      'Report Submitted',
-      'Thank you for your report. We will review it shortly.',
-    );
+    const mx = getMatrixClient();
+    const reporterUserId = mx?.getUserId() || 'Unknown';
+    // Extract username: @instagram_56911609594:server → 56911609594
+    const reporterUsername = reporterUserId
+      .replace(/^@/, '')
+      .split(':')[0]
+      .replace(/^instagram_/, '');
+
+    try {
+      await apiSubmitReport({
+        email: 'support@vixx.app',
+        reason: REASON_LABELS[reason],
+        description: `User ${reporterUsername} has submitted a content report.
+          At: ${new Date().toISOString()}
+          Reported User: ${room.name}
+        `,
+      });
+
+      Alert.alert(
+        'Report Submitted',
+        'Thank you for your report. We will review it shortly.',
+      );
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      Alert.alert(
+        'Report Failed',
+        'Unable to submit your report. Please try again later.',
+      );
+    }
   };
 
   const closeReportModal = () => {
