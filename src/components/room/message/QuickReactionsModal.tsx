@@ -12,7 +12,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { Reply, Plus, Trash2 } from 'lucide-react-native';
+import { Reply, Plus, Trash2, Flag } from 'lucide-react-native';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { MessageItem } from 'src/components/room/types';
 import { ReplyPreview } from 'src/components/room/message/variants';
@@ -69,6 +69,7 @@ export type QuickReactionsModalProps = {
   onSelectEmoji: (emoji: string, eventId: string) => void;
   onReply?: () => void;
   onDelete?: () => void;
+  onReport?: () => void;
 };
 
 export function QuickReactionsModal({
@@ -79,6 +80,7 @@ export function QuickReactionsModal({
   onSelectEmoji,
   onReply,
   onDelete,
+  onReport,
 }: QuickReactionsModalProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const mx = getMatrixClient();
@@ -134,6 +136,15 @@ export function QuickReactionsModal({
       onDelete();
     }
   };
+
+  const handleReportPress = () => {
+    if (onReport) {
+      onReport();
+    }
+  };
+
+  // Check if the current user can report this message (only other users' messages)
+  const canReport = !messageItem.isOwn;
 
   const blurFallbackColor = messageItem.isOwn
     ? colors.message.own
@@ -277,6 +288,16 @@ export function QuickReactionsModal({
               >
                 <Trash2 size={22} color={colors.status.error} />
                 <Text style={styles.actionLabelDelete}>Delete</Text>
+              </TouchableOpacity>
+            )}
+            {canReport && (
+              <TouchableOpacity
+                style={styles.actionItem}
+                onPress={handleReportPress}
+                activeOpacity={0.7}
+              >
+                <Flag size={22} color={colors.status.error} />
+                <Text style={styles.actionLabelDelete}>Report</Text>
               </TouchableOpacity>
             )}
           </View>
