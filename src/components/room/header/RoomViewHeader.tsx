@@ -6,7 +6,7 @@ import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { ChevronLeft, User, EllipsisVertical } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
-import { getRoomAvatarUrl } from 'src/utils/room';
+import { getRoomAvatarUrl, isFounderRoom } from 'src/utils/room';
 import { colors, gradients } from 'src/config';
 
 type RoomViewHeaderProps = {
@@ -76,15 +76,15 @@ export function RoomViewHeader({
         {/* Spacer for balance */}
         <View style={styles.spacer} />
 
-        {/* Options button */}
-        {onOptionsPress && (
+        {/* Options button - hidden in founder room */}
+        {onOptionsPress && !isFounderRoom(roomName) && (
           <LiquidGlassButton
             style={styles.optionsPill}
             contentStyle={styles.optionsPillContent}
             borderRadius={PILL_HEIGHT / 2}
             onPress={onOptionsPress}
           >
-            <EllipsisVertical color={colors.text.primary} size={24} />
+            <EllipsisVertical color={colors.text.secondary} size={24} />
           </LiquidGlassButton>
         )}
       </View>
