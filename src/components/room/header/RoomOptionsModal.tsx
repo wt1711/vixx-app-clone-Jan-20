@@ -28,12 +28,14 @@ type RoomOptionsModalProps = {
   visible: boolean;
   room: Room;
   onClose: () => void;
+  onBlock?: () => void;
 };
 
 export function RoomOptionsModal({
   visible,
   room,
   onClose,
+  onBlock,
 }: RoomOptionsModalProps) {
   const [showReportModal, setShowReportModal] = useState(false);
   const insets = useSafeAreaInsets();
@@ -41,8 +43,8 @@ export function RoomOptionsModal({
   const handleBlock = () => {
     onClose();
     Alert.alert(
-      'Block User',
-      `Are you sure you want to block ${room.name || 'this user'}? You will no longer receive messages from them.`,
+      `Block ${room.name || 'this user'}?`,
+      `Be careful, you will no longer receive messages from them in VIXX.`,
       [
         {
           text: 'Cancel',
@@ -51,10 +53,15 @@ export function RoomOptionsModal({
         {
           text: 'Block',
           style: 'destructive',
-          onPress: () => {
-            // TODO: Implement actual block functionality
-            console.info('Block user:', room.roomId);
-            Alert.alert('Blocked', 'User has been blocked.');
+          onPress: async () => {
+            try {
+              const mx = getMatrixClient();
+              await mx?.leave(room.roomId);
+              onBlock?.();
+            } catch (error) {
+              console.error('Failed to block user:', error);
+              Alert.alert('Error', 'Failed to block user. Please try again.');
+            }
           },
         },
       ],

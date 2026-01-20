@@ -201,6 +201,7 @@ export function DirectMessageDetailScreen({
         visible={showOptionsModal}
         room={room}
         onClose={handleCloseOptionsModal}
+        onBlock={onBack}
       />
     </GestureHandlerRootView>
   );
