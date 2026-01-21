@@ -46,16 +46,6 @@ export type ModerationResult = {
   triggeredKeyword?: string;
 };
 
-// Log entry for moderation events (internal only)
-export type ModerationLogEntry = {
-  messageIdHash: string;
-  userIdHash: string;
-  category: ViolationCategory;
-  timestamp: number;
-  action: ModerationDecision.WARN | ModerationDecision.BLOCK;
-  contentType: ContentType;
-};
-
 // Configuration for keyword patterns
 export type KeywordPattern = {
   pattern: RegExp;

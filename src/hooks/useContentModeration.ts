@@ -9,10 +9,8 @@ import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import {
   moderateContentSync,
-  logModerationEvent,
   ModerationResult,
   ModerationDecision,
-  ContentType,
 } from 'src/services/contentModeration';
 
 // Generic warning message - does not reveal which word triggered
@@ -60,25 +58,14 @@ export function useContentModeration(): UseContentModerationReturn {
   const checkContent = useCallback(
     (
       text: string,
-      userId: string,
-      messageId?: string,
+      _userId: string,
+      _messageId?: string,
     ): ContentModerationResult => {
       // Use sync version for immediate feedback (<300ms requirement)
       const result: ModerationResult = moderateContentSync(text);
 
       if (result.decision === ModerationDecision.ALLOW) {
         return { allowed: true, showWarning: false };
-      }
-
-      // Log the moderation event (hashed, no raw text)
-      if (result.category) {
-        logModerationEvent(
-          messageId || `msg_${Date.now()}`,
-          userId,
-          result.category,
-          result.decision as ModerationDecision.WARN | ModerationDecision.BLOCK,
-          ContentType.TEXT,
-        );
       }
 
       if (result.decision === ModerationDecision.BLOCK) {

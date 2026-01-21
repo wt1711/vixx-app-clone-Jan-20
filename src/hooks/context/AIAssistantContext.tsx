@@ -19,9 +19,7 @@ import { isMessageFromMe, getLastReceivedMessageBatch } from 'src/utils/room';
 import { parseAIResponse, ParsedAIResponse } from 'src/utils/aiResponseParser';
 import {
   moderateContentSync,
-  logModerationEvent,
   ModerationDecision,
-  ContentType,
 } from 'src/services/contentModeration';
 
 type ChatMessage = {
@@ -208,17 +206,6 @@ export function AIAssistantProvider({
     // Content moderation check before sending to AI
     const moderationResult = moderateContentSync(inputValue);
     if (moderationResult.decision !== ModerationDecision.ALLOW) {
-      // Log the moderation event
-      if (moderationResult.category) {
-        logModerationEvent(
-          `ai_prompt_${Date.now()}`,
-          myUserId,
-          moderationResult.category,
-          moderationResult.decision as ModerationDecision.WARN | ModerationDecision.BLOCK,
-          ContentType.TEXT,
-        );
-      }
-      // Show warning and don't send
       Alert.alert(
         'Content Warning',
         'This message may violate our community guidelines. Please edit and try again.',

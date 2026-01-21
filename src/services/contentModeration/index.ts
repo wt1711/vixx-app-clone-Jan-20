@@ -14,22 +14,12 @@ export {
   setModerationEnabled,
 } from './contentModerationService';
 
-// Logging
-export {
-  logModerationEvent,
-  getModerationStats,
-  clearModerationLogs,
-} from './moderationLogger';
-
 // Types
 export {
-  ModerationResult,
   ModerationDecision,
   ViolationCategory,
   ConfidenceLevel,
   ContentType,
-  ModerationConfig,
-  ModerationLogEntry,
 } from './types';
 
 // Patterns (for testing/configuration)
