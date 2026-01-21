@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import { Alert } from 'react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import {
@@ -16,6 +17,12 @@ import {
 } from 'src/services/aiService';
 import { isMessageFromMe, getLastReceivedMessageBatch } from 'src/utils/room';
 import { parseAIResponse, ParsedAIResponse } from 'src/utils/aiResponseParser';
+import {
+  moderateContentSync,
+  logModerationEvent,
+  ModerationDecision,
+  ContentType,
+} from 'src/services/contentModeration';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -119,15 +126,6 @@ export function AIAssistantProvider({
     [isMobile],
   );
 
-  const generateInitialResponse = useCallback(
-    async (idea?: string) => {
-      toggleAIAssistant(true);
-      const spec = idea ? { idea } : {};
-      await regenerateResponse(spec);
-    },
-    [toggleAIAssistant],
-  ); // eslint-disable-line react-hooks/exhaustive-deps
-
   const regenerateResponse = useCallback(
     async (spec = {}) => {
       setIsGeneratingResponse(true);
@@ -195,8 +193,38 @@ export function AIAssistantProvider({
     [room, mx, myUserId, handleUseSuggestion],
   );
 
+  const generateInitialResponse = useCallback(
+    async (idea?: string) => {
+      toggleAIAssistant(true);
+      const spec = idea ? { idea } : {};
+      await regenerateResponse(spec);
+    },
+    [toggleAIAssistant, regenerateResponse],
+  );
+  
   const handleSend = useCallback(async () => {
     if (inputValue.trim() === '' || !mx || !myUserId) return;
+
+    // Content moderation check before sending to AI
+    const moderationResult = moderateContentSync(inputValue);
+    if (moderationResult.decision !== ModerationDecision.ALLOW) {
+      // Log the moderation event
+      if (moderationResult.category) {
+        logModerationEvent(
+          `ai_prompt_${Date.now()}`,
+          myUserId,
+          moderationResult.category,
+          moderationResult.decision as ModerationDecision.WARN | ModerationDecision.BLOCK,
+          ContentType.TEXT,
+        );
+      }
+      // Show warning and don't send
+      Alert.alert(
+        'Content Warning',
+        'This message may violate our community guidelines. Please edit and try again.',
+      );
+      return;
+    }
 
     const newUserMessage: ChatMessage = {
       sender: 'user',
