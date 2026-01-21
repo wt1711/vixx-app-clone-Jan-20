@@ -8,7 +8,7 @@ import {
 } from '@callstack/liquid-glass';
 
 // Glass style variants for visual distinction
-export type GlassVariant = 'A' | 'B' | 'C' | 'D' | 'E';
+export type GlassVariant = 'A' | 'B' | 'C' | 'D' | 'E' | 'dark';
 
 export const GLASS_VARIANT_NAMES: Record<GlassVariant, string> = {
   A: 'Crystal',   // Nearly transparent, minimal blur
@@ -16,6 +16,7 @@ export const GLASS_VARIANT_NAMES: Record<GlassVariant, string> = {
   C: 'Cool',      // Blue-tinted with cyan accent
   D: 'Amber',     // Warm cream/amber tinted
   E: 'Liquid',    // Gradient with directional border
+  dark: 'Dark',   // Dark blur for dark-themed modals
 };
 
 type GlassModuleProps = {
@@ -142,13 +143,22 @@ function getVariantConfig(variant: GlassVariant) {
         accentBorder: styles.orangeAccent,
       };
     case 'E': // Liquid Glass - Gradient
-    default:
       return {
         blurType: 'light' as const,
         blurAmount: 15,
         fallbackColor: 'rgba(255, 255, 255, 0.95)',
         tintColor: 'rgba(255, 255, 255, 0.5)',
         tintStyle: null,
+        accentBorder: null,
+      };
+    case 'dark': // Dark Glass - for dark-themed modals
+    default:
+      return {
+        blurType: 'dark' as const,
+        blurAmount: 25,
+        fallbackColor: 'rgba(0, 0, 0, 0.85)',
+        tintColor: 'rgba(0, 0, 0, 0.6)',
+        tintStyle: styles.darkTint,
         accentBorder: null,
       };
   }
@@ -217,5 +227,11 @@ const styles = StyleSheet.create({
     borderLeftColor: 'rgba(255, 255, 255, 0.30)',
     borderBottomColor: 'rgba(255, 255, 255, 0.10)',
     borderRightColor: 'rgba(255, 255, 255, 0.15)',
+  },
+
+  // Variant: Dark Glass
+  darkTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.60)',
   },
 });

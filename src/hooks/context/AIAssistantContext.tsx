@@ -14,6 +14,7 @@ import {
   generateResponseWithIdea,
   gradeMessage,
   analyzeMessageIntent,
+  gradeOwnMessage,
 } from 'src/services/aiService';
 import { isMessageFromMe, getLastReceivedMessageBatch } from 'src/utils/room';
 import { parseAIResponse, ParsedAIResponse } from 'src/utils/aiResponseParser';
@@ -650,7 +651,10 @@ export function AIAssistantProvider({
         const burstText = messages.map(m => m.content).join('\n');
         const firstMessage = messages[0];
 
-        const result = await analyzeMessageIntent({
+        // Use different analysis based on whether it's own message or counterparty's
+        const analysisFunction = isOwnMessage ? gradeOwnMessage : analyzeMessageIntent;
+
+        const result = await analysisFunction({
           message: {
             text: burstText,
             sender: firstMessage.senderName,

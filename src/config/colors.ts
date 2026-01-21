@@ -33,6 +33,7 @@ export const colors = {
     purple: '#A855F7',
     instagram: '#E4405F',
     cyan: '#06B6D4', // used in sparkle animations
+    teal: '#0D9488', // sophisticated teal for AI features
   },
 
   // Message bubbles
@@ -139,6 +140,13 @@ export const colors = {
   // Fallback / Debug
   fallback: {
     blue: '#0000ff',
+  },
+
+  // Analysis mode overlay (negative film effect)
+  analysis: {
+    tintOverlay: 'rgba(20, 30, 50, 0.25)', // cool blue-gray tint
+    vignetteDark: 'rgba(0, 0, 0, 0.35)',   // edge darkening
+    vignetteLight: 'rgba(0, 0, 0, 0)',     // center (transparent)
   },
 } as const;
 

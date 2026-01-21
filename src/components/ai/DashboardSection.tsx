@@ -73,7 +73,7 @@ export function DashboardSection({
 
 function getScoreColor(score: number): string {
   if (score >= 70) return colors.accent.cyan;
-  if (score >= 50) return colors.accent.instagram;
+  if (score >= 50) return colors.accent.blue; // Blue for medium scores
   if (score >= 30) return colors.status.warning;
   return colors.text.tertiary;
 }

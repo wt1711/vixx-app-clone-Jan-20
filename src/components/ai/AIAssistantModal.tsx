@@ -11,7 +11,7 @@ import {
   Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronDown, ChevronUp, Palette, Send, X } from 'lucide-react-native';
+import { ChevronDown, ChevronUp, Palette, Send, X, Trash2 } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { useAIAssistant } from 'src/hooks/context/AIAssistantContext';
 import { DashboardSection } from './DashboardSection';
@@ -51,9 +51,9 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
   const topPadding = insets.top + HEADER_VISIBLE_HEIGHT;
 
   const [isDashboardExpanded, setIsDashboardExpanded] = useState(false);
-  const [glassVariant, setGlassVariant] = useState<GlassVariant>('B'); // Default to Frost
+  const [glassVariant, setGlassVariant] = useState<GlassVariant>('C'); // Default to Cool blue tint
 
-  // Cycle through glass variants
+  // Cycle through glass variants (dev mode only)
   const cycleGlassVariant = () => {
     const variants: GlassVariant[] = ['A', 'B', 'C', 'D', 'E'];
     const currentIndex = variants.indexOf(glassVariant);
@@ -71,6 +71,18 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
       useNativeDriver: false,
     }).start();
   }, [isDashboardExpanded, dashboardAnim]);
+
+  // Animation for send button appear/collapse - single animation to avoid race conditions
+  const sendButtonAnim = useRef(new Animated.Value(0)).current;
+  const showSendButton = inputValue.trim().length > 0 || isLoading;
+
+  useEffect(() => {
+    Animated.timing(sendButtonAnim, {
+      toValue: showSendButton ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false, // width can't use native driver
+    }).start();
+  }, [showSendButton, sendButtonAnim]);
 
   const expandAnimatedStyle = {
     height: dashboardAnim.interpolate({
@@ -110,26 +122,28 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
           <GlassModule style={styles.headerDashboardCard} variant={glassVariant} interactive>
             {/* Header Row */}
             <View style={styles.headerContent}>
-              <Text style={styles.title}>Vixx Insights</Text>
+              <Text style={styles.title}>Insights</Text>
               <View style={styles.headerActions}>
-                {/* Glass style switcher */}
-                <TouchableOpacity
-                  onPress={cycleGlassVariant}
-                  style={styles.styleButton}
-                >
-                  <Palette size={16} color={colors.modal.textSecondary} />
-                  <Text style={styles.styleButtonText}>{glassVariant}</Text>
-                </TouchableOpacity>
+                {/* Glass style switcher - dev mode only */}
+                {__DEV__ && (
+                  <TouchableOpacity
+                    onPress={cycleGlassVariant}
+                    style={styles.styleButton}
+                  >
+                    <Palette size={16} color={colors.modal.textSecondary} />
+                    <Text style={styles.styleButtonText}>{glassVariant}</Text>
+                  </TouchableOpacity>
+                )}
                 {chatHistory.length > 0 && (
                   <TouchableOpacity
                     onPress={clearChatHistory}
                     style={styles.clearButton}
                   >
-                    <Text style={styles.clearButtonText}>Clear</Text>
+                    <Trash2 size={18} color={colors.modal.textSecondary} />
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                  <Text style={styles.closeButtonText}>✕</Text>
+                  <X size={20} color={colors.modal.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -259,7 +273,7 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                   </ScrollView>
                   {isLoading && (
                     <View style={styles.loadingIndicator}>
-                      <ActivityIndicator size="small" color={colors.accent.instagram} />
+                      <ActivityIndicator size="small" color={colors.accent.teal} />
                       <Text style={styles.loadingText}>Vixx is thinking...</Text>
                     </View>
                   )}
@@ -287,7 +301,7 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                           disabled={isGeneratingResponse}
                         >
                           {isGeneratingResponse ? (
-                            <ActivityIndicator color={colors.accent.instagram} />
+                            <ActivityIndicator color={colors.accent.teal} />
                           ) : (
                             <Text style={styles.regenerateButtonText}>
                               Regenerate
@@ -334,30 +348,50 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                placeholder="Hỏi VIXX"
-                placeholderTextColor={colors.modal.textPlaceholder}
+                placeholder="Abcxyz"
+                placeholderTextColor={colors.transparent.white50}
                 value={inputValue}
                 onChangeText={setInputValue}
                 multiline
                 editable={!isLoading}
               />
-              <TouchableOpacity
+              {/* Animated send button container */}
+              <Animated.View
                 style={[
-                  styles.sendButton,
-                  (!inputValue.trim() || isLoading) && styles.sendButtonDisabled,
+                  styles.sendButtonWrapper,
+                  {
+                    width: sendButtonAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 48],
+                    }),
+                    opacity: sendButtonAnim,
+                    transform: [
+                      {
+                        scale: sendButtonAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.8, 1],
+                        }),
+                      },
+                    ],
+                  },
                 ]}
-                onPress={handleSend}
-                disabled={!inputValue.trim() || isLoading}
+                pointerEvents={showSendButton ? 'auto' : 'none'}
               >
-                {isLoading ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={colors.modal.background}
-                  />
-                ) : (
-                  <Send size={20} color={colors.modal.background} />
-                )}
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.sendButton}
+                  onPress={handleSend}
+                  disabled={!inputValue.trim() || isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={colors.text.primary}
+                    />
+                  ) : (
+                    <Send size={20} color={colors.text.primary} />
+                  )}
+                </TouchableOpacity>
+              </Animated.View>
             </View>
           </GlassModule>
         </View>
@@ -395,8 +429,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: colors.modal.textPrimary,
+    letterSpacing: -0.3,
   },
   headerActions: {
     flexDirection: 'row',
@@ -457,6 +492,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    backgroundColor: 'rgba(200, 220, 255, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
   },
   metricEmoji: {
     fontSize: 14,
@@ -502,12 +541,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   contextBubble: {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    backgroundColor: 'rgba(200, 220, 255, 0.10)',
     padding: 12,
     paddingRight: 36,
     borderRadius: 12,
     borderLeftWidth: 3,
-    borderLeftColor: colors.accent.instagram,
+    borderLeftColor: colors.accent.teal,
     position: 'relative',
   },
   contextDismiss: {
@@ -560,12 +599,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   suggestionChip: {
-    backgroundColor: 'rgba(0, 0, 0, 0.06)',
+    backgroundColor: 'rgba(200, 220, 255, 0.12)',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderColor: 'rgba(200, 220, 255, 0.25)',
   },
   suggestionChipDisabled: {
     opacity: 0.5,
@@ -586,7 +625,7 @@ const styles = StyleSheet.create({
     color: colors.modal.textSecondary,
   },
   generatedResponseContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    backgroundColor: 'rgba(200, 220, 255, 0.12)',
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
@@ -609,9 +648,9 @@ const styles = StyleSheet.create({
   },
   useButton: {
     flex: 1,
-    backgroundColor: colors.accent.instagram,
-    paddingVertical: 8,
-    borderRadius: 6,
+    backgroundColor: colors.accent.teal,
+    paddingVertical: 10,
+    borderRadius: 12,
     alignItems: 'center',
   },
   useButtonText: {
@@ -621,15 +660,15 @@ const styles = StyleSheet.create({
   },
   regenerateButton: {
     flex: 1,
-    backgroundColor: colors.modal.background,
+    backgroundColor: 'rgba(13, 148, 136, 0.1)',
     borderWidth: 1,
-    borderColor: colors.accent.instagram,
-    paddingVertical: 8,
-    borderRadius: 6,
+    borderColor: colors.accent.teal,
+    paddingVertical: 10,
+    borderRadius: 12,
     alignItems: 'center',
   },
   regenerateButtonText: {
-    color: colors.accent.instagram,
+    color: colors.accent.teal,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -643,11 +682,11 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
   },
   messageUser: {
-    backgroundColor: colors.accent.instagram,
+    backgroundColor: 'rgba(30, 30, 35, 0.9)',
     alignSelf: 'flex-end',
   },
   messageAI: {
-    backgroundColor: 'rgba(0, 0, 0, 0.06)',
+    backgroundColor: 'rgba(200, 220, 255, 0.15)',
     alignSelf: 'flex-start',
   },
   messageText: {
@@ -655,7 +694,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   messageTextUser: {
-    color: colors.modal.background,
+    color: colors.text.primary,
   },
   messageTextAI: {
     color: colors.modal.textPrimary,
@@ -668,7 +707,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     padding: 12,
-    gap: 8,
     alignItems: 'flex-end',
   },
   input: {
@@ -676,23 +714,29 @@ const styles = StyleSheet.create({
     minHeight: 40,
     maxHeight: 100,
     borderWidth: 1,
-    borderColor: colors.modal.border,
+    borderColor: 'rgba(200, 220, 255, 0.4)',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 15,
-    color: colors.modal.textPrimary,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    color: colors.text.primary,
+    backgroundColor: 'transparent',
+  },
+  sendButtonWrapper: {
+    overflow: 'hidden',
+    height: 40,
+    marginLeft: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sendButton: {
-    backgroundColor: colors.accent.instagram,
+    backgroundColor: 'rgba(200, 220, 255, 0.35)',
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
+    borderWidth: 1,
+    borderColor: 'rgba(200, 220, 255, 0.5)',
   },
 });

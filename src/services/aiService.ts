@@ -555,6 +555,135 @@ export async function generateFromDirection({
   }
 }
 
+// Mock generator for grading user's own messages
+function generateMockMessageGrade(
+  messageText: string,
+  context: Message[],
+): IntentAnalysisResult {
+  const hasQuestion = messageText.includes('?');
+  const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(messageText);
+  const messageLength = messageText.length;
+  const wordCount = messageText.split(/\s+/).length;
+
+  // Calculate grade based on message quality
+  let gradeScore = 60;
+  if (hasQuestion) gradeScore += 10; // Questions show engagement
+  if (hasEmoji) gradeScore += 5; // Emojis add warmth
+  if (wordCount >= 3 && wordCount <= 15) gradeScore += 10; // Good length
+  if (messageLength > 5 && messageLength < 100) gradeScore += 5; // Not too short/long
+
+  // Check for positive language patterns
+  if (/oke|ok|được|chắc|rồi|nha/i.test(messageText)) gradeScore += 5;
+  if (/❤️|💕|🥰|😊|😍/u.test(messageText)) gradeScore += 5;
+
+  gradeScore = Math.min(95, Math.max(40, gradeScore));
+
+  const getGradeLabel = (
+    score: number,
+  ): 'Very High' | 'High' | 'Moderate' | 'Low' | 'Uncertain' => {
+    if (score >= 85) return 'Very High';
+    if (score >= 70) return 'High';
+    if (score >= 55) return 'Moderate';
+    if (score >= 40) return 'Low';
+    return 'Uncertain';
+  };
+
+  // Generate feedback based on message characteristics
+  const feedbackOptions: string[] = [];
+
+  if (gradeScore >= 80) {
+    feedbackOptions.push(
+      'Great response! Clear, warm, and engaging. This keeps the conversation flowing naturally.',
+      'Solid message! Shows interest while staying relaxed. Good balance.',
+      'Nice job! Your message is friendly and inviting without being too much.',
+    );
+  } else if (gradeScore >= 65) {
+    feedbackOptions.push(
+      'Good response. Consider adding a question to keep them engaged.',
+      'Decent message. A bit more enthusiasm could help build connection.',
+      'Okay response. Try matching their energy level more closely.',
+    );
+  } else {
+    feedbackOptions.push(
+      'Could be stronger. Try adding more warmth or a follow-up question.',
+      'A bit short. Consider expanding to show more interest.',
+      'Try to engage more. Ask something about them or share something personal.',
+    );
+  }
+
+  const indicators: string[] = [];
+  if (hasQuestion) indicators.push('Asks follow-up question');
+  if (hasEmoji) indicators.push('Uses expressive language');
+  if (wordCount >= 3) indicators.push('Substantial response');
+  if (gradeScore >= 70) indicators.push('Good conversational flow');
+  if (indicators.length === 0) indicators.push('Basic acknowledgment');
+
+  return {
+    interestLevel: {
+      score: gradeScore,
+      label: getGradeLabel(gradeScore),
+      indicators,
+    },
+    emotionalTone: {
+      primary: gradeScore >= 70 ? 'Engaging' : 'Neutral',
+      secondary: gradeScore >= 60 ? 'Friendly' : 'Reserved',
+      confidence: 75,
+    },
+    stateRead: feedbackOptions[Math.floor(Math.random() * feedbackOptions.length)],
+    recommendedDirection: DIRECTION_TEMPLATES[0],
+    alternativeDirections: [],
+    hiddenMeanings: [],
+    suggestedInterpretation: '',
+    responseAdvice: '',
+    analysisTimestamp: new Date().toISOString(),
+    messageId: `grade-${Date.now()}`,
+  };
+}
+
+// Grade user's own message for effectiveness
+export async function gradeOwnMessage({
+  message,
+  context,
+  userId,
+}: IntentAnalysisRequest): Promise<IntentAnalysisResult> {
+  // Check if API endpoint is configured
+  const endpoint = API_ENDPOINTS.AI.GRADE_OWN_MESSAGE;
+  const isEndpointConfigured =
+    endpoint && !endpoint.startsWith('undefined') && endpoint.length > 20;
+
+  if (!isEndpointConfigured) {
+    console.info('Using mock message grading (API not configured)');
+    await new Promise<void>(resolve => setTimeout(resolve, 800 + Math.random() * 400));
+    return generateMockMessageGrade(message.text, context);
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message,
+        context,
+        userId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to grade message.');
+    }
+
+    const data = await response.json();
+    return data.analysis;
+  } catch (error) {
+    console.warn('API call failed, falling back to mock grading:', error);
+    await new Promise<void>(resolve => setTimeout(resolve, 300));
+    return generateMockMessageGrade(message.text, context);
+  }
+}
+
 export async function analyzeMessageIntent({
   message,
   context,

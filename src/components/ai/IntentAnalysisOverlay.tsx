@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,15 +11,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { X, Sparkles } from 'lucide-react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { X, ScanSearch } from 'lucide-react-native';
 import { useAIAssistant } from 'src/hooks/context/AIAssistantContext';
+import { VixxLogo } from 'src/components/icons';
 import { colors } from 'src/config';
-import { generateFromDirection } from 'src/services/aiService';
-import type { ResponseDirection } from 'src/types/intentAnalysis';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
-
-type ViewState = 'directions' | 'generating';
 
 export function IntentAnalysisOverlay() {
   const {
@@ -30,27 +28,13 @@ export function IntentAnalysisOverlay() {
     intentAnalysisBurst,
     isAnalyzingOwnMessage,
     closeIntentAnalysis,
-    setInputValue,
+    openAskVixx,
   } = useAIAssistant();
-
-  // View state for direct flow
-  const [viewState, setViewState] = useState<ViewState>('directions');
-  const [selectedDirection, setSelectedDirection] = useState<ResponseDirection | null>(null);
-  const [generationError, setGenerationError] = useState<string | null>(null);
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const contentOpacity = useRef(new Animated.Value(0)).current;
-
-  // Reset state when overlay opens/closes
-  useEffect(() => {
-    if (isIntentAnalysisOpen) {
-      setViewState('directions');
-      setSelectedDirection(null);
-      setGenerationError(null);
-    }
-  }, [isIntentAnalysisOpen]);
 
   useEffect(() => {
     if (isIntentAnalysisOpen) {
@@ -97,53 +81,39 @@ export function IntentAnalysisOverlay() {
     }
   }, [isIntentAnalysisOpen, fadeAnim, scaleAnim, contentOpacity]);
 
-  // Handle selecting a direction - generates and inserts directly
-  const handleSelectDirection = useCallback(
-    async (direction: ResponseDirection) => {
-      setSelectedDirection(direction);
-      setViewState('generating');
-      setGenerationError(null);
-
-      try {
-        // Get the message text from the burst
-        const messageText = intentAnalysisBurst.map(m => m.content).join('\n');
-
-        const result = await generateFromDirection({
-          direction,
-          messageText,
-          context: [], // Context would come from AIAssistantContext if needed
-        });
-
-        // Direct insertion - insert into input and close
-        setInputValue(result.message);
-        closeIntentAnalysis();
-      } catch (error) {
-        console.error('Error generating from direction:', error);
-        setGenerationError('Failed to generate response. Try again.');
-        setViewState('directions');
-      }
-    },
-    [intentAnalysisBurst, setInputValue, closeIntentAnalysis],
-  );
+  // Handle "Ask Vixx" button - opens Ask Vixx modal with message context
+  const handleAskVixx = useCallback(() => {
+    const messageText = intentAnalysisBurst.map(m => m.content).join('\n');
+    closeIntentAnalysis();
+    openAskVixx(messageText);
+  }, [intentAnalysisBurst, closeIntentAnalysis, openAskVixx]);
 
   if (!isIntentAnalysisOpen) return null;
 
   return (
     <View style={styles.overlayContainer} pointerEvents="box-none">
-      {/* Blur background - tap to dismiss */}
+      {/* Light base tint - tap to dismiss */}
       <TouchableWithoutFeedback onPress={closeIntentAnalysis}>
-        <Animated.View style={[styles.blurOverlay, { opacity: fadeAnim }]}>
-          <BlurView
-            style={StyleSheet.absoluteFill}
-            blurType="dark"
-            blurAmount={40}
-            reducedTransparencyFallbackColor={colors.transparent.black80}
-          />
-          <View style={styles.blurTint} />
-        </Animated.View>
+        <Animated.View style={[styles.backdropBase, { opacity: fadeAnim }]} />
       </TouchableWithoutFeedback>
 
-      {/* Content container - positioned above input bar */}
+      {/* Center spotlight gradient - darker in middle, fades toward edges */}
+      <Animated.View style={[styles.spotlightWrapper, { opacity: fadeAnim }]} pointerEvents="none">
+        <LinearGradient
+          colors={[
+            colors.transparent.black20,
+            colors.transparent.black40,
+            colors.transparent.black50,
+            colors.transparent.black50,
+            colors.transparent.black40,
+            colors.transparent.black20,
+          ]}
+          locations={[0, 0.12, 0.25, 0.75, 0.88, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+
+      {/* Content container - centered in screen */}
       <View style={styles.contentWrapper} pointerEvents="box-none">
         <Animated.View
           style={[
@@ -154,33 +124,44 @@ export function IntentAnalysisOverlay() {
             },
           ]}
         >
+          {/* Focused blur behind content */}
+          <View style={styles.contentBlurWrapper}>
+            <BlurView
+              style={StyleSheet.absoluteFill}
+              blurType="dark"
+              blurAmount={25}
+              reducedTransparencyFallbackColor={colors.background.black}
+            />
+            <View style={styles.contentBlurTint} />
+          </View>
+
           <TouchableWithoutFeedback>
             <View style={styles.innerContent}>
-              {/* Header */}
-              <View style={styles.header}>
-                <View style={styles.headerLeft}>
-                  <View style={styles.headerIconCircle}>
-                    <Sparkles size={18} color={colors.accent.cyan} />
-                  </View>
-                  <Text style={styles.headerTitle}>
-                    {isAnalyzingOwnMessage ? 'Message Grade' : 'Analysis'}
-                  </Text>
+              {/* Header with scan icon - right-aligned for own messages */}
+              <View style={[
+                styles.header,
+                isAnalyzingOwnMessage && styles.headerOwn,
+              ]}>
+                <View style={styles.headerIconCircle}>
+                  <ScanSearch size={18} color={colors.accent.cyan} />
                 </View>
-                <TouchableOpacity
-                  onPress={closeIntentAnalysis}
-                  style={styles.closeButton}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                  <X size={20} color={colors.text.secondary} />
-                </TouchableOpacity>
               </View>
 
               {/* Message Burst - Context Bubbles */}
-              {intentAnalysisBurst.length > 0 && viewState === 'directions' && (
+              {intentAnalysisBurst.length > 0 && (
                 <View style={styles.messageBurstSection}>
-                  <View style={styles.burstContainer}>
+                  <View style={[
+                    styles.burstContainer,
+                    isAnalyzingOwnMessage && styles.burstContainerOwn,
+                  ]}>
                     {intentAnalysisBurst.map(msg => (
-                      <View key={msg.eventId} style={styles.highlightedBubble}>
+                      <View
+                        key={msg.eventId}
+                        style={[
+                          styles.highlightedBubble,
+                          isAnalyzingOwnMessage && styles.highlightedBubbleOwn,
+                        ]}
+                      >
                         <Text style={styles.bubbleText}>{msg.content}</Text>
                       </View>
                     ))}
@@ -188,16 +169,8 @@ export function IntentAnalysisOverlay() {
                 </View>
               )}
 
-              {/* Analysis Card */}
+              {/* Analysis Card - solid dark matching negative film */}
               <View style={styles.analysisCard}>
-                <BlurView
-                  style={StyleSheet.absoluteFill}
-                  blurType="dark"
-                  blurAmount={80}
-                  reducedTransparencyFallbackColor={colors.liquidGlass.background}
-                />
-                <View style={styles.analysisCardOverlay} />
-
                 <ScrollView
                   style={styles.analysisContent}
                   showsVerticalScrollIndicator={false}
@@ -213,25 +186,22 @@ export function IntentAnalysisOverlay() {
                         />
                       </View>
                       <Text style={styles.loadingText}>
-                        {isAnalyzingOwnMessage ? 'Grading your message...' : 'Analyzing conversation...'}
-                      </Text>
-                      <Text style={styles.loadingSubtext}>
-                        {isAnalyzingOwnMessage ? 'Evaluating effectiveness' : 'Reading between the lines'}
+                        {isAnalyzingOwnMessage ? 'Grading your message...' : 'Reading between the lines...'}
                       </Text>
                     </View>
                   )}
 
                   {/* Error State */}
-                  {(intentAnalysisError || generationError) && !isAnalyzingIntent && viewState !== 'generating' && (
+                  {intentAnalysisError && !isAnalyzingIntent && (
                     <View style={styles.errorContainer}>
                       <Text style={styles.errorText}>
-                        {intentAnalysisError || generationError}
+                        {intentAnalysisError}
                       </Text>
                     </View>
                   )}
 
-                  {/* Step 1: Directions View */}
-                  {viewState === 'directions' && intentAnalysisResult && !isAnalyzingIntent && (
+                  {/* Results View */}
+                  {intentAnalysisResult && !isAnalyzingIntent && (
                     <View style={styles.resultsContainer}>
                       {/* READ/GRADE Section */}
                       <View style={styles.readSection}>
@@ -242,100 +212,49 @@ export function IntentAnalysisOverlay() {
                           {intentAnalysisResult.stateRead}
                         </Text>
                       </View>
-
-                      {/* RECOMMENDED Direction - Only for incoming messages */}
-                      {!isAnalyzingOwnMessage && intentAnalysisResult.recommendedDirection && (
-                        <View
-                          style={[
-                            styles.recommendedSection,
-                            styles.sectionDivider,
-                          ]}
-                        >
-                          <Text style={styles.sectionLabel}>RECOMMENDED</Text>
-                          <TouchableOpacity
-                            style={styles.recommendedPill}
-                            onPress={() =>
-                              handleSelectDirection(
-                                intentAnalysisResult.recommendedDirection,
-                              )
-                            }
-                            activeOpacity={0.7}
-                          >
-                            <Text style={styles.recommendedText}>
-                              {intentAnalysisResult.recommendedDirection.label}
-                            </Text>
-                            {intentAnalysisResult.recommendedDirection.description && (
-                              <Text style={styles.directionDescription}>
-                                {intentAnalysisResult.recommendedDirection.description}
-                              </Text>
-                            )}
-                          </TouchableOpacity>
-                        </View>
-                      )}
-
-                      {/* ALTERNATIVE Directions - Horizontal Swipeable - Only for incoming messages */}
-                      {!isAnalyzingOwnMessage &&
-                        intentAnalysisResult.alternativeDirections &&
-                        intentAnalysisResult.alternativeDirections.length > 0 && (
-                          <View
-                            style={[
-                              styles.alternativesSection,
-                              styles.sectionDivider,
-                            ]}
-                          >
-                            <Text style={styles.sectionLabel}>ALTERNATIVES</Text>
-                            <ScrollView
-                              horizontal
-                              showsHorizontalScrollIndicator={false}
-                              contentContainerStyle={styles.alternativesScrollContent}
-                              style={styles.alternativesScrollView}
-                            >
-                              {intentAnalysisResult.alternativeDirections.map(
-                                (dir, index) => (
-                                  <TouchableOpacity
-                                    key={index}
-                                    style={styles.alternativeChip}
-                                    onPress={() => handleSelectDirection(dir)}
-                                    activeOpacity={0.7}
-                                  >
-                                    {dir.emoji && (
-                                      <Text style={styles.alternativeEmoji}>
-                                        {dir.emoji}
-                                      </Text>
-                                    )}
-                                    <Text style={styles.alternativeChipText}>
-                                      {dir.label.split(' ').slice(0, 2).join(' ')}
-                                    </Text>
-                                  </TouchableOpacity>
-                                ),
-                              )}
-                            </ScrollView>
-                          </View>
-                        )}
-                    </View>
-                  )}
-
-                  {/* Generating State */}
-                  {viewState === 'generating' && (
-                    <View style={styles.loadingContainer}>
-                      <View style={styles.loadingDots}>
-                        <ActivityIndicator
-                          size="small"
-                          color={colors.accent.cyan}
-                        />
-                      </View>
-                      <Text style={styles.loadingText}>
-                        Generating response...
-                      </Text>
-                      {selectedDirection && (
-                        <Text style={styles.loadingSubtext}>
-                          {selectedDirection.label}
-                        </Text>
-                      )}
                     </View>
                   )}
                 </ScrollView>
               </View>
+
+              {/* Bottom action pills - Close left, Vixx right */}
+              {intentAnalysisResult && !isAnalyzingIntent && (
+                <View style={styles.bottomActions}>
+                  {/* Close button - bottom left */}
+                  <TouchableOpacity
+                    style={styles.actionPill}
+                    onPress={closeIntentAnalysis}
+                    activeOpacity={0.7}
+                  >
+                    <BlurView
+                      style={StyleSheet.absoluteFill}
+                      blurType="dark"
+                      blurAmount={20}
+                      reducedTransparencyFallbackColor={colors.background.secondary}
+                    />
+                    <View style={styles.actionPillContent}>
+                      <X size={20} color={colors.text.primary} />
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Ask Vixx button - bottom right */}
+                  <TouchableOpacity
+                    style={styles.actionPill}
+                    onPress={handleAskVixx}
+                    activeOpacity={0.7}
+                  >
+                    <BlurView
+                      style={StyleSheet.absoluteFill}
+                      blurType="dark"
+                      blurAmount={20}
+                      reducedTransparencyFallbackColor={colors.background.secondary}
+                    />
+                    <View style={styles.actionPillContent}>
+                      <VixxLogo size={32} color={colors.text.primary} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </TouchableWithoutFeedback>
         </Animated.View>
@@ -348,31 +267,31 @@ export function IntentAnalysisOverlay() {
 const INPUT_BAR_HEIGHT = 100;
 
 const styles = StyleSheet.create({
-  // Container for inline overlay (not Modal - allows input bar to show)
+  // Container for inline overlay - extends to bottom for smooth gradient
   overlayContainer: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    bottom: INPUT_BAR_HEIGHT, // Stop above input bar
+    bottom: 0, // Extend all the way down
     zIndex: 1000,
   },
-  // Blur overlay background - only covers area above input bar
-  blurOverlay: {
+  // Light base tint - covers entire screen
+  backdropBase: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.transparent.black30,
   },
-  blurTint: {
+  // Spotlight gradient wrapper
+  spotlightWrapper: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.transparent.black40,
   },
 
-  // Content wrapper - positioned at bottom of overlay area
+  // Content wrapper - centered in screen
   contentWrapper: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 16, // Small padding from bottom edge
   },
 
   // Content container with scale animation
@@ -382,41 +301,35 @@ const styles = StyleSheet.create({
     maxHeight: SCREEN_HEIGHT * 0.7,
   },
 
-  innerContent: {
-    width: '100%',
+  // Focused blur behind content area
+  contentBlurWrapper: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 28,
+    overflow: 'hidden',
+  },
+  contentBlurTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.transparent.black30,
   },
 
-  // Header
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+  innerContent: {
+    width: '100%',
+    padding: 16,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+
+  // Header with scan icon
+  header: {
+    marginBottom: 12,
+    alignItems: 'flex-start',
+  },
+  headerOwn: {
+    alignItems: 'flex-end',
   },
   headerIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.transparent.cyan15,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text.primary,
-    letterSpacing: 0.3,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.transparent.white10,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -429,6 +342,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 6,
   },
+  burstContainerOwn: {
+    alignItems: 'flex-end',
+  },
   highlightedBubble: {
     borderRadius: 20,
     paddingHorizontal: 16,
@@ -436,26 +352,24 @@ const styles = StyleSheet.create({
     maxWidth: '85%',
     backgroundColor: colors.transparent.white08,
   },
+  highlightedBubbleOwn: {
+    backgroundColor: colors.message.own,
+  },
   bubbleText: {
     fontSize: 15,
     color: colors.text.primary,
     lineHeight: 21,
   },
 
-  // Analysis Card
+  // Analysis Card - transparent, part of blurred container
   analysisCard: {
-    borderRadius: 24,
+    borderRadius: 16,
     overflow: 'hidden',
-    maxHeight: SCREEN_HEIGHT * 0.45,
-    borderWidth: 1,
-    borderColor: colors.liquidGlass.borderTop,
-  },
-  analysisCardOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    maxHeight: SCREEN_HEIGHT * 0.35,
     backgroundColor: colors.transparent.white05,
   },
   analysisContent: {
-    padding: 16,
+    padding: 14,
   },
 
   // Loading State
@@ -470,11 +384,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text.primary,
     fontWeight: '600',
-    marginBottom: 4,
-  },
-  loadingSubtext: {
-    fontSize: 13,
-    color: colors.text.tertiary,
   },
 
   // Error State
@@ -524,57 +433,24 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  // RECOMMENDED section (directions)
-  recommendedSection: {
-    paddingBottom: 0,
-  },
-  recommendedPill: {
-    backgroundColor: colors.accent.primary,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    alignSelf: 'flex-start',
-  },
-  recommendedText: {
-    fontSize: 15,
-    color: colors.text.primary,
-    fontWeight: '600',
-  },
-  directionDescription: {
-    fontSize: 13,
-    color: colors.text.secondary,
-    marginTop: 4,
-  },
-
-  // ALTERNATIVES section (horizontal swipeable chips)
-  alternativesSection: {
-    paddingBottom: 4,
-  },
-  alternativesScrollView: {
-    marginHorizontal: -16, // Extend to edges of card
-    marginBottom: -4,
-  },
-  alternativesScrollContent: {
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  alternativeChip: {
+  // Bottom action pills - inside the card
+  bottomActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.transparent.white10,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    justifyContent: 'space-between',
+    marginTop: 16,
+    paddingHorizontal: 4,
+  },
+  actionPill: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.transparent.white15,
-    gap: 6,
   },
-  alternativeEmoji: {
-    fontSize: 16,
-  },
-  alternativeChipText: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    fontWeight: '500',
+  actionPillContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
