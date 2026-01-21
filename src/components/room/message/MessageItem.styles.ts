@@ -1,5 +1,27 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Animated, ViewStyle } from 'react-native';
 import { colors } from 'src/config';
+
+// Animated glow style for analysis mode (cyan pulse)
+export const analysisGlowStyle = (
+  glowOpacity: Animated.Value,
+  _isOwn: boolean,
+): Animated.WithAnimatedObject<ViewStyle> => ({
+  borderWidth: 2,
+  borderColor: glowOpacity.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(0, 200, 255, 0.3)', 'rgba(0, 200, 255, 1)'],
+  }),
+  shadowColor: colors.accent.primary,
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: glowOpacity.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.8],
+  }) as unknown as number,
+  shadowRadius: glowOpacity.interpolate({
+    inputRange: [0, 1],
+    outputRange: [6, 15],
+  }) as unknown as number,
+});
 
 export const styles = StyleSheet.create({
   messageContainer: {

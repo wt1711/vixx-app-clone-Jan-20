@@ -432,6 +432,94 @@ export const getLastReceivedMessageBatch = (
   return { messageBatch, timestampStr };
 };
 
+/**
+ * Gets all consecutive messages from the same sender that form a "burst"
+ * containing the target message. A burst is a group of consecutive messages
+ * from the same non-user sender.
+ *
+ * @param messages - Array of MessageItem objects (can be in any order, will sort by timestamp)
+ * @param targetEventId - The eventId of the message to find the burst for
+ * @returns Array of MessageItems in the burst (chronological order), or empty array if not found
+ */
+export const getMessageBurstContaining = <
+  T extends { eventId: string; isOwn: boolean; sender: string; timestamp: number },
+>(
+  messages: T[],
+  targetEventId: string,
+): T[] => {
+  // Sort messages by timestamp (oldest first)
+  const sorted = [...messages].sort((a, b) => a.timestamp - b.timestamp);
+
+  // Find the target message
+  const targetIndex = sorted.findIndex(msg => msg.eventId === targetEventId);
+  if (targetIndex === -1) return [];
+
+  const targetMessage = sorted[targetIndex];
+
+  // If it's the user's own message, return just that message
+  if (targetMessage.isOwn) return [targetMessage];
+
+  const targetSender = targetMessage.sender;
+  const burst: T[] = [targetMessage];
+
+  // Expand backward to find start of burst
+  for (let i = targetIndex - 1; i >= 0; i--) {
+    const msg = sorted[i];
+    if (msg.sender === targetSender && !msg.isOwn) {
+      burst.unshift(msg);
+    } else {
+      break;
+    }
+  }
+
+  // Expand forward to find end of burst
+  for (let i = targetIndex + 1; i < sorted.length; i++) {
+    const msg = sorted[i];
+    if (msg.sender === targetSender && !msg.isOwn) {
+      burst.push(msg);
+    } else {
+      break;
+    }
+  }
+
+  return burst;
+};
+
+/**
+ * Checks if a message is part of the latest incoming (non-own) message burst.
+ * Used to restrict intent analysis to only the most recent messages.
+ *
+ * @param messages - Array of MessageItem objects
+ * @param targetEventId - The eventId of the message to check
+ * @returns true if the message is in the latest incoming burst
+ */
+export const isInLatestIncomingBurst = <
+  T extends { eventId: string; isOwn: boolean; sender: string; timestamp: number },
+>(
+  messages: T[],
+  targetEventId: string,
+): boolean => {
+  // Sort messages by timestamp (newest first)
+  const sorted = [...messages].sort((a, b) => b.timestamp - a.timestamp);
+
+  // Find the first non-own message (most recent incoming)
+  const firstIncomingIdx = sorted.findIndex(msg => !msg.isOwn);
+  if (firstIncomingIdx === -1) return false;
+
+  const sender = sorted[firstIncomingIdx].sender;
+
+  // Check if target is in the consecutive burst from this sender
+  for (let i = firstIncomingIdx; i < sorted.length; i++) {
+    const msg = sorted[i];
+    // Stop if we hit a different sender or own message
+    if (msg.sender !== sender || msg.isOwn) break;
+    // Found the target in the latest burst
+    if (msg.eventId === targetEventId) return true;
+  }
+
+  return false;
+};
+
 // Message variant utilities
 export type MessageVariant =
   | 'instagram-story-reply'

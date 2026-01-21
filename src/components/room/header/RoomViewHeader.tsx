@@ -3,25 +3,26 @@ import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
-import { ChevronLeft, User } from 'lucide-react-native';
+import { ChevronLeft, User, ScanSearch } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import { getRoomAvatarUrl } from 'src/utils/room';
+import { useAIAssistant } from 'src/hooks/context/AIAssistantContext';
+import { VixxLogo } from 'src/components/icons/VixxLogo';
 import { colors, gradients } from 'src/config';
 
 type RoomViewHeaderProps = {
   room: Room;
   onBack: () => void;
-  onAIAssistantClick?: () => void;
 };
 
 export function RoomViewHeader({
   room,
   onBack,
-}: // onAIAssistantClick,
-RoomViewHeaderProps) {
+}: RoomViewHeaderProps) {
   const mx = getMatrixClient();
   const insets = useSafeAreaInsets();
+  const { toggleAIAssistant, isAnalysisModeActive, toggleAnalysisMode } = useAIAssistant();
 
   const roomName = room.name || 'Unknown';
   const avatarUrl = mx ? getRoomAvatarUrl(mx, room, 96, true) : undefined;
@@ -73,8 +74,34 @@ RoomViewHeaderProps) {
           </TouchableOpacity>
         </LiquidGlassButton>
 
-        {/* Spacer for balance */}
+        {/* Spacer to push buttons to the right */}
         <View style={styles.spacer} />
+
+        {/* Analysis Mode button - iOS Liquid Glass */}
+        <LiquidGlassButton
+          style={[
+            styles.analysisPill,
+            isAnalysisModeActive && styles.analysisPillActive,
+          ]}
+          contentStyle={styles.analysisPillContent}
+          borderRadius={PILL_HEIGHT / 2}
+          onPress={toggleAnalysisMode}
+        >
+          <ScanSearch
+            size={22}
+            color={isAnalysisModeActive ? colors.accent.cyan : colors.text.primary}
+          />
+        </LiquidGlassButton>
+
+        {/* Vixx button - iOS Liquid Glass */}
+        <LiquidGlassButton
+          style={styles.vixxPill}
+          contentStyle={styles.vixxPillContent}
+          borderRadius={PILL_HEIGHT / 2}
+          onPress={() => toggleAIAssistant(true)}
+        >
+          <VixxLogo size={32} color={colors.text.primary} />
+        </LiquidGlassButton>
       </View>
     </View>
   );
@@ -146,5 +173,32 @@ const styles = StyleSheet.create({
   },
   spacer: {
     flex: 1,
+  },
+  analysisPill: {
+    width: PILL_HEIGHT,
+    height: PILL_HEIGHT,
+  },
+  analysisPillActive: {
+    backgroundColor: colors.transparent.cyan15,
+  },
+  analysisPillContent: {
+    width: PILL_HEIGHT,
+    height: PILL_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  vixxPill: {
+    width: PILL_HEIGHT,
+    height: PILL_HEIGHT,
+  },
+  vixxPillContent: {
+    width: PILL_HEIGHT,
+    height: PILL_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
 });

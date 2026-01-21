@@ -21,7 +21,7 @@ import {
   MessageTextWithLinks,
   VideoMessage,
 } from 'src/components/room/message/variants';
-import { styles } from 'src/components/room/message/MessageItem.styles';
+import { styles, analysisGlowStyle } from 'src/components/room/message/MessageItem.styles';
 import {
   getInstagramUrl,
   getInstagramStoryReplyData,
@@ -36,11 +36,14 @@ export type MessageItemProps = {
     getPosition: () => { x: number; y: number; width: number; height: number },
   ) => void;
   onBubblePress?: () => void;
+  onDoubleTap?: () => void;
   onReplyPreviewPress?: (eventId: string) => void;
   onImagePress?: (imageUrl: string) => void;
   onVideoPress?: (videoUrl: string) => void;
   showTimestamp?: boolean;
   isFirstOfHour?: boolean;
+  isAnalysisModeActive?: boolean;
+  onAnalysisTap?: () => void;
 };
 
 type MessageContentProps = {
@@ -150,23 +153,67 @@ const MessageContent = ({
   }
 };
 
+const DOUBLE_TAP_DELAY = 300; // ms between taps to count as double-tap
+
 export const MessageItemComponent = React.memo<MessageItemProps>(
   ({
     item,
     onReactionPress,
     onLongPress,
     onBubblePress,
+    onDoubleTap,
     onReplyPreviewPress,
     onImagePress,
     onVideoPress,
     showTimestamp,
     isFirstOfHour,
+    isAnalysisModeActive,
+    onAnalysisTap,
   }) => {
     const messageRef = useRef<View>(null);
+    const lastTapRef = useRef<number>(0);
     const shouldShowTimestamp = showTimestamp || isFirstOfHour;
     const animatedOpacity = useRef(
       new Animated.Value(shouldShowTimestamp ? 1 : 0),
     ).current;
+
+    // Pulsing glow animation for analysis mode
+    const glowOpacity = useRef(new Animated.Value(0)).current;
+    const pulseAnimation = useRef<Animated.CompositeAnimation | null>(null);
+
+    useEffect(() => {
+      if (isAnalysisModeActive) {
+        // Start pulsing animation
+        pulseAnimation.current = Animated.loop(
+          Animated.sequence([
+            Animated.timing(glowOpacity, {
+              toValue: 1,
+              duration: 800,
+              useNativeDriver: false, // borderColor doesn't support native driver
+            }),
+            Animated.timing(glowOpacity, {
+              toValue: 0.3,
+              duration: 800,
+              useNativeDriver: false,
+            }),
+          ]),
+        );
+        pulseAnimation.current.start();
+      } else {
+        // Stop animation and reset
+        if (pulseAnimation.current) {
+          pulseAnimation.current.stop();
+          pulseAnimation.current = null;
+        }
+        glowOpacity.setValue(0);
+      }
+
+      return () => {
+        if (pulseAnimation.current) {
+          pulseAnimation.current.stop();
+        }
+      };
+    }, [isAnalysisModeActive, glowOpacity]);
 
     useEffect(() => {
       if (isFirstOfHour) return;
@@ -192,6 +239,11 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       (variant === 'video' || variant === 'gif') && styles.messageBubbleVideo,
       variant.startsWith('instagram') && styles.messageBubbleInstagramStory,
     ];
+
+    // Animated glow style for analysis mode
+    const animatedGlowStyle = isAnalysisModeActive
+      ? analysisGlowStyle(glowOpacity, item.isOwn)
+      : undefined;
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
@@ -227,6 +279,41 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       });
     };
 
+    const handlePress = () => {
+      // Analysis mode: single tap triggers analysis immediately
+      if (isAnalysisModeActive && onAnalysisTap) {
+        ReactNativeHapticFeedback.trigger('impactLight', {
+          enableVibrateFallback: true,
+          ignoreAndroidSystemSettings: false,
+        });
+        onAnalysisTap();
+        return;
+      }
+
+      const now = Date.now();
+      const timeSinceLastTap = now - lastTapRef.current;
+
+      if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
+        // Double-tap detected - only trigger for non-own messages
+        if (onDoubleTap && !item.isOwn) {
+          ReactNativeHapticFeedback.trigger('impactLight', {
+            enableVibrateFallback: true,
+            ignoreAndroidSystemSettings: false,
+          });
+          onDoubleTap();
+          lastTapRef.current = 0; // Reset to prevent triple-tap
+          return;
+        }
+      }
+
+      lastTapRef.current = now;
+
+      // Single tap behavior (show timestamp)
+      if (onBubblePress) {
+        onBubblePress();
+      }
+    };
+
     return (
       <View>
         {shouldShowTimestamp && (
@@ -257,11 +344,11 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
         <View ref={messageRef} style={containerStyle}>
           <View style={styles.messageBubbleWrapper}>
             <Pressable
-              onPress={onBubblePress}
+              onPress={handlePress}
               onLongPress={handleLongPress}
               delayLongPress={500}
             >
-              <View style={bubbleStyle}>
+              <Animated.View style={[bubbleStyle, animatedGlowStyle]}>
                 <View style={contentStyle}>
                   <MessageContent
                     item={item}
@@ -271,7 +358,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
                     onLongPress={handleLongPress}
                   />
                 </View>
-              </View>
+              </Animated.View>
             </Pressable>
             <ReactionsList
               reactions={item.reactions ?? []}

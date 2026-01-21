@@ -12,7 +12,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { Reply, Plus, Trash2 } from 'lucide-react-native';
+import { Reply, Plus, Trash2, Sparkles, MessageCircle } from 'lucide-react-native';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { MessageItem } from 'src/components/room/types';
 import { ReplyPreview } from 'src/components/room/message/variants';
@@ -69,6 +69,8 @@ export type QuickReactionsModalProps = {
   onSelectEmoji: (emoji: string, eventId: string) => void;
   onReply?: () => void;
   onDelete?: () => void;
+  onAnalyzeIntent?: () => void;
+  onAskVixx?: () => void;
 };
 
 export function QuickReactionsModal({
@@ -79,6 +81,8 @@ export function QuickReactionsModal({
   onSelectEmoji,
   onReply,
   onDelete,
+  onAnalyzeIntent,
+  onAskVixx,
 }: QuickReactionsModalProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const mx = getMatrixClient();
@@ -132,6 +136,18 @@ export function QuickReactionsModal({
   const handleDeletePress = () => {
     if (onDelete) {
       onDelete();
+    }
+  };
+
+  const handleAnalyzeIntentPress = () => {
+    if (onAnalyzeIntent) {
+      onAnalyzeIntent();
+    }
+  };
+
+  const handleAskVixxPress = () => {
+    if (onAskVixx) {
+      onAskVixx();
     }
   };
 
@@ -261,6 +277,28 @@ export function QuickReactionsModal({
                 minute: '2-digit',
               })}
             </Text>
+            {/* Analyze Intent - only for messages from others */}
+            {!messageItem.isOwn && onAnalyzeIntent && (
+              <TouchableOpacity
+                style={styles.actionItem}
+                onPress={handleAnalyzeIntentPress}
+                activeOpacity={0.7}
+              >
+                <Sparkles size={22} color={colors.accent.cyan} />
+                <Text style={styles.actionLabelAnalyze}>Analyze Intent</Text>
+              </TouchableOpacity>
+            )}
+            {/* Ask Vixx - chat with AI about this message */}
+            {onAskVixx && (
+              <TouchableOpacity
+                style={styles.actionItem}
+                onPress={handleAskVixxPress}
+                activeOpacity={0.7}
+              >
+                <MessageCircle size={22} color={colors.accent.purple} />
+                <Text style={styles.actionLabelAskVixx}>Ask Vixx</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.actionItem}
               onPress={handleReplyPress}
@@ -454,5 +492,13 @@ const styles = StyleSheet.create({
   actionLabelDelete: {
     fontSize: 17,
     color: colors.status.error,
+  },
+  actionLabelAnalyze: {
+    fontSize: 17,
+    color: colors.accent.cyan,
+  },
+  actionLabelAskVixx: {
+    fontSize: 17,
+    color: colors.accent.purple,
   },
 });

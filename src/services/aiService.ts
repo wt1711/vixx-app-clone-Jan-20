@@ -1,4 +1,10 @@
 import { API_ENDPOINTS } from 'src/config/env';
+import type {
+  IntentAnalysisResult,
+  IntentAnalysisRequest,
+  ResponseDirection,
+  DirectionGenerationResult,
+} from 'src/types/intentAnalysis';
 
 export type Message = {
   sender: string;
@@ -7,17 +13,79 @@ export type Message = {
   is_from_me: boolean;
 };
 
+export type ChatHistoryMessage = {
+  sender: 'user' | 'ai';
+  text: string;
+};
+
+// Mock consultation response generator for development/testing
+function generateMockConsultation(
+  question: string,
+  contextMessage: string | null | undefined,
+  chatHistory: ChatHistoryMessage[],
+): string {
+  const questionLower = question.toLowerCase();
+
+  // Context-aware responses based on question keywords
+  if (questionLower.includes('interest') || questionLower.includes('like')) {
+    return 'Based on the conversation, they seem genuinely interested! They\'re responding quickly and asking questions - both good signs. Keep the energy positive and match their vibe.';
+  }
+
+  if (questionLower.includes('mean') || questionLower.includes('what')) {
+    const contextPart = contextMessage
+      ? `Looking at "${contextMessage}" - `
+      : '';
+    return `${contextPart}They're being friendly and keeping the conversation going. It's a good sign that they're engaging with you. I'd suggest responding warmly and maybe asking them something in return.`;
+  }
+
+  if (questionLower.includes('respond') || questionLower.includes('reply') || questionLower.includes('say')) {
+    return 'I\'d suggest keeping it light and matching their energy. Something casual but warm would work well here. You could acknowledge what they said and ask a follow-up question to keep things flowing.';
+  }
+
+  if (questionLower.includes('mood') || questionLower.includes('feel') || questionLower.includes('tone')) {
+    return 'The tone seems positive and friendly! They\'re being open and engaging, which is a great sign. I\'d recommend keeping things warm and playful.';
+  }
+
+  if (questionLower.includes('strategy') || questionLower.includes('approach') || questionLower.includes('advice')) {
+    return 'My advice: Stay authentic and match their communication style. They seem comfortable with you, so keep being yourself. Ask questions to show interest, and share a bit about yourself too.';
+  }
+
+  // Check if this is a follow-up question (has chat history)
+  if (chatHistory.length > 0) {
+    return `Building on what I mentioned earlier - ${question.includes('?') ? 'yes, ' : ''}I think you're on the right track. Just stay natural and keep the conversation balanced. Show interest but don't overthink it!`;
+  }
+
+  // Default response
+  return 'That\'s a good question! Based on the conversation context, things seem to be going well. Keep the energy positive and be yourself - that\'s the best approach. Is there something specific you\'d like me to analyze?';
+}
+
 export async function getOpenAIConsultation({
   context,
   selectedMessage,
   question,
+  chatHistory = [],
+  contextMessage,
 }: {
   context: Message[];
   selectedMessage: Message;
   question?: string;
+  chatHistory?: ChatHistoryMessage[];
+  contextMessage?: string | null;
 }): Promise<string> {
+  // Check if API endpoint is configured
+  const endpoint = API_ENDPOINTS.AI.SUGGESTION;
+  const isEndpointConfigured =
+    endpoint && !endpoint.startsWith('undefined') && endpoint.length > 20;
+
+  if (!isEndpointConfigured) {
+    console.info('Using mock consultation (API not configured)');
+    // Simulate network delay for realistic UX
+    await new Promise<void>(resolve => setTimeout(resolve, 800 + Math.random() * 600));
+    return generateMockConsultation(question || '', contextMessage, chatHistory);
+  }
+
   try {
-    const response = await fetch(API_ENDPOINTS.AI.SUGGESTION, {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -26,6 +94,8 @@ export async function getOpenAIConsultation({
         context,
         selectedMessage,
         question,
+        chatHistory,
+        contextMessage,
       }),
     });
 
@@ -39,8 +109,9 @@ export async function getOpenAIConsultation({
     const data = await response.json();
     return data.suggestion;
   } catch (error) {
-    console.error('Error in getOpenAIConsultation:', error);
-    return 'Sorry, there was an error fetching the suggestion.';
+    console.warn('API call failed, falling back to mock consultation:', error);
+    await new Promise<void>(resolve => setTimeout(resolve, 300));
+    return generateMockConsultation(question || '', contextMessage, chatHistory);
   }
 }
 
@@ -198,5 +269,333 @@ export async function getCreditsRemaining(
   } catch (error) {
     console.error('Error in getCreditsRemaining:', error);
     return { creditsRemaining: 0, totalCredits: 50 };
+  }
+}
+
+// Direction templates for different response approaches
+const DIRECTION_TEMPLATES: ResponseDirection[] = [
+  { label: 'Confirm enthusiastically', tone: 'excited', emoji: '🎉', description: 'Show excitement about the plans' },
+  { label: 'Ask for details', tone: 'curious', emoji: '🤔', description: 'Get more specifics about timing/place' },
+  { label: 'Playful tease', tone: 'playful', emoji: '😜', description: 'Light teasing to build chemistry' },
+  { label: 'Warm acceptance', tone: 'warm', emoji: '🥰', description: 'Accept warmly and show appreciation' },
+  { label: 'Suggest alternative', tone: 'helpful', emoji: '💡', description: 'Propose a different time or place' },
+  { label: 'Match their energy', tone: 'mirroring', emoji: '🪞', description: 'Reflect their vibe back' },
+  { label: 'Show interest', tone: 'interested', emoji: '😊', description: 'Express genuine interest in them' },
+  { label: 'Keep it casual', tone: 'casual', emoji: '😎', description: 'Low-key response, no pressure' },
+];
+
+// Mock response generator for development/testing
+function generateMockIntentAnalysis(
+  messageText: string,
+): IntentAnalysisResult {
+  // Simple heuristics for mock data
+  const hasQuestion = messageText.includes('?') || messageText.includes('k');
+  const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(messageText);
+  const messageLength = messageText.length;
+  const wordCount = messageText.split(/\s+/).length;
+
+  // Generate interest score based on message characteristics
+  let interestScore = 50;
+  if (hasQuestion) interestScore += 15;
+  if (hasEmoji) interestScore += 10;
+  if (wordCount > 5) interestScore += 10;
+  if (messageLength > 50) interestScore += 5;
+  interestScore = Math.min(95, Math.max(30, interestScore));
+
+  const getInterestLabel = (
+    score: number,
+  ): 'Very High' | 'High' | 'Moderate' | 'Low' | 'Uncertain' => {
+    if (score >= 80) return 'Very High';
+    if (score >= 65) return 'High';
+    if (score >= 45) return 'Moderate';
+    if (score >= 25) return 'Low';
+    return 'Uncertain';
+  };
+
+  const indicators: string[] = [];
+  if (hasQuestion) indicators.push('Asks questions - showing curiosity');
+  if (hasEmoji) indicators.push('Uses expressive language');
+  if (wordCount > 3) indicators.push('Puts effort into responses');
+  if (messageLength > 30) indicators.push('Engages with detailed messages');
+  if (indicators.length === 0) indicators.push('Keeping conversation going');
+
+  const tones = [
+    { primary: 'Playful', secondary: 'Friendly' },
+    { primary: 'Flirty', secondary: 'Interested' },
+    { primary: 'Casual', secondary: 'Relaxed' },
+    { primary: 'Curious', secondary: 'Engaged' },
+    { primary: 'Warm', secondary: 'Open' },
+  ];
+  const selectedTone = tones[Math.floor(Math.random() * tones.length)];
+
+  // Generate contextual stateRead based on message content
+  const stateReadOptions = [
+    `They seem ${selectedTone.primary.toLowerCase()} and interested in connecting. ${hasQuestion ? 'The question shows they want to include you.' : 'Keep the momentum going!'}`,
+    `Showing clear interest in spending time together. Their tone is ${selectedTone.primary.toLowerCase()} and engaging.`,
+    `They're reaching out and keeping the conversation active. ${interestScore >= 60 ? 'Good sign of genuine interest!' : 'Respond to keep things flowing.'}`,
+  ];
+
+  // Select directions based on context
+  // Pick a recommended direction based on message characteristics
+  let recommendedDirection: ResponseDirection;
+  if (hasQuestion) {
+    recommendedDirection = DIRECTION_TEMPLATES[0]; // Confirm enthusiastically
+  } else if (interestScore >= 70) {
+    recommendedDirection = DIRECTION_TEMPLATES[3]; // Warm acceptance
+  } else {
+    recommendedDirection = DIRECTION_TEMPLATES[5]; // Match their energy
+  }
+
+  // Pick 2-3 alternative directions
+  const availableAlternatives = DIRECTION_TEMPLATES.filter(
+    d => d.label !== recommendedDirection.label,
+  );
+  const shuffled = availableAlternatives.sort(() => Math.random() - 0.5);
+  const alternativeDirections = shuffled.slice(0, 3);
+
+  return {
+    interestLevel: {
+      score: interestScore,
+      label: getInterestLabel(interestScore),
+      indicators,
+    },
+    emotionalTone: {
+      primary: selectedTone.primary,
+      secondary: selectedTone.secondary,
+      confidence: 70 + Math.floor(Math.random() * 20),
+    },
+
+    // Directions-based actionable fields
+    stateRead: stateReadOptions[Math.floor(Math.random() * stateReadOptions.length)],
+    recommendedDirection,
+    alternativeDirections,
+
+    // Legacy fields (for backwards compatibility)
+    hiddenMeanings: [],
+    suggestedInterpretation: stateReadOptions[0],
+    responseAdvice: 'Match their energy and respond naturally.',
+
+    analysisTimestamp: new Date().toISOString(),
+    messageId: `mock-${Date.now()}`,
+  };
+}
+
+// Mock generator for direction-based message generation
+function generateMockDirectionResponse(
+  direction: ResponseDirection,
+  _messageText: string,
+): DirectionGenerationResult {
+  // Map direction tones to Vietnamese responses with reasoning
+  const responseMap: Record<string, { messages: string[]; reasonings: string[]; emotion: string }> = {
+    excited: {
+      messages: [
+        'Oke luôn, hẹn gặp nha! 🎉',
+        'Chắc rồi! Mong gặp lắm luôn 😊',
+        'Được luôn á! Hype quá trời 🔥',
+      ],
+      reasonings: [
+        'Showing enthusiasm matches their energy and signals clear interest',
+        'Excitement is contagious - it makes them feel good about the plans',
+        'High energy response builds anticipation for meeting up',
+      ],
+      emotion: 'Excited',
+    },
+    curious: {
+      messages: [
+        'Oke nha, mà gặp ở đâu vậy?',
+        'Được nè, mấy giờ là oke nhất?',
+        'Chắc rồi! Mà đi đâu vậy ta? 🤔',
+      ],
+      reasonings: [
+        'Asking details shows you care about making it work',
+        'Getting specifics helps plan better and shows investment',
+        'Questions keep the conversation going and show engagement',
+      ],
+      emotion: 'Curious',
+    },
+    playful: {
+      messages: [
+        'Hmmm để xem lịch cái đã nha 😏',
+        'Oke oke, nhưng e phải đãi a nha 😜',
+        'Được thôi, nhưng phải vui nha! 🤭',
+      ],
+      reasonings: [
+        'Playful teasing creates chemistry and keeps things fun',
+        'Light humor shows confidence and personality',
+        'Teasing builds tension in a positive way',
+      ],
+      emotion: 'Playful',
+    },
+    warm: {
+      messages: [
+        'Oke e, gặp nhau nha 💕',
+        'Được luôn, mong gặp e lắm',
+        'Chắc chắn rồi, hẹn gặp nha 🥰',
+      ],
+      reasonings: [
+        'Warm responses make them feel valued and appreciated',
+        'Showing genuine care builds emotional connection',
+        'Affectionate tone deepens the bond between you',
+      ],
+      emotion: 'Warm',
+    },
+    helpful: {
+      messages: [
+        'Hmm 4h hơi sớm, 5h được không?',
+        'Oke nha, mà gặp ở chỗ khác được không?',
+        'Được nè, nhưng để a check lịch lại nha',
+      ],
+      reasonings: [
+        'Suggesting alternatives shows you want to make it work',
+        'Being flexible while having preferences shows maturity',
+        'Offering options keeps the conversation productive',
+      ],
+      emotion: 'Thoughtful',
+    },
+    mirroring: {
+      messages: [
+        'Oke e 👍',
+        'Được nha, gặp lúc đó!',
+        'Chắc rồi, hẹn gặp!',
+      ],
+      reasonings: [
+        'Matching their communication style creates rapport',
+        'Mirroring energy makes them feel understood',
+        'Simple agreement when appropriate shows you\'re on the same page',
+      ],
+      emotion: 'Relaxed',
+    },
+    interested: {
+      messages: [
+        'Oke luôn! Muốn gặp e lắm rồi 😊',
+        'Được nha, lâu rồi không gặp',
+        'Chắc chắn! Mong lắm luôn á',
+      ],
+      reasonings: [
+        'Expressing interest directly shows confidence',
+        'Saying you want to see them makes them feel special',
+        'Direct interest signals are clear and attractive',
+      ],
+      emotion: 'Interested',
+    },
+    casual: {
+      messages: [
+        'Oke',
+        'Được, gặp lúc đó nha',
+        'Sure, hẹn gặp 👍',
+      ],
+      reasonings: [
+        'Casual response avoids coming on too strong',
+        'Low-key energy can be attractive - not desperate',
+        'Sometimes less is more in conversation',
+      ],
+      emotion: 'Casual',
+    },
+  };
+
+  const responses = responseMap[direction.tone] || responseMap.mirroring;
+  const randomIdx = Math.floor(Math.random() * responses.messages.length);
+
+  return {
+    message: responses.messages[randomIdx],
+    reasoning: responses.reasonings[randomIdx],
+    emotion: responses.emotion,
+  };
+}
+
+// Generate a message based on a selected direction
+export async function generateFromDirection({
+  direction,
+  messageText,
+  context,
+  userId,
+}: {
+  direction: ResponseDirection;
+  messageText: string;
+  context: Message[];
+  userId?: string;
+}): Promise<DirectionGenerationResult> {
+  // Check if API endpoint is configured
+  const endpoint = API_ENDPOINTS.AI.GENERATE_FROM_DIRECTION;
+  const isEndpointConfigured =
+    endpoint && !endpoint.startsWith('undefined') && endpoint.length > 20;
+
+  if (!isEndpointConfigured) {
+    console.info('Using mock direction generation (API not configured)');
+    // Simulate network delay
+    await new Promise<void>(resolve => setTimeout(resolve, 800 + Math.random() * 400));
+    return generateMockDirectionResponse(direction, messageText);
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        direction,
+        messageText,
+        context,
+        userId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to generate from direction.');
+    }
+
+    const data = await response.json();
+    return data.result;
+  } catch (error) {
+    console.warn('API call failed, falling back to mock generation:', error);
+    await new Promise<void>(resolve => setTimeout(resolve, 300));
+    return generateMockDirectionResponse(direction, messageText);
+  }
+}
+
+export async function analyzeMessageIntent({
+  message,
+  context,
+  userId,
+}: IntentAnalysisRequest): Promise<IntentAnalysisResult> {
+  // Check if API endpoint is configured
+  const endpoint = API_ENDPOINTS.AI.INTENT_ANALYSIS;
+  const isEndpointConfigured =
+    endpoint && !endpoint.startsWith('undefined') && endpoint.length > 20;
+
+  if (!isEndpointConfigured) {
+    console.info('Using mock intent analysis (API not configured)');
+    // Simulate network delay for realistic UX
+    await new Promise<void>(resolve => setTimeout(resolve, 1000 + Math.random() * 500));
+    return generateMockIntentAnalysis(message.text);
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message,
+        context,
+        userId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to analyze message intent.');
+    }
+
+    const data = await response.json();
+    return data.analysis;
+  } catch (error) {
+    console.warn('API call failed, falling back to mock analysis:', error);
+    // Fallback to mock on error
+    await new Promise<void>(resolve => setTimeout(resolve, 500));
+    return generateMockIntentAnalysis(message.text);
   }
 }

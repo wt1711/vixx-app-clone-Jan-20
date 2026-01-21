@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,6 +6,7 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
 import { getMatrixClient } from 'src/services/matrixClient';
@@ -13,6 +14,8 @@ import {
   getEventReactions,
   getReactionContent,
   isFounderRoom,
+  getMessageBurstContaining,
+  isInLatestIncomingBurst,
 } from 'src/utils/room';
 import { MessageEvent } from 'src/types';
 import { MessageItem, RoomTimelineProps } from '../types';
@@ -26,6 +29,7 @@ import { FounderWelcomeCard } from './FounderWelcomeCard';
 import { useRoomTimeline, useTimelineScroll } from 'src/hooks/room';
 import { useReply } from 'src/hooks/context/ReplyContext';
 import { useInputHeight } from 'src/hooks/context/InputHeightContext';
+import { useAIAssistant } from 'src/hooks/context/AIAssistantContext';
 import { colors } from 'src/config';
 
 export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
@@ -143,6 +147,39 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   // ─── Dynamic Padding for Input Height ─────────────────────────────────────
   const { inputHeight } = useInputHeight();
 
+  // ─── Intent Analysis & Ask Vixx ──────────────────────────────────────────
+  const { analyzeIntentBurst, openAskVixx, isAnalysisModeActive } = useAIAssistant();
+
+  // ─── Analysis Mode Toast ───────────────────────────────────────────────────
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    if (isAnalysisModeActive) {
+      // Show toast when analysis mode is activated
+      setShowToast(true);
+      Animated.sequence([
+        Animated.timing(toastOpacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.delay(2500), // Show for 2.5 seconds
+        Animated.timing(toastOpacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setShowToast(false);
+      });
+    } else {
+      // Hide toast immediately when mode is deactivated
+      toastOpacity.setValue(0);
+      setShowToast(false);
+    }
+  }, [isAnalysisModeActive, toastOpacity]);
+
   // Dynamic content container style - paddingTop is visual bottom in inverted list
   const listContentStyle = useMemo(
     () => ({
@@ -198,6 +235,55 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       },
     ]);
   }, [quickReactionsItem, mx, room.roomId, refresh, closeQuickReactions]);
+
+  // ─── Double-Tap Handler (Burst Analysis) ──────────────────────────────────
+  const handleDoubleTap = useCallback(
+    (item: MessageItem) => {
+      // Only allow analysis on the latest incoming message burst
+      if (!isInLatestIncomingBurst(messages, item.eventId)) {
+        return; // Silently ignore double-tap on old messages
+      }
+
+      // Get the burst of messages containing this message
+      const burst = getMessageBurstContaining(messages, item.eventId);
+      if (burst.length > 0) {
+        analyzeIntentBurst(burst);
+      }
+    },
+    [messages, analyzeIntentBurst],
+  );
+
+  // ─── Analysis Mode Tap Handler (Single-tap when mode is active) ────────────
+  const handleAnalysisTap = useCallback(
+    (item: MessageItem) => {
+      // Get the burst of messages containing this message
+      const burst = getMessageBurstContaining(messages, item.eventId);
+      if (burst.length > 0) {
+        // Pass isOwnMessage flag for different analysis (grading vs intent)
+        analyzeIntentBurst(burst, item.isOwn);
+      }
+    },
+    [messages, analyzeIntentBurst],
+  );
+
+  const handleAnalyzeIntentFromModal = useCallback(() => {
+    if (quickReactionsItem) {
+      // Also use burst analysis from the modal
+      const burst = getMessageBurstContaining(messages, quickReactionsItem.eventId);
+      if (burst.length > 0) {
+        analyzeIntentBurst(burst);
+      }
+    }
+    closeQuickReactions();
+  }, [quickReactionsItem, messages, analyzeIntentBurst, closeQuickReactions]);
+
+  // ─── Ask Vixx Handler ────────────────────────────────────────────────────
+  const handleAskVixxFromModal = useCallback(() => {
+    if (quickReactionsItem) {
+      openAskVixx(quickReactionsItem.content);
+    }
+    closeQuickReactions();
+  }, [quickReactionsItem, openAskVixx, closeQuickReactions]);
 
   // ─── Scroll to Replied Message ─────────────────────────────────────────────
   const scrollToMessage = useCallback(
@@ -290,20 +376,26 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
           openQuickReactions(item, position);
         }}
         onBubblePress={() => handleBubblePress(item.eventId)}
+        onDoubleTap={() => handleDoubleTap(item)}
         onReplyPreviewPress={scrollToMessage}
         onImagePress={handleImagePress}
         showTimestamp={selectedMessageId === item.eventId}
         isFirstOfHour={firstOfHourIds.has(item.eventId)}
+        isAnalysisModeActive={isAnalysisModeActive}
+        onAnalysisTap={() => handleAnalysisTap(item)}
       />
     ),
     [
       toggleReaction,
       openQuickReactions,
       handleBubblePress,
+      handleDoubleTap,
       scrollToMessage,
       handleImagePress,
       selectedMessageId,
       firstOfHourIds,
+      isAnalysisModeActive,
+      handleAnalysisTap,
     ],
   );
 
@@ -338,6 +430,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         initialNumToRender={20}
         windowSize={21}
         keyboardShouldPersistTaps="handled"
+        extraData={isAnalysisModeActive}
       />
 
       <ScrollToBottomButton
@@ -353,6 +446,8 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         onSelectEmoji={handleQuickReactionSelect}
         onReply={handleReplyFromModal}
         onDelete={handleDeleteFromModal}
+        onAnalyzeIntent={handleAnalyzeIntentFromModal}
+        onAskVixx={handleAskVixxFromModal}
       />
 
       <ImageViewing
@@ -361,6 +456,13 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         visible={viewingImageUrl !== null}
         onRequestClose={closeImageViewer}
       />
+
+      {/* Analysis Mode Toast */}
+      {showToast && (
+        <Animated.View style={[styles.analysisToast, { opacity: toastOpacity }]}>
+          <Text style={styles.analysisToastText}>Tap a message to analyze</Text>
+        </Animated.View>
+      )}
     </>
   );
 }
@@ -380,5 +482,23 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 12,
     color: colors.text.secondary,
+  },
+  analysisToast: {
+    position: 'absolute',
+    top: 120,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  analysisToastText: {
+    backgroundColor: colors.transparent.black80,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text.primary,
+    overflow: 'hidden',
   },
 });
