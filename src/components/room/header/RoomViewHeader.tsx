@@ -6,7 +6,7 @@ import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { ChevronLeft, User, ScanSearch } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
-import { getRoomAvatarUrl } from 'src/utils/room';
+import { getRoomAvatarUrl, isFounderRoom } from 'src/utils/room';
 import { useAIAssistant } from 'src/hooks/context/AIAssistantContext';
 import { VixxLogo } from 'src/components/icons/VixxLogo';
 import { colors, gradients } from 'src/config';
@@ -26,6 +26,7 @@ export function RoomViewHeader({
 
   const roomName = room.name || 'Unknown';
   const avatarUrl = mx ? getRoomAvatarUrl(mx, room, 96, true) : undefined;
+  const isFounderChat = isFounderRoom(roomName);
 
   const handlePress = useCallback(() => {
     onBack();
@@ -77,31 +78,41 @@ export function RoomViewHeader({
         {/* Spacer to push buttons to the right */}
         <View style={styles.spacer} />
 
-        {/* Analysis Mode button - iOS Liquid Glass */}
-        <LiquidGlassButton
-          style={[
-            styles.analysisPill,
-            isAnalysisModeActive && styles.analysisPillActive,
-          ]}
-          contentStyle={styles.analysisPillContent}
-          borderRadius={PILL_HEIGHT / 2}
-          onPress={toggleAnalysisMode}
-        >
-          <ScanSearch
-            size={22}
-            color={isAnalysisModeActive ? colors.accent.cyan : colors.text.primary}
-          />
-        </LiquidGlassButton>
+        {/* Combined Scan + Vixx pill - iOS Liquid Glass (hidden for founder chat) */}
+        {!isFounderChat && (
+          <LiquidGlassButton
+            style={styles.combinedPill}
+            contentStyle={styles.combinedPillContent}
+            borderRadius={PILL_HEIGHT / 2}
+          >
+            {/* Scan button */}
+            <TouchableOpacity
+              style={[
+                styles.combinedButton,
+                isAnalysisModeActive && styles.combinedButtonActive,
+              ]}
+              onPress={toggleAnalysisMode}
+              activeOpacity={0.7}
+            >
+              <ScanSearch
+                size={22}
+                color={isAnalysisModeActive ? colors.accent.cyan : colors.text.primary}
+              />
+            </TouchableOpacity>
 
-        {/* Vixx button - iOS Liquid Glass */}
-        <LiquidGlassButton
-          style={styles.vixxPill}
-          contentStyle={styles.vixxPillContent}
-          borderRadius={PILL_HEIGHT / 2}
-          onPress={() => toggleAIAssistant(true)}
-        >
-          <VixxLogo size={32} color={colors.text.primary} />
-        </LiquidGlassButton>
+            {/* Divider */}
+            <View style={styles.pillDivider} />
+
+            {/* Vixx button */}
+            <TouchableOpacity
+              style={styles.combinedButton}
+              onPress={() => toggleAIAssistant(true)}
+              activeOpacity={0.7}
+            >
+              <VixxLogo size={32} color={colors.text.primary} />
+            </TouchableOpacity>
+          </LiquidGlassButton>
+        )}
       </View>
     </View>
   );
@@ -174,31 +185,31 @@ const styles = StyleSheet.create({
   spacer: {
     flex: 1,
   },
-  analysisPill: {
-    width: PILL_HEIGHT,
+  combinedPill: {
     height: PILL_HEIGHT,
   },
-  analysisPillActive: {
+  combinedPillContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: PILL_HEIGHT,
+    paddingVertical: 0,
+    paddingHorizontal: 10,
+  },
+  combinedButton: {
+    width: 24,
+    height: PILL_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  combinedButtonActive: {
     backgroundColor: colors.transparent.cyan15,
+    borderTopLeftRadius: PILL_HEIGHT / 2,
+    borderBottomLeftRadius: PILL_HEIGHT / 2,
   },
-  analysisPillContent: {
-    width: PILL_HEIGHT,
-    height: PILL_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-  },
-  vixxPill: {
-    width: PILL_HEIGHT,
-    height: PILL_HEIGHT,
-  },
-  vixxPillContent: {
-    width: PILL_HEIGHT,
-    height: PILL_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 0,
-    paddingHorizontal: 0,
+  pillDivider: {
+    width: 1,
+    height: 18,
+    backgroundColor: colors.transparent.white15,
   },
 });

@@ -186,7 +186,7 @@ export function IntentAnalysisOverlay() {
                         />
                       </View>
                       <Text style={styles.loadingText}>
-                        {isAnalyzingOwnMessage ? 'Đang chấm điểm tin nhắn...' : 'Đang đọc ý nghĩa ẩn...'}
+                        {isAnalyzingOwnMessage ? 'Grading your message...' : 'Reading between the lines...'}
                       </Text>
                     </View>
                   )}
@@ -206,7 +206,7 @@ export function IntentAnalysisOverlay() {
                       {/* READ/GRADE Section */}
                       <View style={styles.readSection}>
                         <Text style={styles.sectionLabel}>
-                          {isAnalyzingOwnMessage ? 'NHẬN XÉT' : 'PHÂN TÍCH'}
+                          {isAnalyzingOwnMessage ? 'FEEDBACK' : 'READ'}
                         </Text>
                         <Text style={styles.readText}>
                           {intentAnalysisResult.stateRead}

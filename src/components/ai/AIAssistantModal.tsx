@@ -30,15 +30,11 @@ type AIAssistantModalProps = {
 export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
   const insets = useSafeAreaInsets();
   const {
-    inputValue,
-    setInputValue,
     chatHistory,
     isLoading,
     generatedResponse,
     isGeneratingResponse,
-    handleSend,
     sendQuickQuestion,
-    generateInitialResponse,
     regenerateResponse,
     handleUseSuggestion,
     clearChatHistory,
@@ -46,6 +42,9 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
     dashboardMetrics,
     clearContext,
   } = useAIAssistant();
+
+  // Local input state for the modal (separate from main chat input)
+  const [modalInputValue, setModalInputValue] = useState('');
 
   // Calculate top padding to keep room header (avatar + name) visible
   const topPadding = insets.top + HEADER_VISIBLE_HEIGHT;
@@ -74,7 +73,22 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
 
   // Animation for send button appear/collapse - single animation to avoid race conditions
   const sendButtonAnim = useRef(new Animated.Value(0)).current;
-  const showSendButton = inputValue.trim().length > 0 || isLoading;
+  const showSendButton = modalInputValue.trim().length > 0 || isLoading;
+
+  // Handle send for modal input
+  const handleModalSend = useCallback(() => {
+    if (modalInputValue.trim()) {
+      sendQuickQuestion(modalInputValue.trim());
+      setModalInputValue('');
+    }
+  }, [modalInputValue, sendQuickQuestion]);
+
+  // Clear modal input when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setModalInputValue('');
+    }
+  }, [visible]);
 
   useEffect(() => {
     Animated.timing(sendButtonAnim, {
@@ -350,8 +364,8 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                 style={styles.input}
                 placeholder="Abcxyz"
                 placeholderTextColor={colors.transparent.white50}
-                value={inputValue}
-                onChangeText={setInputValue}
+                value={modalInputValue}
+                onChangeText={setModalInputValue}
                 multiline
                 editable={!isLoading}
               />
@@ -379,8 +393,8 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
               >
                 <TouchableOpacity
                   style={styles.sendButton}
-                  onPress={handleSend}
-                  disabled={!inputValue.trim() || isLoading}
+                  onPress={handleModalSend}
+                  disabled={!modalInputValue.trim() || isLoading}
                 >
                   {isLoading ? (
                     <ActivityIndicator
@@ -730,13 +744,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendButton: {
-    backgroundColor: 'rgba(200, 220, 255, 0.35)',
+    backgroundColor: 'rgba(200, 220, 255, 0.12)',
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(200, 220, 255, 0.5)',
+    borderColor: 'rgba(200, 220, 255, 0.25)',
   },
 });
