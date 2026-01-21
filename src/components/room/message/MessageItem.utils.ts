@@ -26,7 +26,7 @@ export function isMessageItemEqual(
   const { item: prevItem, ...prevRest } = prev;
   const { item: nextItem, ...nextRest } = next;
 
-  // Analysis mode changes should trigger re-render for glow animation
+  // Analysis mode changes should trigger re-render for glow
   if (prevRest.isAnalysisModeActive !== nextRest.isAnalysisModeActive) {
     return false;
   }

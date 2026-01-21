@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -177,45 +177,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       new Animated.Value(shouldShowTimestamp ? 1 : 0),
     ).current;
 
-    // Pulsing glow animation for analysis mode
-    const glowOpacity = useRef(new Animated.Value(0)).current;
-    const pulseAnimation = useRef<Animated.CompositeAnimation | null>(null);
-
-    useEffect(() => {
-      if (isAnalysisModeActive) {
-        // Start pulsing animation
-        pulseAnimation.current = Animated.loop(
-          Animated.sequence([
-            Animated.timing(glowOpacity, {
-              toValue: 1,
-              duration: 800,
-              useNativeDriver: false, // borderColor doesn't support native driver
-            }),
-            Animated.timing(glowOpacity, {
-              toValue: 0.3,
-              duration: 800,
-              useNativeDriver: false,
-            }),
-          ]),
-        );
-        pulseAnimation.current.start();
-      } else {
-        // Stop animation and reset
-        if (pulseAnimation.current) {
-          pulseAnimation.current.stop();
-          pulseAnimation.current = null;
-        }
-        glowOpacity.setValue(0);
-      }
-
-      return () => {
-        if (pulseAnimation.current) {
-          pulseAnimation.current.stop();
-        }
-      };
-    }, [isAnalysisModeActive, glowOpacity]);
-
-    useEffect(() => {
+    React.useEffect(() => {
       if (isFirstOfHour) return;
 
       Animated.timing(animatedOpacity, {
@@ -240,10 +202,8 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       variant.startsWith('instagram') && styles.messageBubbleInstagramStory,
     ];
 
-    // Animated glow style for analysis mode
-    const animatedGlowStyle = isAnalysisModeActive
-      ? analysisGlowStyle(glowOpacity, item.isOwn)
-      : undefined;
+    // Static glow style for analysis mode
+    const glowStyle = isAnalysisModeActive ? analysisGlowStyle : undefined;
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
@@ -348,7 +308,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
               onLongPress={handleLongPress}
               delayLongPress={500}
             >
-              <Animated.View style={[bubbleStyle, animatedGlowStyle]}>
+              <View style={[bubbleStyle, glowStyle]}>
                 <View style={contentStyle}>
                   <MessageContent
                     item={item}
@@ -358,7 +318,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
                     onLongPress={handleLongPress}
                   />
                 </View>
-              </Animated.View>
+              </View>
             </Pressable>
             <ReactionsList
               reactions={item.reactions ?? []}

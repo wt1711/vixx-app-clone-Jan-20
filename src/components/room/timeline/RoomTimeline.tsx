@@ -26,6 +26,7 @@ import {
 } from '../message';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { FounderWelcomeCard } from './FounderWelcomeCard';
+import { AnalysisOverlay } from './AnalysisOverlay';
 import { useRoomTimeline, useTimelineScroll } from 'src/hooks/room';
 import { useReply } from 'src/hooks/context/ReplyContext';
 import { useInputHeight } from 'src/hooks/context/InputHeightContext';
@@ -150,35 +151,6 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   // ─── Intent Analysis & Ask Vixx ──────────────────────────────────────────
   const { analyzeIntentBurst, openAskVixx, isAnalysisModeActive } = useAIAssistant();
 
-  // ─── Analysis Mode Toast ───────────────────────────────────────────────────
-  const toastOpacity = useRef(new Animated.Value(0)).current;
-  const [showToast, setShowToast] = useState(false);
-
-  useEffect(() => {
-    if (isAnalysisModeActive) {
-      // Show toast when analysis mode is activated
-      setShowToast(true);
-      Animated.sequence([
-        Animated.timing(toastOpacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.delay(2500), // Show for 2.5 seconds
-        Animated.timing(toastOpacity, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setShowToast(false);
-      });
-    } else {
-      // Hide toast immediately when mode is deactivated
-      toastOpacity.setValue(0);
-      setShowToast(false);
-    }
-  }, [isAnalysisModeActive, toastOpacity]);
 
   // Dynamic content container style - paddingTop is visual bottom in inverted list
   const listContentStyle = useMemo(
@@ -367,7 +339,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   }, [isFounderRoomChat]);
 
   const renderMessage = useCallback(
-    ({ item }: { item: MessageItem }) => (
+    ({ item, index }: { item: MessageItem; index: number }) => (
       <MessageItemComponent
         item={item}
         onReactionPress={(key: string) => toggleReaction(item.eventId, key)}
@@ -411,27 +383,32 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   // ─── Main Render ────────────────────────────────────────────────────────────
   return (
     <>
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        inverted
-        renderItem={renderMessage}
-        keyExtractor={item => item.eventId}
-        contentContainerStyle={listContentStyle}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
-        onContentSizeChange={handleContentSizeChange}
-        onScrollToIndexFailed={onScrollToIndexFailed}
-        removeClippedSubviews
-        maxToRenderPerBatch={15}
-        updateCellsBatchingPeriod={100}
-        initialNumToRender={20}
-        windowSize={21}
-        keyboardShouldPersistTaps="handled"
-        extraData={isAnalysisModeActive}
-      />
+      <View style={styles.timelineContainer}>
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          inverted
+          renderItem={renderMessage}
+          keyExtractor={item => item.eventId}
+          contentContainerStyle={listContentStyle}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          ListHeaderComponent={renderHeader}
+          ListFooterComponent={renderFooter}
+          onContentSizeChange={handleContentSizeChange}
+          onScrollToIndexFailed={onScrollToIndexFailed}
+          removeClippedSubviews
+          maxToRenderPerBatch={15}
+          updateCellsBatchingPeriod={100}
+          initialNumToRender={20}
+          windowSize={21}
+          keyboardShouldPersistTaps="handled"
+          extraData={isAnalysisModeActive}
+        />
+
+        {/* Negative film overlay for analysis mode */}
+        {isAnalysisModeActive && <AnalysisOverlay />}
+      </View>
 
       <ScrollToBottomButton
         visible={showScrollButton}
@@ -457,17 +434,14 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         onRequestClose={closeImageViewer}
       />
 
-      {/* Analysis Mode Toast */}
-      {showToast && (
-        <Animated.View style={[styles.analysisToast, { opacity: toastOpacity }]}>
-          <Text style={styles.analysisToastText}>Tap a message to analyze</Text>
-        </Animated.View>
-      )}
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  timelineContainer: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -482,23 +456,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 12,
     color: colors.text.secondary,
-  },
-  analysisToast: {
-    position: 'absolute',
-    top: 120,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 100,
-  },
-  analysisToastText: {
-    backgroundColor: colors.transparent.black80,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 24,
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text.primary,
-    overflow: 'hidden',
   },
 });
