@@ -18,7 +18,7 @@ export type ChatHistoryMessage = {
   text: string;
 };
 
-// Mock consultation response generator for development/testing
+// Mock consultation response generator for development/testing (Vietnamese)
 function generateMockConsultation(
   question: string,
   contextMessage: string | null | undefined,
@@ -26,37 +26,37 @@ function generateMockConsultation(
 ): string {
   const questionLower = question.toLowerCase();
 
-  // Context-aware responses based on question keywords
-  if (questionLower.includes('interest') || questionLower.includes('like')) {
-    return 'Based on the conversation, they seem genuinely interested! They\'re responding quickly and asking questions - both good signs. Keep the energy positive and match their vibe.';
+  // Context-aware responses based on question keywords (English + Vietnamese)
+  if (questionLower.includes('interest') || questionLower.includes('like') || questionLower.includes('thích') || questionLower.includes('quan tâm')) {
+    return 'Dựa trên cuộc trò chuyện, họ có vẻ thật sự quan tâm đến bạn! Họ phản hồi nhanh và đặt câu hỏi - cả hai đều là dấu hiệu tốt. Giữ năng lượng tích cực và match vibe của họ nha.';
   }
 
-  if (questionLower.includes('mean') || questionLower.includes('what')) {
+  if (questionLower.includes('mean') || questionLower.includes('what') || questionLower.includes('nghĩa') || questionLower.includes('gì')) {
     const contextPart = contextMessage
-      ? `Looking at "${contextMessage}" - `
+      ? `Nhìn vào "${contextMessage}" - `
       : '';
-    return `${contextPart}They're being friendly and keeping the conversation going. It's a good sign that they're engaging with you. I'd suggest responding warmly and maybe asking them something in return.`;
+    return `${contextPart}Họ đang thân thiện và giữ cuộc trò chuyện tiếp tục. Đây là dấu hiệu tốt cho thấy họ đang tương tác với bạn. Mình gợi ý là bạn nên phản hồi ấm áp và có thể hỏi họ điều gì đó.`;
   }
 
-  if (questionLower.includes('respond') || questionLower.includes('reply') || questionLower.includes('say')) {
-    return 'I\'d suggest keeping it light and matching their energy. Something casual but warm would work well here. You could acknowledge what they said and ask a follow-up question to keep things flowing.';
+  if (questionLower.includes('respond') || questionLower.includes('reply') || questionLower.includes('say') || questionLower.includes('trả lời') || questionLower.includes('nói')) {
+    return 'Mình gợi ý giữ nhẹ nhàng và match năng lượng của họ. Một câu trả lời casual nhưng ấm áp sẽ hợp ở đây. Bạn có thể acknowledge những gì họ nói và hỏi thêm câu hỏi để giữ dòng chảy.';
   }
 
-  if (questionLower.includes('mood') || questionLower.includes('feel') || questionLower.includes('tone')) {
-    return 'The tone seems positive and friendly! They\'re being open and engaging, which is a great sign. I\'d recommend keeping things warm and playful.';
+  if (questionLower.includes('mood') || questionLower.includes('feel') || questionLower.includes('tone') || questionLower.includes('tâm trạng') || questionLower.includes('cảm')) {
+    return 'Giọng điệu có vẻ tích cực và thân thiện! Họ đang cởi mở và tương tác, đây là dấu hiệu tuyệt vời. Mình khuyên bạn giữ mọi thứ ấm áp và vui vẻ.';
   }
 
-  if (questionLower.includes('strategy') || questionLower.includes('approach') || questionLower.includes('advice')) {
-    return 'My advice: Stay authentic and match their communication style. They seem comfortable with you, so keep being yourself. Ask questions to show interest, and share a bit about yourself too.';
+  if (questionLower.includes('strategy') || questionLower.includes('approach') || questionLower.includes('advice') || questionLower.includes('chiến') || questionLower.includes('tư vấn')) {
+    return 'Lời khuyên của mình: Hãy tự nhiên và match phong cách giao tiếp của họ. Họ có vẻ thoải mái với bạn, nên cứ là chính mình. Đặt câu hỏi để thể hiện sự quan tâm, và chia sẻ một chút về bản thân nữa.';
   }
 
   // Check if this is a follow-up question (has chat history)
   if (chatHistory.length > 0) {
-    return `Building on what I mentioned earlier - ${question.includes('?') ? 'yes, ' : ''}I think you're on the right track. Just stay natural and keep the conversation balanced. Show interest but don't overthink it!`;
+    return `Tiếp tục từ điều mình đã nói - ${question.includes('?') ? 'đúng rồi, ' : ''}mình nghĩ bạn đang đi đúng hướng. Cứ tự nhiên và giữ cuộc trò chuyện cân bằng. Thể hiện sự quan tâm nhưng đừng overthink quá!`;
   }
 
   // Default response
-  return 'That\'s a good question! Based on the conversation context, things seem to be going well. Keep the energy positive and be yourself - that\'s the best approach. Is there something specific you\'d like me to analyze?';
+  return 'Câu hỏi hay đó! Dựa trên ngữ cảnh cuộc trò chuyện, mọi thứ có vẻ đang tốt. Giữ năng lượng tích cực và là chính mình - đó là cách tiếp cận tốt nhất. Có điều gì cụ thể bạn muốn mình phân tích không?';
 }
 
 export async function getOpenAIConsultation({
@@ -313,11 +313,11 @@ function generateMockIntentAnalysis(
   };
 
   const indicators: string[] = [];
-  if (hasQuestion) indicators.push('Asks questions - showing curiosity');
-  if (hasEmoji) indicators.push('Uses expressive language');
-  if (wordCount > 3) indicators.push('Puts effort into responses');
-  if (messageLength > 30) indicators.push('Engages with detailed messages');
-  if (indicators.length === 0) indicators.push('Keeping conversation going');
+  if (hasQuestion) indicators.push('Đặt câu hỏi - tò mò về bạn');
+  if (hasEmoji) indicators.push('Dùng ngôn ngữ biểu cảm');
+  if (wordCount > 3) indicators.push('Đầu tư vào câu trả lời');
+  if (messageLength > 30) indicators.push('Tương tác với tin nhắn chi tiết');
+  if (indicators.length === 0) indicators.push('Duy trì cuộc trò chuyện');
 
   const tones = [
     { primary: 'Playful', secondary: 'Friendly' },
@@ -328,11 +328,11 @@ function generateMockIntentAnalysis(
   ];
   const selectedTone = tones[Math.floor(Math.random() * tones.length)];
 
-  // Generate contextual stateRead based on message content
+  // Generate contextual stateRead based on message content (Vietnamese)
   const stateReadOptions = [
-    `They seem ${selectedTone.primary.toLowerCase()} and interested in connecting. ${hasQuestion ? 'The question shows they want to include you.' : 'Keep the momentum going!'}`,
-    `Showing clear interest in spending time together. Their tone is ${selectedTone.primary.toLowerCase()} and engaging.`,
-    `They're reaching out and keeping the conversation active. ${interestScore >= 60 ? 'Good sign of genuine interest!' : 'Respond to keep things flowing.'}`,
+    `Họ có vẻ ${selectedTone.primary.toLowerCase()} và muốn kết nối. ${hasQuestion ? 'Câu hỏi cho thấy họ muốn có bạn trong đó.' : 'Giữ đà nhé!'}`,
+    `Thể hiện sự quan tâm rõ ràng muốn gặp gỡ. Giọng điệu ${selectedTone.primary.toLowerCase()} và thu hút.`,
+    `Họ đang chủ động và duy trì cuộc trò chuyện. ${interestScore >= 60 ? 'Dấu hiệu tốt của sự quan tâm thật sự!' : 'Trả lời để giữ nhịp nha.'}`,
   ];
 
   // Select directions based on context
@@ -394,9 +394,9 @@ function generateMockDirectionResponse(
         'Được luôn á! Hype quá trời 🔥',
       ],
       reasonings: [
-        'Showing enthusiasm matches their energy and signals clear interest',
-        'Excitement is contagious - it makes them feel good about the plans',
-        'High energy response builds anticipation for meeting up',
+        'Thể hiện nhiệt tình match năng lượng của họ và cho thấy sự quan tâm rõ ràng',
+        'Sự hào hứng lan tỏa - làm họ cảm thấy vui về kế hoạch',
+        'Phản hồi năng lượng cao tạo sự mong đợi cho cuộc gặp',
       ],
       emotion: 'Excited',
     },
@@ -407,9 +407,9 @@ function generateMockDirectionResponse(
         'Chắc rồi! Mà đi đâu vậy ta? 🤔',
       ],
       reasonings: [
-        'Asking details shows you care about making it work',
-        'Getting specifics helps plan better and shows investment',
-        'Questions keep the conversation going and show engagement',
+        'Hỏi chi tiết cho thấy bạn quan tâm muốn thực hiện được',
+        'Nắm rõ cụ thể giúp lên kế hoạch tốt hơn và thể hiện sự đầu tư',
+        'Câu hỏi giữ cuộc trò chuyện tiếp tục và thể hiện sự tương tác',
       ],
       emotion: 'Curious',
     },
@@ -420,9 +420,9 @@ function generateMockDirectionResponse(
         'Được thôi, nhưng phải vui nha! 🤭',
       ],
       reasonings: [
-        'Playful teasing creates chemistry and keeps things fun',
-        'Light humor shows confidence and personality',
-        'Teasing builds tension in a positive way',
+        'Trêu đùa vui vẻ tạo chemistry và giữ mọi thứ thú vị',
+        'Hài hước nhẹ nhàng thể hiện sự tự tin và cá tính',
+        'Trêu ghẹo tạo tension tích cực',
       ],
       emotion: 'Playful',
     },
@@ -433,9 +433,9 @@ function generateMockDirectionResponse(
         'Chắc chắn rồi, hẹn gặp nha 🥰',
       ],
       reasonings: [
-        'Warm responses make them feel valued and appreciated',
-        'Showing genuine care builds emotional connection',
-        'Affectionate tone deepens the bond between you',
+        'Phản hồi ấm áp làm họ cảm thấy được trân trọng',
+        'Thể hiện sự quan tâm thật sự xây dựng kết nối cảm xúc',
+        'Giọng điệu tình cảm làm sâu thêm mối quan hệ giữa hai người',
       ],
       emotion: 'Warm',
     },
@@ -446,9 +446,9 @@ function generateMockDirectionResponse(
         'Được nè, nhưng để a check lịch lại nha',
       ],
       reasonings: [
-        'Suggesting alternatives shows you want to make it work',
-        'Being flexible while having preferences shows maturity',
-        'Offering options keeps the conversation productive',
+        'Đề xuất thay thế cho thấy bạn muốn thực hiện được',
+        'Linh hoạt nhưng vẫn có ý kiến riêng thể hiện sự trưởng thành',
+        'Đưa ra lựa chọn giữ cuộc trò chuyện hiệu quả',
       ],
       emotion: 'Thoughtful',
     },
@@ -459,9 +459,9 @@ function generateMockDirectionResponse(
         'Chắc rồi, hẹn gặp!',
       ],
       reasonings: [
-        'Matching their communication style creates rapport',
-        'Mirroring energy makes them feel understood',
-        'Simple agreement when appropriate shows you\'re on the same page',
+        'Match phong cách giao tiếp của họ tạo sự đồng điệu',
+        'Phản chiếu năng lượng làm họ cảm thấy được hiểu',
+        'Đồng ý đơn giản khi phù hợp cho thấy hai người cùng một nhịp',
       ],
       emotion: 'Relaxed',
     },
@@ -472,9 +472,9 @@ function generateMockDirectionResponse(
         'Chắc chắn! Mong lắm luôn á',
       ],
       reasonings: [
-        'Expressing interest directly shows confidence',
-        'Saying you want to see them makes them feel special',
-        'Direct interest signals are clear and attractive',
+        'Thể hiện sự quan tâm trực tiếp cho thấy sự tự tin',
+        'Nói rằng bạn muốn gặp họ làm họ cảm thấy đặc biệt',
+        'Tín hiệu quan tâm rõ ràng và hấp dẫn',
       ],
       emotion: 'Interested',
     },
@@ -485,9 +485,9 @@ function generateMockDirectionResponse(
         'Sure, hẹn gặp 👍',
       ],
       reasonings: [
-        'Casual response avoids coming on too strong',
-        'Low-key energy can be attractive - not desperate',
-        'Sometimes less is more in conversation',
+        'Phản hồi nhẹ nhàng tránh việc tỏ ra quá mạnh mẽ',
+        'Năng lượng low-key có thể hấp dẫn - không desperate',
+        'Đôi khi ít hơn lại là nhiều hơn trong hội thoại',
       ],
       emotion: 'Casual',
     },
@@ -588,35 +588,35 @@ function generateMockMessageGrade(
     return 'Uncertain';
   };
 
-  // Generate feedback based on message characteristics
+  // Generate feedback based on message characteristics (Vietnamese)
   const feedbackOptions: string[] = [];
 
   if (gradeScore >= 80) {
     feedbackOptions.push(
-      'Great response! Clear, warm, and engaging. This keeps the conversation flowing naturally.',
-      'Solid message! Shows interest while staying relaxed. Good balance.',
-      'Nice job! Your message is friendly and inviting without being too much.',
+      'Trả lời hay lắm! Rõ ràng, ấm áp và thu hút. Giữ được nhịp trò chuyện tự nhiên.',
+      'Tin nhắn chắc tay! Thể hiện sự quan tâm mà vẫn thoải mái. Cân bằng tốt.',
+      'Được đó! Tin nhắn thân thiện và mời gọi mà không quá lố.',
     );
   } else if (gradeScore >= 65) {
     feedbackOptions.push(
-      'Good response. Consider adding a question to keep them engaged.',
-      'Decent message. A bit more enthusiasm could help build connection.',
-      'Okay response. Try matching their energy level more closely.',
+      'Trả lời ổn. Thử thêm câu hỏi để giữ họ tương tác nha.',
+      'Tin nhắn tạm được. Thêm chút nhiệt tình sẽ giúp kết nối tốt hơn.',
+      'Ổn rồi. Thử match năng lượng của họ hơn nha.',
     );
   } else {
     feedbackOptions.push(
-      'Could be stronger. Try adding more warmth or a follow-up question.',
-      'A bit short. Consider expanding to show more interest.',
-      'Try to engage more. Ask something about them or share something personal.',
+      'Có thể tốt hơn. Thử thêm chút ấm áp hoặc câu hỏi tiếp theo.',
+      'Hơi ngắn. Cân nhắc mở rộng để thể hiện sự quan tâm hơn.',
+      'Thử tương tác nhiều hơn. Hỏi về họ hoặc chia sẻ gì đó cá nhân.',
     );
   }
 
   const indicators: string[] = [];
-  if (hasQuestion) indicators.push('Asks follow-up question');
-  if (hasEmoji) indicators.push('Uses expressive language');
-  if (wordCount >= 3) indicators.push('Substantial response');
-  if (gradeScore >= 70) indicators.push('Good conversational flow');
-  if (indicators.length === 0) indicators.push('Basic acknowledgment');
+  if (hasQuestion) indicators.push('Có câu hỏi tiếp theo');
+  if (hasEmoji) indicators.push('Dùng emoji biểu cảm');
+  if (wordCount >= 3) indicators.push('Trả lời đầy đủ');
+  if (gradeScore >= 70) indicators.push('Dòng chảy hội thoại tốt');
+  if (indicators.length === 0) indicators.push('Xác nhận cơ bản');
 
   return {
     interestLevel: {
