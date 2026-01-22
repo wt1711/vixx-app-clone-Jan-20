@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     overflow: 'hidden',
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.transparent.white08,
   },
   border: {
     position: 'absolute',
@@ -59,10 +59,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 12,
     borderWidth: 1,
-    borderTopColor: colors.transparent.white10,
-    borderLeftColor: colors.transparent.white06,
-    borderBottomColor: colors.transparent.white14,
-    borderRightColor: colors.transparent.white08,
+    borderColor: colors.transparent.white15,
   },
   text: {
     flex: 1,

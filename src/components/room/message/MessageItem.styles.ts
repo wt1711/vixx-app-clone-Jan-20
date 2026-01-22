@@ -1,11 +1,22 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import { colors } from 'src/config';
+
+// Static glow style for analysis mode (subtle off-white)
+export const analysisGlowStyle: ViewStyle = {
+  borderWidth: 1,
+  borderColor: 'rgba(255, 255, 255, 0.25)',
+  shadowColor: '#FFFFFF',
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: 0.15,
+  shadowRadius: 4,
+};
 
 export const styles = StyleSheet.create({
   messageContainer: {
     flexDirection: 'row',
     marginBottom: 18,
     alignItems: 'flex-end',
+    overflow: 'visible', // Allow SmartMomentBadge to render in margins
   },
   messageOwn: {
     justifyContent: 'flex-end',
@@ -18,6 +29,7 @@ export const styles = StyleSheet.create({
   },
   messageBubbleWrapper: {
     maxWidth: '75%',
+    overflow: 'visible', // Allow SmartMomentBadge to render outside bounds
   },
   messageBubble: {
     // Note: removed overflow: 'hidden' to prevent shadow clipping issues

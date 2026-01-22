@@ -33,6 +33,7 @@ export const colors = {
     purple: '#A855F7',
     instagram: '#E4405F',
     cyan: '#06B6D4', // used in sparkle animations
+    teal: '#0D9488', // sophisticated teal for AI features
   },
 
   // Message bubbles
@@ -74,10 +75,13 @@ export const colors = {
     black50: 'rgba(0, 0, 0, 0.5)',
     black60: 'rgba(0, 0, 0, 0.6)',
     black70: 'rgba(0, 0, 0, 0.7)',
+    black80: 'rgba(0, 0, 0, 0.8)',
     black85: 'rgba(0, 0, 0, 0.85)',
     black100: 'rgba(0, 0, 0, 1)',
     inputBar: 'rgba(5, 6, 10, 0.92)',
     purple15: 'rgba(168, 85, 247, 0.15)',
+    cyan15: 'rgba(6, 182, 212, 0.15)',
+    cyan30: 'rgba(6, 182, 212, 0.3)',
     blue15: 'rgba(59, 130, 246, 0.15)',
     reactionButton: 'rgba(60, 60, 70, 0.95)',
     reactionButtonActive: 'rgba(80, 80, 90, 0.95)',
@@ -136,6 +140,13 @@ export const colors = {
   // Fallback / Debug
   fallback: {
     blue: '#0000ff',
+  },
+
+  // Analysis mode overlay (negative film effect)
+  analysis: {
+    tintOverlay: 'rgba(20, 30, 50, 0.25)', // cool blue-gray tint
+    vignetteDark: 'rgba(0, 0, 0, 0.35)',   // edge darkening
+    vignetteLight: 'rgba(0, 0, 0, 0)',     // center (transparent)
   },
 } as const;
 

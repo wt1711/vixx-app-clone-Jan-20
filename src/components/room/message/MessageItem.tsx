@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from 'src/components/room/types';
 import { formatTimeWithDay } from 'src/utils/timeFormatter';
 import { ReactionsList } from 'src/components/room/message/Reactions';
+import { SmartMomentBadge } from 'src/components/room/message/SmartMomentBadge';
+import type { SmartMoment } from 'src/utils/smartMoments';
 import {
   GifMessage,
   ImageMessage,
@@ -21,7 +23,7 @@ import {
   MessageTextWithLinks,
   VideoMessage,
 } from 'src/components/room/message/variants';
-import { styles } from 'src/components/room/message/MessageItem.styles';
+import { styles, analysisGlowStyle } from 'src/components/room/message/MessageItem.styles';
 import {
   getInstagramUrl,
   getInstagramStoryReplyData,
@@ -36,11 +38,18 @@ export type MessageItemProps = {
     getPosition: () => { x: number; y: number; width: number; height: number },
   ) => void;
   onBubblePress?: () => void;
+  onDoubleTap?: () => void;
   onReplyPreviewPress?: (eventId: string) => void;
   onImagePress?: (imageUrl: string) => void;
   onVideoPress?: (videoUrl: string) => void;
   showTimestamp?: boolean;
   isFirstOfHour?: boolean;
+  isAnalysisModeActive?: boolean;
+  onAnalysisTap?: () => void;
+  // Smart Moment badge props (sparse - only significant moments)
+  smartMoment?: SmartMoment | null;
+  isAnalyzingMoment?: boolean;
+  onSmartMomentPress?: () => void;
 };
 
 type MessageContentProps = {
@@ -150,25 +159,34 @@ const MessageContent = ({
   }
 };
 
+const DOUBLE_TAP_DELAY = 300; // ms between taps to count as double-tap
+
 export const MessageItemComponent = React.memo<MessageItemProps>(
   ({
     item,
     onReactionPress,
     onLongPress,
     onBubblePress,
+    onDoubleTap,
     onReplyPreviewPress,
     onImagePress,
     onVideoPress,
     showTimestamp,
     isFirstOfHour,
+    isAnalysisModeActive,
+    onAnalysisTap,
+    smartMoment,
+    isAnalyzingMoment,
+    onSmartMomentPress,
   }) => {
     const messageRef = useRef<View>(null);
+    const lastTapRef = useRef<number>(0);
     const shouldShowTimestamp = showTimestamp || isFirstOfHour;
     const animatedOpacity = useRef(
       new Animated.Value(shouldShowTimestamp ? 1 : 0),
     ).current;
 
-    useEffect(() => {
+    React.useEffect(() => {
       if (isFirstOfHour) return;
 
       Animated.timing(animatedOpacity, {
@@ -192,6 +210,9 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       (variant === 'video' || variant === 'gif') && styles.messageBubbleVideo,
       variant.startsWith('instagram') && styles.messageBubbleInstagramStory,
     ];
+
+    // Static glow style for analysis mode
+    const glowStyle = isAnalysisModeActive ? analysisGlowStyle : undefined;
 
     const contentStyle: StyleProp<ViewStyle> = [
       styles.messageBubbleContent,
@@ -227,6 +248,41 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       });
     };
 
+    const handlePress = () => {
+      // Analysis mode: single tap triggers analysis immediately
+      if (isAnalysisModeActive && onAnalysisTap) {
+        ReactNativeHapticFeedback.trigger('impactLight', {
+          enableVibrateFallback: true,
+          ignoreAndroidSystemSettings: false,
+        });
+        onAnalysisTap();
+        return;
+      }
+
+      const now = Date.now();
+      const timeSinceLastTap = now - lastTapRef.current;
+
+      if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
+        // Double-tap detected - trigger for all messages (own and others)
+        if (onDoubleTap) {
+          ReactNativeHapticFeedback.trigger('impactLight', {
+            enableVibrateFallback: true,
+            ignoreAndroidSystemSettings: false,
+          });
+          onDoubleTap();
+          lastTapRef.current = 0; // Reset to prevent triple-tap
+          return;
+        }
+      }
+
+      lastTapRef.current = now;
+
+      // Single tap behavior (show timestamp)
+      if (onBubblePress) {
+        onBubblePress();
+      }
+    };
+
     return (
       <View>
         {shouldShowTimestamp && (
@@ -255,13 +311,22 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
         )}
 
         <View ref={messageRef} style={containerStyle}>
+          {/* Smart Moment Badge - inline before bubble for own messages */}
+          {item.isOwn && (smartMoment || isAnalyzingMoment) && (
+            <SmartMomentBadge
+              moment={smartMoment ?? null}
+              isAnalyzing={isAnalyzingMoment ?? false}
+              isOwn={item.isOwn}
+              onPress={onSmartMomentPress}
+            />
+          )}
           <View style={styles.messageBubbleWrapper}>
             <Pressable
-              onPress={onBubblePress}
+              onPress={handlePress}
               onLongPress={handleLongPress}
               delayLongPress={500}
             >
-              <View style={bubbleStyle}>
+              <View style={[bubbleStyle, glowStyle]}>
                 <View style={contentStyle}>
                   <MessageContent
                     item={item}
@@ -279,6 +344,15 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
               onReactionPress={onReactionPress}
             />
           </View>
+          {/* Smart Moment Badge - inline after bubble for their messages */}
+          {!item.isOwn && (smartMoment || isAnalyzingMoment) && (
+            <SmartMomentBadge
+              moment={smartMoment ?? null}
+              isAnalyzing={isAnalyzingMoment ?? false}
+              isOwn={item.isOwn}
+              onPress={onSmartMomentPress}
+            />
+          )}
         </View>
       </View>
     );

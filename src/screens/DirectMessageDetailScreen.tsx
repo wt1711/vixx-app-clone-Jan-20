@@ -16,11 +16,15 @@ import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import { useKeyboardHeight } from 'src/hooks/useKeyboardHeight';
 import { RoomTimeline, RoomInput, RoomViewHeader } from 'src/components/room';
-import { AIAssistantProvider } from 'src/hooks/context/AIAssistantContext';
+import {
+  AIAssistantProvider,
+  useAIAssistant,
+} from 'src/hooks/context/AIAssistantContext';
 import { ReplyProvider } from 'src/hooks/context/ReplyContext';
 import { InputHeightProvider } from 'src/hooks/context/InputHeightContext';
 import LinearGradient from 'react-native-linear-gradient';
 import { CarbonFiberTexture } from 'src/components/ui/NoiseTexture';
+import { IntentAnalysisOverlay, AIAssistantModal } from 'src/components/ai';
 import { colors, gradients } from 'src/config';
 
 type DirectMessageDetailScreenProps = {
@@ -28,6 +32,18 @@ type DirectMessageDetailScreenProps = {
   onBack: () => void;
   eventId?: string;
 };
+
+// Wrapper component to render AIAssistantModal with context access
+function AIAssistantModalWrapper({ room }: { room: Room }) {
+  const { isAIAssistantOpen, toggleAIAssistant } = useAIAssistant();
+  return (
+    <AIAssistantModal
+      visible={isAIAssistantOpen}
+      onClose={() => toggleAIAssistant(false)}
+      room={room}
+    />
+  );
+}
 
 export function DirectMessageDetailScreen({
   roomId,
@@ -174,6 +190,8 @@ export function DirectMessageDetailScreen({
                 {/* Header - solid bar with glass pills */}
                 <RoomViewHeader room={room} onBack={onBack} />
               </InputHeightProvider>
+              <IntentAnalysisOverlay />
+              <AIAssistantModalWrapper room={room} />
             </AIAssistantProvider>
           </ReplyProvider>
         </View>
