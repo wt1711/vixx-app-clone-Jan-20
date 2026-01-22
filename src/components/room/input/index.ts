@@ -3,3 +3,4 @@ export type { ReplyPreviewInput } from './RoomInput';
 export { InputBar } from './InputBar';
 export { ReplyBar } from './ReplyBar';
 export { ReasoningPill } from './ReasoningPill';
+export { GradeIndicator } from './GradeIndicator';

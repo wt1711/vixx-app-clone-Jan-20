@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { Reply, Plus, Trash2 } from 'lucide-react-native';
+import { VixxLogo } from 'src/components/icons/VixxLogo';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 import { MessageItem } from 'src/components/room/types';
 import { ReplyPreview } from 'src/components/room/message/variants';
@@ -69,6 +70,7 @@ export type QuickReactionsModalProps = {
   onSelectEmoji: (emoji: string, eventId: string) => void;
   onReply?: () => void;
   onDelete?: () => void;
+  onAskVixx?: () => void;
 };
 
 export function QuickReactionsModal({
@@ -79,6 +81,7 @@ export function QuickReactionsModal({
   onSelectEmoji,
   onReply,
   onDelete,
+  onAskVixx,
 }: QuickReactionsModalProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const mx = getMatrixClient();
@@ -132,6 +135,12 @@ export function QuickReactionsModal({
   const handleDeletePress = () => {
     if (onDelete) {
       onDelete();
+    }
+  };
+
+  const handleAskVixxPress = () => {
+    if (onAskVixx) {
+      onAskVixx();
     }
   };
 
@@ -261,6 +270,17 @@ export function QuickReactionsModal({
                 minute: '2-digit',
               })}
             </Text>
+            {/* Ask VIXX - chat with AI about this message */}
+            {onAskVixx && (
+              <TouchableOpacity
+                style={styles.actionItem}
+                onPress={handleAskVixxPress}
+                activeOpacity={0.7}
+              >
+                <VixxLogo size={28} color={colors.text.primary} />
+                <Text style={styles.actionLabel}>Ask VIXX</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.actionItem}
               onPress={handleReplyPress}

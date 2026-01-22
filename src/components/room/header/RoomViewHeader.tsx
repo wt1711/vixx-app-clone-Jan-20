@@ -3,28 +3,30 @@ import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
-import { ChevronLeft, User } from 'lucide-react-native';
+import { ChevronLeft, User, ScanSearch } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
-import { getRoomAvatarUrl } from 'src/utils/room';
+import { getRoomAvatarUrl, isFounderRoom } from 'src/utils/room';
+import { useAIAssistant } from 'src/hooks/context/AIAssistantContext';
+import { VixxLogo } from 'src/components/icons/VixxLogo';
 import { colors, gradients } from 'src/config';
 
 type RoomViewHeaderProps = {
   room: Room;
   onBack: () => void;
-  onAIAssistantClick?: () => void;
 };
 
 export function RoomViewHeader({
   room,
   onBack,
-}: // onAIAssistantClick,
-RoomViewHeaderProps) {
+}: RoomViewHeaderProps) {
   const mx = getMatrixClient();
   const insets = useSafeAreaInsets();
+  const { toggleAIAssistant, isAnalysisModeActive, toggleAnalysisMode } = useAIAssistant();
 
   const roomName = room.name || 'Unknown';
   const avatarUrl = mx ? getRoomAvatarUrl(mx, room, 96, true) : undefined;
+  const isFounderChat = isFounderRoom(roomName);
 
   const handlePress = useCallback(() => {
     onBack();
@@ -73,8 +75,44 @@ RoomViewHeaderProps) {
           </TouchableOpacity>
         </LiquidGlassButton>
 
-        {/* Spacer for balance */}
+        {/* Spacer to push buttons to the right */}
         <View style={styles.spacer} />
+
+        {/* Combined Scan + Vixx pill - iOS Liquid Glass (hidden for founder chat) */}
+        {!isFounderChat && (
+          <LiquidGlassButton
+            style={styles.combinedPill}
+            contentStyle={styles.combinedPillContent}
+            borderRadius={PILL_HEIGHT / 2}
+          >
+            {/* Scan button */}
+            <TouchableOpacity
+              style={[
+                styles.combinedButton,
+                isAnalysisModeActive && styles.combinedButtonActive,
+              ]}
+              onPress={toggleAnalysisMode}
+              activeOpacity={0.7}
+            >
+              <ScanSearch
+                size={22}
+                color={isAnalysisModeActive ? colors.accent.cyan : colors.text.primary}
+              />
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.pillDivider} />
+
+            {/* Vixx button */}
+            <TouchableOpacity
+              style={styles.combinedButton}
+              onPress={() => toggleAIAssistant(true)}
+              activeOpacity={0.7}
+            >
+              <VixxLogo size={32} color={colors.text.primary} />
+            </TouchableOpacity>
+          </LiquidGlassButton>
+        )}
       </View>
     </View>
   );
@@ -146,5 +184,30 @@ const styles = StyleSheet.create({
   },
   spacer: {
     flex: 1,
+  },
+  combinedPill: {
+    height: PILL_HEIGHT,
+  },
+  combinedPillContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: PILL_HEIGHT,
+    paddingVertical: 0,
+    paddingHorizontal: 10,
+  },
+  combinedButton: {
+    width: 24,
+    height: PILL_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  combinedButtonActive: {
+    // No background - just rely on icon color change for active state
+  },
+  pillDivider: {
+    width: 1,
+    height: 18,
+    backgroundColor: colors.transparent.white15,
   },
 });
