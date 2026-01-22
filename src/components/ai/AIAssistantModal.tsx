@@ -11,7 +11,7 @@ import {
   Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronDown, ChevronUp, Palette, Send, X, Trash2 } from 'lucide-react-native';
+import { ChevronDown, ChevronUp, Send, X, Trash2, Check, RefreshCw } from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { useAIAssistant } from 'src/hooks/context/AIAssistantContext';
 import { DashboardSection } from './DashboardSection';
@@ -41,6 +41,7 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
     contextMessage,
     dashboardMetrics,
     clearContext,
+    clearGeneratedResponse,
   } = useAIAssistant();
 
   // Local input state for the modal (separate from main chat input)
@@ -50,15 +51,7 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
   const topPadding = insets.top + HEADER_VISIBLE_HEIGHT;
 
   const [isDashboardExpanded, setIsDashboardExpanded] = useState(false);
-  const [glassVariant, setGlassVariant] = useState<GlassVariant>('C'); // Default to Cool blue tint
-
-  // Cycle through glass variants (dev mode only)
-  const cycleGlassVariant = () => {
-    const variants: GlassVariant[] = ['A', 'B', 'C', 'D', 'E'];
-    const currentIndex = variants.indexOf(glassVariant);
-    const nextIndex = (currentIndex + 1) % variants.length;
-    setGlassVariant(variants[nextIndex]);
-  };
+  const glassVariant: GlassVariant = 'A'; // Fixed to variant A
 
   // Animation for dashboard expansion using standard Animated API
   const dashboardAnim = useRef(new Animated.Value(0)).current;
@@ -138,16 +131,6 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
             <View style={styles.headerContent}>
               <Text style={styles.title}>Insights</Text>
               <View style={styles.headerActions}>
-                {/* Glass style switcher - dev mode only */}
-                {__DEV__ && (
-                  <TouchableOpacity
-                    onPress={cycleGlassVariant}
-                    style={styles.styleButton}
-                  >
-                    <Palette size={16} color={colors.modal.textSecondary} />
-                    <Text style={styles.styleButtonText}>{glassVariant}</Text>
-                  </TouchableOpacity>
-                )}
                 {chatHistory.length > 0 && (
                   <TouchableOpacity
                     onPress={clearChatHistory}
@@ -229,8 +212,8 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
               contentContainerStyle={styles.chatScrollContent}
               showsVerticalScrollIndicator={false}
             >
-              {/* Context message - shows what message user is asking about */}
-              {contextMessage && (
+              {/* Context message - shows what message user is asking about (only from long press, not from generated response) */}
+              {contextMessage && !contextMessage.startsWith('Suggested response:') && (
                 <View style={styles.contextSection}>
                   <Text style={styles.contextLabel}>Context:</Text>
                   <View style={styles.contextBubble}>
@@ -297,30 +280,36 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                   {generatedResponse && (
                     <View style={styles.generatedResponseContainer}>
                       <Text style={styles.generatedResponseLabel}>
-                        Generated Response:
+                        Suggested Response
                       </Text>
+                      <TouchableOpacity
+                        style={styles.generatedResponseDismiss}
+                        onPress={clearGeneratedResponse}
+                      >
+                        <X size={14} color={colors.modal.textSecondary} />
+                      </TouchableOpacity>
                       <Text style={styles.generatedResponseText}>
                         {generatedResponse}
                       </Text>
                       <View style={styles.generatedResponseActions}>
                         <TouchableOpacity
-                          style={styles.useButton}
-                          onPress={() => handleUseSuggestion(generatedResponse)}
-                        >
-                          <Text style={styles.useButtonText}>Use This</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.regenerateButton}
+                          style={[styles.actionPillButton, isGeneratingResponse && styles.actionPillButtonDisabled]}
                           onPress={() => regenerateResponse()}
                           disabled={isGeneratingResponse}
+                          activeOpacity={0.7}
                         >
                           {isGeneratingResponse ? (
-                            <ActivityIndicator color={colors.accent.teal} />
+                            <ActivityIndicator size="small" color={colors.modal.textSecondary} />
                           ) : (
-                            <Text style={styles.regenerateButtonText}>
-                              Regenerate
-                            </Text>
+                            <RefreshCw size={20} color={colors.modal.textPrimary} strokeWidth={2.5} />
                           )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.actionPillButton}
+                          onPress={() => handleUseSuggestion(generatedResponse)}
+                          activeOpacity={0.7}
+                        >
+                          <Check size={20} color={colors.modal.textPrimary} strokeWidth={2.5} />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -452,20 +441,6 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'center',
   },
-  styleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(0, 0, 0, 0.06)',
-    borderRadius: 14,
-  },
-  styleButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.modal.textSecondary,
-  },
   clearButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -560,7 +535,7 @@ const styles = StyleSheet.create({
     paddingRight: 36,
     borderRadius: 12,
     borderLeftWidth: 3,
-    borderLeftColor: colors.accent.teal,
+    borderLeftColor: 'rgba(30, 30, 35, 0.85)',
     position: 'relative',
   },
   contextDismiss: {
@@ -639,16 +614,28 @@ const styles = StyleSheet.create({
     color: colors.modal.textSecondary,
   },
   generatedResponseContainer: {
-    backgroundColor: 'rgba(200, 220, 255, 0.12)',
-    padding: 16,
+    backgroundColor: 'rgba(200, 220, 255, 0.10)',
+    padding: 12,
+    paddingRight: 36,
     borderRadius: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: 'rgba(30, 30, 35, 0.85)',
     marginBottom: 16,
+    position: 'relative',
+  },
+  generatedResponseDismiss: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    padding: 4,
   },
   generatedResponseLabel: {
     fontSize: 12,
     color: colors.modal.textSecondary,
-    marginBottom: 8,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
   },
   generatedResponseText: {
     fontSize: 15,
@@ -658,32 +645,55 @@ const styles = StyleSheet.create({
   },
   generatedResponseActions: {
     flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 4,
+  },
+  actionPillButton: {
+    width: 56,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(200, 220, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(200, 220, 255, 0.30)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionPillButtonDisabled: {
+    opacity: 0.5,
+  },
+  // Legacy styles kept for backwards compatibility
+  useButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.message.other,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
     gap: 8,
   },
-  useButton: {
-    flex: 1,
-    backgroundColor: colors.accent.teal,
-    paddingVertical: 10,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
   useButtonText: {
-    color: colors.modal.background,
-    fontSize: 14,
+    color: colors.text.primary,
+    fontSize: 15,
     fontWeight: '600',
   },
   regenerateButton: {
-    flex: 1,
-    backgroundColor: 'rgba(13, 148, 136, 0.1)',
-    borderWidth: 1,
-    borderColor: colors.accent.teal,
-    paddingVertical: 10,
-    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.message.other,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    gap: 8,
+  },
+  regenerateButtonDisabled: {
+    opacity: 0.5,
   },
   regenerateButtonText: {
-    color: colors.accent.teal,
-    fontSize: 14,
+    color: colors.text.primary,
+    fontSize: 15,
     fontWeight: '600',
   },
   chatHistoryContainer: {

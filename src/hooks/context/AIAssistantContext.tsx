@@ -41,6 +41,18 @@ export type DashboardMetrics = {
   indicators: string[]; // Interest indicators
 };
 
+// Passive burst analysis result (for badges on messages)
+export type BurstAnalysisResult = {
+  burstEventIds: string[]; // Event IDs of messages in the burst
+  interestScore: number;
+  isOwnBurst: boolean;
+  stateRead?: string; // Brief analysis text
+  // Fields for Smart Moment classification
+  sentiment?: 'positive' | 'neutral' | 'tense' | 'negative';
+  hasSubtext?: boolean; // For 👀 hidden depth detection
+  messageLengthTrend?: 'increasing' | 'same' | 'decreasing';
+};
+
 type AIAssistantContextType = {
   // State
   inputValue: string;
@@ -63,6 +75,10 @@ type AIAssistantContextType = {
   intentAnalysisBurst: MessageItem[];
   isAnalyzingOwnMessage: boolean; // True when analyzing user's outgoing messages
 
+  // Passive Burst Analysis (for interest badges on all bursts)
+  burstAnalyses: Map<string, BurstAnalysisResult>; // Key is first eventId of burst
+  analyzingBurstIds: Set<string>; // Set of first eventIds currently being analyzed
+
   // Actions
   setInputValue: (value: string) => void;
   handleSend: () => void;
@@ -74,12 +90,19 @@ type AIAssistantContextType = {
   toggleAIAssistant: (isOpen?: boolean) => void;
   gradeEditorText: (text: string) => void;
   clearParsedResponse: () => void;
+  clearGeneratedResponse: () => void; // Clear the generated response and its context
   openAskVixx: (messageContent: string) => void; // Open AI assistant with message context
   clearContext: () => void; // Clear the context message without closing modal
 
   // Intent Analysis Actions
   analyzeIntentBurst: (messages: MessageItem[], isOwnMessage?: boolean) => void;
   closeIntentAnalysis: () => void;
+
+  // Passive Burst Analysis Actions
+  analyzeBurst: (messages: MessageItem[], isOwnBurst: boolean) => void;
+  getBurstAnalysis: (firstEventId: string) => BurstAnalysisResult | undefined;
+  isBurstAnalyzing: (firstEventId: string) => boolean;
+  clearAllBurstAnalyses: () => void;
 
   // Analysis Mode (header button trigger)
   isAnalysisModeActive: boolean;
@@ -134,6 +157,14 @@ export function AIAssistantProvider({
 
   // Analysis Mode state (triggered by header button)
   const [isAnalysisModeActive, setIsAnalysisModeActive] = useState(false);
+
+  // Passive Burst Analysis state (for interest badges on all bursts)
+  const [burstAnalyses, setBurstAnalyses] = useState<Map<string, BurstAnalysisResult>>(
+    () => new Map(),
+  );
+  const [analyzingBurstIds, setAnalyzingBurstIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const mx = getMatrixClient();
   const myUserId = mx?.getUserId();
@@ -339,6 +370,16 @@ export function AIAssistantProvider({
     setParsedResponse(null);
   }, []);
 
+  // Clear the generated response and its associated context
+  const clearGeneratedResponse = useCallback(() => {
+    setGeneratedResponse('');
+    setParsedResponse(null);
+    // Only clear context if it's a suggested response context
+    setContextMessage(prev =>
+      prev?.startsWith('Suggested response:') ? null : prev
+    );
+  }, []);
+
   const handleUseSuggestion = useCallback(
     (response: string) => {
       if (response) {
@@ -427,8 +468,12 @@ export function AIAssistantProvider({
         const parsed = parseAIResponse(response);
         setParsedResponse(parsed);
 
-        // Auto-insert only the clean message into input field
-        handleUseSuggestion(parsed.message);
+        // Set the suggested response as context for AI interactions
+        // This way, questions in the modal will be about the suggested response
+        setContextMessage(`Suggested response: ${response}`);
+
+        // Don't auto-insert - let user explicitly press "Use" button
+        // The modal stays open so user can review and choose to use or regenerate
       } catch (error) {
         console.error('Error in regenerateResponse:', error);
         setGeneratedResponse('Xin lỗi, đã có lỗi');
@@ -436,7 +481,7 @@ export function AIAssistantProvider({
         setIsGeneratingResponse(false);
       }
     },
-    [room, mx, myUserId, handleUseSuggestion],
+    [room, mx, myUserId],
   );
 
   const handleSend = useCallback(async () => {
@@ -678,6 +723,143 @@ export function AIAssistantProvider({
     [room, mx, myUserId],
   );
 
+  // Passive Burst Analysis Functions (for interest badges on all bursts - no overlay)
+  const analyzeBurst = useCallback(
+    async (messages: MessageItem[], isOwnBurst: boolean) => {
+      if (!mx || !myUserId || messages.length === 0) return;
+
+      const eventIds = messages.map(m => m.eventId);
+      const firstEventId = eventIds[0];
+
+      // Don't re-analyze if already analyzed or currently analyzing
+      if (burstAnalyses.has(firstEventId) || analyzingBurstIds.has(firstEventId)) {
+        return;
+      }
+
+      // Mark as analyzing
+      setAnalyzingBurstIds(prev => new Set(prev).add(firstEventId));
+
+      try {
+        const timeline = room.getLiveTimeline().getEvents();
+        const roomName = room.name || 'Unknown';
+        const roomContext = timeline
+          .filter(event => event.getSender() && event.getContent().body)
+          .map(event => {
+            const sender = event.getSender() as string;
+            const senderMember = room.getMember(sender);
+            const senderName =
+              senderMember?.name ||
+              sender.split('@')[0]?.split(':')[0] ||
+              'Unknown';
+            return {
+              sender,
+              text: event.getContent().body as string,
+              timestamp: new Date(event.getTs()).toISOString(),
+              is_from_me: isMessageFromMe(
+                sender,
+                myUserId,
+                roomName,
+                senderName,
+              ),
+            };
+          });
+
+        const burstText = messages.map(m => m.content).join('\n');
+        const firstMessage = messages[0];
+
+        // Use different analysis based on whether it's own or counterparty's messages
+        const analysisFunction = isOwnBurst ? gradeOwnMessage : analyzeMessageIntent;
+
+        const result = await analysisFunction({
+          message: {
+            text: burstText,
+            sender: firstMessage.senderName,
+            timestamp: new Date(firstMessage.timestamp).toISOString(),
+          },
+          context: roomContext,
+          userId: myUserId,
+        });
+
+        const parsed = parseIntentAnalysis(result, JSON.stringify(result));
+
+        // Derive sentiment from emotional tone
+        const toneLower = parsed.emotionalTone?.primary?.toLowerCase() || '';
+        let sentiment: 'positive' | 'neutral' | 'tense' | 'negative' | undefined;
+        if (['warm', 'playful', 'flirty', 'excited', 'enthusiastic', 'happy'].some(t => toneLower.includes(t))) {
+          sentiment = 'positive';
+        } else if (['tense', 'defensive', 'confrontational', 'challenging'].some(t => toneLower.includes(t))) {
+          sentiment = 'tense';
+        } else if (['cold', 'dismissive', 'annoyed', 'frustrated', 'angry'].some(t => toneLower.includes(t))) {
+          sentiment = 'negative';
+        } else {
+          sentiment = 'neutral';
+        }
+
+        // Check for hidden meanings / subtext
+        const hasSubtext = (parsed.hiddenMeanings && parsed.hiddenMeanings.length > 0) || false;
+
+        // Calculate message length trend from burst messages
+        let messageLengthTrend: 'increasing' | 'same' | 'decreasing' | undefined;
+        if (messages.length >= 2) {
+          const lengths = messages.map(m => m.content?.length || 0);
+          const firstHalf = lengths.slice(0, Math.floor(lengths.length / 2));
+          const secondHalf = lengths.slice(Math.floor(lengths.length / 2));
+          const avgFirst = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+          const avgSecond = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+
+          if (avgSecond > avgFirst * 1.2) {
+            messageLengthTrend = 'increasing';
+          } else if (avgSecond < avgFirst * 0.8) {
+            messageLengthTrend = 'decreasing';
+          } else {
+            messageLengthTrend = 'same';
+          }
+        }
+
+        // Store the analysis result with smart moment fields
+        setBurstAnalyses(prev => {
+          const newMap = new Map(prev);
+          newMap.set(firstEventId, {
+            burstEventIds: eventIds,
+            interestScore: parsed.interestLevel.score,
+            isOwnBurst,
+            stateRead: parsed.stateRead,
+            sentiment,
+            hasSubtext,
+            messageLengthTrend,
+          });
+          return newMap;
+        });
+      } catch (error) {
+        console.error('Error in burst analysis:', error);
+        // Silently fail - don't show badge for this burst
+      } finally {
+        // Remove from analyzing set
+        setAnalyzingBurstIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(firstEventId);
+          return newSet;
+        });
+      }
+    },
+    [room, mx, myUserId, burstAnalyses, analyzingBurstIds],
+  );
+
+  const getBurstAnalysis = useCallback(
+    (firstEventId: string) => burstAnalyses.get(firstEventId),
+    [burstAnalyses],
+  );
+
+  const isBurstAnalyzing = useCallback(
+    (firstEventId: string) => analyzingBurstIds.has(firstEventId),
+    [analyzingBurstIds],
+  );
+
+  const clearAllBurstAnalyses = useCallback(() => {
+    setBurstAnalyses(new Map());
+    setAnalyzingBurstIds(new Set());
+  }, []);
+
   const gradeEditorText = useCallback(
     async (text: string) => {
       if (text.trim().length > 0 && mx && myUserId) {
@@ -747,6 +929,10 @@ export function AIAssistantProvider({
       intentAnalysisBurst,
       isAnalyzingOwnMessage,
 
+      // Passive Burst Analysis State
+      burstAnalyses,
+      analyzingBurstIds,
+
       setInputValue,
       handleSend,
       sendQuickQuestion,
@@ -757,12 +943,19 @@ export function AIAssistantProvider({
       toggleAIAssistant,
       gradeEditorText,
       clearParsedResponse,
+      clearGeneratedResponse,
       openAskVixx,
       clearContext,
 
       // Intent Analysis Actions
       analyzeIntentBurst,
       closeIntentAnalysis,
+
+      // Passive Burst Analysis Actions
+      analyzeBurst,
+      getBurstAnalysis,
+      isBurstAnalyzing,
+      clearAllBurstAnalyses,
 
       // Analysis Mode
       isAnalysisModeActive,
@@ -786,6 +979,8 @@ export function AIAssistantProvider({
       isIntentAnalysisOpen,
       intentAnalysisBurst,
       isAnalyzingOwnMessage,
+      burstAnalyses,
+      analyzingBurstIds,
       handleSend,
       sendQuickQuestion,
       generateInitialResponse,
@@ -794,9 +989,14 @@ export function AIAssistantProvider({
       toggleAIAssistant,
       gradeEditorText,
       clearParsedResponse,
+      clearGeneratedResponse,
       openAskVixx,
       analyzeIntentBurst,
       closeIntentAnalysis,
+      analyzeBurst,
+      getBurstAnalysis,
+      isBurstAnalyzing,
+      clearAllBurstAnalyses,
       isAnalysisModeActive,
       toggleAnalysisMode,
     ],

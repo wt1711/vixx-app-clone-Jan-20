@@ -203,9 +203,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   combinedButtonActive: {
-    backgroundColor: colors.transparent.cyan15,
-    borderTopLeftRadius: PILL_HEIGHT / 2,
-    borderBottomLeftRadius: PILL_HEIGHT / 2,
+    // No background - just rely on icon color change for active state
   },
   pillDivider: {
     width: 1,

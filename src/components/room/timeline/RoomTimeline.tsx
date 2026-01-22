@@ -15,7 +15,7 @@ import {
   getReactionContent,
   isFounderRoom,
   getMessageBurstContaining,
-  isInLatestIncomingBurst,
+  getAllBursts,
 } from 'src/utils/room';
 import { MessageEvent } from 'src/types';
 import { MessageItem, RoomTimelineProps } from '../types';
@@ -24,6 +24,7 @@ import {
   QuickReactionsModal,
   ModalPosition,
 } from '../message';
+import { classifyMoment } from 'src/utils/smartMoments';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 import { FounderWelcomeCard } from './FounderWelcomeCard';
 import { AnalysisOverlay } from './AnalysisOverlay';
@@ -149,10 +150,55 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   const { inputHeight } = useInputHeight();
 
   // ─── Intent Analysis & Ask Vixx ──────────────────────────────────────────
-  const { analyzeIntentBurst, openAskVixx, isAnalysisModeActive } = useAIAssistant();
+  const {
+    analyzeIntentBurst,
+    openAskVixx,
+    isAnalysisModeActive,
+    analyzeBurst,
+    burstAnalyses,
+    analyzingBurstIds,
+  } = useAIAssistant();
 
+  // ─── Compute All Bursts ────────────────────────────────────────────────────────
+  // Get all message bursts and create a map of first eventId to burst info
+  const allBursts = useMemo(() => getAllBursts(messages), [messages]);
 
-  // Dynamic content container style - paddingTop is visual bottom in inverted list
+  // Create a set of first event IDs for quick lookup
+  const burstFirstEventIds = useMemo(
+    () => new Set(allBursts.map(b => b.firstEventId)),
+    [allBursts],
+  );
+
+  // ─── Auto-analyze All Bursts ──────────────────────────────────────────────────
+  // Automatically analyze all bursts when messages change
+  const analyzedBurstsRef = useRef<Set<string>>(new Set());
+
+  // Clear analyzed bursts when analysis mode is deactivated
+  useEffect(() => {
+    if (!isAnalysisModeActive) {
+      analyzedBurstsRef.current.clear();
+    }
+  }, [isAnalysisModeActive]);
+
+  // Only analyze bursts when analysis mode is active
+  useEffect(() => {
+    // Only run analysis when analysis mode is active
+    if (!isAnalysisModeActive || loading || messages.length === 0) return;
+
+    // Analyze each burst that hasn't been analyzed yet
+    for (const burstInfo of allBursts) {
+      const { burst, firstEventId, isOwnBurst } = burstInfo;
+
+      // Skip if we've already triggered analysis for this burst
+      if (analyzedBurstsRef.current.has(firstEventId)) continue;
+
+      // Mark as triggered and analyze
+      analyzedBurstsRef.current.add(firstEventId);
+      analyzeBurst(burst, isOwnBurst);
+    }
+  }, [allBursts, loading, analyzeBurst, isAnalysisModeActive]);
+
+  // ─── Dynamic content container style - paddingTop is visual bottom in inverted list
   const listContentStyle = useMemo(
     () => ({
       paddingTop: inputHeight + 16, // input height + extra spacing
@@ -211,15 +257,11 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   // ─── Double-Tap Handler (Burst Analysis) ──────────────────────────────────
   const handleDoubleTap = useCallback(
     (item: MessageItem) => {
-      // Only allow analysis on the latest incoming message burst
-      if (!isInLatestIncomingBurst(messages, item.eventId)) {
-        return; // Silently ignore double-tap on old messages
-      }
-
       // Get the burst of messages containing this message
       const burst = getMessageBurstContaining(messages, item.eventId);
       if (burst.length > 0) {
-        analyzeIntentBurst(burst);
+        // Pass isOwnMessage flag for different analysis (grading vs intent)
+        analyzeIntentBurst(burst, item.isOwn);
       }
     },
     [messages, analyzeIntentBurst],
@@ -237,17 +279,6 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     },
     [messages, analyzeIntentBurst],
   );
-
-  const handleAnalyzeIntentFromModal = useCallback(() => {
-    if (quickReactionsItem) {
-      // Also use burst analysis from the modal
-      const burst = getMessageBurstContaining(messages, quickReactionsItem.eventId);
-      if (burst.length > 0) {
-        analyzeIntentBurst(burst);
-      }
-    }
-    closeQuickReactions();
-  }, [quickReactionsItem, messages, analyzeIntentBurst, closeQuickReactions]);
 
   // ─── Ask Vixx Handler ────────────────────────────────────────────────────
   const handleAskVixxFromModal = useCallback(() => {
@@ -338,25 +369,52 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
     return <FounderWelcomeCard />;
   }, [isFounderRoomChat]);
 
+  // Handler for interest badge press - opens full analysis overlay
+  const handleInterestBadgePress = useCallback(
+    (item: MessageItem) => {
+      const burst = getMessageBurstContaining(messages, item.eventId);
+      if (burst.length > 0) {
+        analyzeIntentBurst(burst, item.isOwn);
+      }
+    },
+    [messages, analyzeIntentBurst],
+  );
+
   const renderMessage = useCallback(
-    ({ item, index }: { item: MessageItem; index: number }) => (
-      <MessageItemComponent
-        item={item}
-        onReactionPress={(key: string) => toggleReaction(item.eventId, key)}
-        onLongPress={getPosition => {
-          const position = getPosition();
-          openQuickReactions(item, position);
-        }}
-        onBubblePress={() => handleBubblePress(item.eventId)}
-        onDoubleTap={() => handleDoubleTap(item)}
-        onReplyPreviewPress={scrollToMessage}
-        onImagePress={handleImagePress}
-        showTimestamp={selectedMessageId === item.eventId}
-        isFirstOfHour={firstOfHourIds.has(item.eventId)}
-        isAnalysisModeActive={isAnalysisModeActive}
-        onAnalysisTap={() => handleAnalysisTap(item)}
-      />
-    ),
+    ({ item, index }: { item: MessageItem; index: number }) => {
+      // Check if this message is the first of any burst (should show interest badge)
+      const isFirstOfBurst = burstFirstEventIds.has(item.eventId);
+
+      // Get the burst analysis for this message's burst (only when analysis mode is active)
+      const burstAnalysis = isAnalysisModeActive && isFirstOfBurst ? burstAnalyses.get(item.eventId) : undefined;
+      const isAnalyzing = isAnalysisModeActive && isFirstOfBurst && analyzingBurstIds.has(item.eventId);
+
+      // Classify the moment - only show when analysis mode is active (sparse by design)
+      const smartMoment = isAnalysisModeActive && burstAnalysis ? classifyMoment(burstAnalysis) : null;
+
+      return (
+        <MessageItemComponent
+          item={item}
+          onReactionPress={(key: string) => toggleReaction(item.eventId, key)}
+          onLongPress={getPosition => {
+            const position = getPosition();
+            openQuickReactions(item, position);
+          }}
+          onBubblePress={() => handleBubblePress(item.eventId)}
+          onDoubleTap={() => handleDoubleTap(item)}
+          onReplyPreviewPress={scrollToMessage}
+          onImagePress={handleImagePress}
+          showTimestamp={selectedMessageId === item.eventId}
+          isFirstOfHour={firstOfHourIds.has(item.eventId)}
+          isAnalysisModeActive={isAnalysisModeActive}
+          onAnalysisTap={() => handleAnalysisTap(item)}
+          // Smart Moment badge props - only show for significant moments (sparse)
+          smartMoment={smartMoment}
+          isAnalyzingMoment={isAnalyzing}
+          onSmartMomentPress={smartMoment || isAnalyzing ? () => handleInterestBadgePress(item) : undefined}
+        />
+      );
+    },
     [
       toggleReaction,
       openQuickReactions,
@@ -368,6 +426,10 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       firstOfHourIds,
       isAnalysisModeActive,
       handleAnalysisTap,
+      burstFirstEventIds,
+      burstAnalyses,
+      analyzingBurstIds,
+      handleInterestBadgePress,
     ],
   );
 
@@ -403,7 +465,13 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
           initialNumToRender={20}
           windowSize={21}
           keyboardShouldPersistTaps="handled"
-          extraData={isAnalysisModeActive}
+          extraData={{
+            isAnalysisModeActive,
+            burstFirstEventIds,
+            // Use sizes to force re-render when Map/Set contents change
+            burstAnalysesSize: burstAnalyses.size,
+            analyzingBurstIdsSize: analyzingBurstIds.size,
+          }}
         />
 
         {/* Negative film overlay for analysis mode */}
@@ -423,7 +491,6 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         onSelectEmoji={handleQuickReactionSelect}
         onReply={handleReplyFromModal}
         onDelete={handleDeleteFromModal}
-        onAnalyzeIntent={handleAnalyzeIntentFromModal}
         onAskVixx={handleAskVixxFromModal}
       />
 

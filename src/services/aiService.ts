@@ -26,6 +26,30 @@ function generateMockConsultation(
 ): string {
   const questionLower = question.toLowerCase();
 
+  // Check if context is a suggested response (from modal)
+  const isSuggestedResponseContext = contextMessage?.startsWith('Suggested response:') ?? false;
+  const suggestedText = isSuggestedResponseContext && contextMessage
+    ? contextMessage.replace('Suggested response:', '').trim()
+    : null;
+
+  // If asking about a suggested response, provide context-aware feedback
+  if (isSuggestedResponseContext && suggestedText) {
+    if (questionLower.includes('good') || questionLower.includes('ok') || questionLower.includes('tốt') || questionLower.includes('được')) {
+      return `Tin nhắn "${suggestedText.substring(0, 50)}..." là một câu trả lời tốt! Nó giữ giọng điệu nhẹ nhàng và thể hiện sự quan tâm. Bạn có thể dùng luôn hoặc điều chỉnh theo phong cách riêng.`;
+    }
+
+    if (questionLower.includes('change') || questionLower.includes('edit') || questionLower.includes('sửa') || questionLower.includes('đổi')) {
+      return `Nếu bạn muốn điều chỉnh "${suggestedText.substring(0, 30)}...", bạn có thể làm nó casual hơn hoặc thêm emoji. Hoặc nhấn regenerate để mình tạo câu mới cho bạn.`;
+    }
+
+    if (questionLower.includes('tone') || questionLower.includes('giọng') || questionLower.includes('vibe')) {
+      return `Giọng điệu của câu này khá ấm áp và thân thiện. Nó match với energy của cuộc trò chuyện. Nếu bạn muốn playful hơn hoặc serious hơn, mình có thể regenerate.`;
+    }
+
+    // Default response about the suggested message
+    return `Về câu trả lời đề xuất: "${suggestedText.substring(0, 40)}..." - đây là một cách tiếp cận tốt! Nó thể hiện sự quan tâm mà không quá eager. Bạn có câu hỏi cụ thể nào về nó không?`;
+  }
+
   // Context-aware responses based on question keywords (English + Vietnamese)
   if (questionLower.includes('interest') || questionLower.includes('like') || questionLower.includes('thích') || questionLower.includes('quan tâm')) {
     return 'Dựa trên cuộc trò chuyện, họ có vẻ thật sự quan tâm đến bạn! Họ phản hồi nhanh và đặt câu hỏi - cả hai đều là dấu hiệu tốt. Giữ năng lượng tích cực và match vibe của họ nha.';
@@ -33,7 +57,7 @@ function generateMockConsultation(
 
   if (questionLower.includes('mean') || questionLower.includes('what') || questionLower.includes('nghĩa') || questionLower.includes('gì')) {
     const contextPart = contextMessage
-      ? `Nhìn vào "${contextMessage}" - `
+      ? `Nhìn vào "${contextMessage.substring(0, 50)}" - `
       : '';
     return `${contextPart}Họ đang thân thiện và giữ cuộc trò chuyện tiếp tục. Đây là dấu hiệu tốt cho thấy họ đang tương tác với bạn. Mình gợi ý là bạn nên phản hồi ấm áp và có thể hỏi họ điều gì đó.`;
   }
@@ -55,7 +79,11 @@ function generateMockConsultation(
     return `Tiếp tục từ điều mình đã nói - ${question.includes('?') ? 'đúng rồi, ' : ''}mình nghĩ bạn đang đi đúng hướng. Cứ tự nhiên và giữ cuộc trò chuyện cân bằng. Thể hiện sự quan tâm nhưng đừng overthink quá!`;
   }
 
-  // Default response
+  // Default response - check if there's context
+  if (contextMessage) {
+    return `Về "${contextMessage.substring(0, 50)}..." - mình thấy đây là một điểm thú vị trong cuộc trò chuyện. Bạn muốn mình phân tích gì cụ thể về nó?`;
+  }
+
   return 'Câu hỏi hay đó! Dựa trên ngữ cảnh cuộc trò chuyện, mọi thứ có vẻ đang tốt. Giữ năng lượng tích cực và là chính mình - đó là cách tiếp cận tốt nhất. Có điều gì cụ thể bạn muốn mình phân tích không?';
 }
 
@@ -232,6 +260,139 @@ export async function gradeMessage({
   } catch (error) {
     console.error('Error in gradeMessage:', error);
     return 0;
+  }
+}
+
+// Grade result type for lightweight grading
+export type GradeResult = {
+  score: number;
+  tip: string;
+};
+
+// Mock grade generator for real-time typing feedback
+function generateMockGradeLight(message: string): GradeResult {
+  const text = message.trim();
+  const hasQuestion = text.includes('?');
+  const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(text);
+  const wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
+  const messageLength = text.length;
+
+  // Base score
+  let score = 55;
+
+  // Scoring heuristics
+  if (hasQuestion) score += 15; // Questions show engagement
+  if (hasEmoji) score += 10; // Emojis add warmth
+  if (wordCount >= 3 && wordCount <= 15) score += 10; // Good length
+  if (messageLength > 5 && messageLength < 100) score += 5; // Not too short/long
+
+  // Positive patterns (Vietnamese + English)
+  if (/oke|ok|được|chắc|rồi|nha|sure|yeah|yes/i.test(text)) score += 5;
+  if (/❤️|💕|🥰|😊|😍|🔥|👍/u.test(text)) score += 5;
+
+  // Clamp score
+  score = Math.min(95, Math.max(30, score));
+
+  // Generate tip based on score and characteristics
+  let tip: string;
+  if (score >= 80) {
+    tip = 'Great response!';
+  } else if (score >= 65) {
+    tip = 'Solid message';
+  } else if (score >= 50) {
+    if (!hasQuestion) {
+      tip = 'Try adding a question to keep them engaged';
+    } else if (wordCount < 3) {
+      tip = 'A bit more detail could help';
+    } else {
+      tip = 'Could be warmer';
+    }
+  } else {
+    if (messageLength < 5) {
+      tip = 'Too short - add more substance';
+    } else if (!hasEmoji && !hasQuestion) {
+      tip = 'Try adding warmth or a follow-up question';
+    } else {
+      tip = 'Might fall flat - consider your approach';
+    }
+  }
+
+  return { score, tip };
+}
+
+/**
+ * Lightweight message grading for real-time typing feedback.
+ * Uses mock implementation when API is unavailable.
+ */
+export async function gradeMessageLight({
+  message,
+  context,
+  signal,
+}: {
+  message: string;
+  context: Message[];
+  signal?: AbortSignal;
+}): Promise<GradeResult> {
+  // Check if API endpoint is configured
+  const endpoint = API_ENDPOINTS.AI.GRADE_RESPONSE;
+  const isEndpointConfigured =
+    endpoint && !endpoint.startsWith('undefined') && endpoint.length > 20;
+
+  if (!isEndpointConfigured) {
+    // Simulate brief delay for realistic UX
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => resolve(), 200 + Math.random() * 200);
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          clearTimeout(timeout);
+          const abortError = new Error('Aborted');
+          abortError.name = 'AbortError';
+          reject(abortError);
+        });
+      }
+    });
+    return generateMockGradeLight(message);
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        response: message,
+        context,
+        lightweight: true, // Signal to backend this is for real-time feedback
+      }),
+      signal,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to grade message');
+    }
+
+    const data = await response.json();
+    const score = data.score || 0;
+
+    // Generate tip from score if not provided by API
+    let tip = data.tip;
+    if (!tip) {
+      if (score >= 80) tip = 'Great response!';
+      else if (score >= 65) tip = 'Solid message';
+      else if (score >= 50) tip = 'Could be better';
+      else tip = 'Might fall flat';
+    }
+
+    return { score, tip };
+  } catch (error: unknown) {
+    // If aborted, re-throw to allow proper handling
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw error;
+    }
+    // Fallback to mock on error
+    console.info('gradeMessageLight: Falling back to mock', error);
+    return generateMockGradeLight(message);
   }
 }
 

@@ -520,6 +520,100 @@ export const isInLatestIncomingBurst = <
   return false;
 };
 
+/**
+ * Gets the latest burst of messages (either incoming or outgoing).
+ * Returns the burst along with metadata about which message is first.
+ *
+ * @param messages - Array of MessageItem objects
+ * @returns Object with burst array, firstEventId, and isOwnBurst flag, or null if no messages
+ */
+export const getLatestBurst = <
+  T extends { eventId: string; isOwn: boolean; sender: string; timestamp: number },
+>(
+  messages: T[],
+): { burst: T[]; firstEventId: string; isOwnBurst: boolean } | null => {
+  if (messages.length === 0) return null;
+
+  // Sort messages by timestamp (newest first)
+  const sorted = [...messages].sort((a, b) => b.timestamp - a.timestamp);
+
+  // The most recent message determines the burst type
+  const latestMessage = sorted[0];
+  const isOwnBurst = latestMessage.isOwn;
+  const sender = latestMessage.sender;
+
+  // Collect all consecutive messages from the same sender
+  const burst: T[] = [latestMessage];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const msg = sorted[i];
+    // Stop if we hit a message from a different sender or different ownership
+    if (msg.sender !== sender || msg.isOwn !== isOwnBurst) break;
+    burst.push(msg);
+  }
+
+  // Reverse to get chronological order (oldest first)
+  burst.reverse();
+
+  return {
+    burst,
+    firstEventId: burst[0].eventId,
+    isOwnBurst,
+  };
+};
+
+/**
+ * Gets all message bursts from a timeline.
+ * A burst is a consecutive sequence of messages from the same sender.
+ *
+ * @param messages - Array of MessageItem objects
+ * @returns Array of burst info objects, each with the burst messages and metadata
+ */
+export const getAllBursts = <
+  T extends { eventId: string; isOwn: boolean; sender: string; timestamp: number },
+>(
+  messages: T[],
+): Array<{ burst: T[]; firstEventId: string; isOwnBurst: boolean }> => {
+  if (messages.length === 0) return [];
+
+  // Sort messages by timestamp (oldest first)
+  const sorted = [...messages].sort((a, b) => a.timestamp - b.timestamp);
+
+  const bursts: Array<{ burst: T[]; firstEventId: string; isOwnBurst: boolean }> = [];
+  let currentBurst: T[] = [];
+  let currentSender: string | null = null;
+  let currentIsOwn: boolean | null = null;
+
+  for (const msg of sorted) {
+    // If this message is from a different sender, close the current burst and start a new one
+    if (currentSender !== null && (msg.sender !== currentSender || msg.isOwn !== currentIsOwn)) {
+      if (currentBurst.length > 0) {
+        bursts.push({
+          burst: currentBurst,
+          firstEventId: currentBurst[0].eventId,
+          isOwnBurst: currentIsOwn!,
+        });
+      }
+      currentBurst = [];
+    }
+
+    currentBurst.push(msg);
+    currentSender = msg.sender;
+    currentIsOwn = msg.isOwn;
+  }
+
+  // Don't forget the last burst
+  if (currentBurst.length > 0 && currentIsOwn !== null) {
+    bursts.push({
+      burst: currentBurst,
+      firstEventId: currentBurst[0].eventId,
+      isOwnBurst: currentIsOwn,
+    });
+  }
+
+  return bursts;
+};
+
 // Message variant utilities
 export type MessageVariant =
   | 'instagram-story-reply'

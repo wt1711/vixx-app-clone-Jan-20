@@ -11,6 +11,8 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from 'src/components/room/types';
 import { formatTimeWithDay } from 'src/utils/timeFormatter';
 import { ReactionsList } from 'src/components/room/message/Reactions';
+import { SmartMomentBadge } from 'src/components/room/message/SmartMomentBadge';
+import type { SmartMoment } from 'src/utils/smartMoments';
 import {
   GifMessage,
   ImageMessage,
@@ -44,6 +46,10 @@ export type MessageItemProps = {
   isFirstOfHour?: boolean;
   isAnalysisModeActive?: boolean;
   onAnalysisTap?: () => void;
+  // Smart Moment badge props (sparse - only significant moments)
+  smartMoment?: SmartMoment | null;
+  isAnalyzingMoment?: boolean;
+  onSmartMomentPress?: () => void;
 };
 
 type MessageContentProps = {
@@ -169,6 +175,9 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     isFirstOfHour,
     isAnalysisModeActive,
     onAnalysisTap,
+    smartMoment,
+    isAnalyzingMoment,
+    onSmartMomentPress,
   }) => {
     const messageRef = useRef<View>(null);
     const lastTapRef = useRef<number>(0);
@@ -254,8 +263,8 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       const timeSinceLastTap = now - lastTapRef.current;
 
       if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
-        // Double-tap detected - only trigger for non-own messages
-        if (onDoubleTap && !item.isOwn) {
+        // Double-tap detected - trigger for all messages (own and others)
+        if (onDoubleTap) {
           ReactNativeHapticFeedback.trigger('impactLight', {
             enableVibrateFallback: true,
             ignoreAndroidSystemSettings: false,
@@ -302,6 +311,15 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
         )}
 
         <View ref={messageRef} style={containerStyle}>
+          {/* Smart Moment Badge - inline before bubble for own messages */}
+          {item.isOwn && (smartMoment || isAnalyzingMoment) && (
+            <SmartMomentBadge
+              moment={smartMoment ?? null}
+              isAnalyzing={isAnalyzingMoment ?? false}
+              isOwn={item.isOwn}
+              onPress={onSmartMomentPress}
+            />
+          )}
           <View style={styles.messageBubbleWrapper}>
             <Pressable
               onPress={handlePress}
@@ -326,6 +344,15 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
               onReactionPress={onReactionPress}
             />
           </View>
+          {/* Smart Moment Badge - inline after bubble for their messages */}
+          {!item.isOwn && (smartMoment || isAnalyzingMoment) && (
+            <SmartMomentBadge
+              moment={smartMoment ?? null}
+              isAnalyzing={isAnalyzingMoment ?? false}
+              isOwn={item.isOwn}
+              onPress={onSmartMomentPress}
+            />
+          )}
         </View>
       </View>
     );

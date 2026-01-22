@@ -31,6 +31,14 @@ export function isMessageItemEqual(
     return false;
   }
 
+  // Smart Moment badge props changes should trigger re-render
+  if (
+    prevRest.smartMoment?.type !== nextRest.smartMoment?.type ||
+    prevRest.isAnalyzingMoment !== nextRest.isAnalyzingMoment
+  ) {
+    return false;
+  }
+
   if (
     prevRest.showTimestamp !== nextRest.showTimestamp ||
     prevRest.isFirstOfHour !== nextRest.isFirstOfHour

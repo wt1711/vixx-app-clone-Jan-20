@@ -16,6 +16,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 18,
     alignItems: 'flex-end',
+    overflow: 'visible', // Allow SmartMomentBadge to render in margins
   },
   messageOwn: {
     justifyContent: 'flex-end',
@@ -28,6 +29,7 @@ export const styles = StyleSheet.create({
   },
   messageBubbleWrapper: {
     maxWidth: '75%',
+    overflow: 'visible', // Allow SmartMomentBadge to render outside bounds
   },
   messageBubble: {
     // Note: removed overflow: 'hidden' to prevent shadow clipping issues
