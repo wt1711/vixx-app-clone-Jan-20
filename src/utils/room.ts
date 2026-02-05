@@ -8,7 +8,12 @@ import {
   RoomType,
   ClientEvent,
 } from 'matrix-js-sdk';
-import { StateEvent, MessageEvent, AccountDataType } from 'src/types';
+import {
+  StateEvent,
+  MessageEvent,
+  AccountDataType,
+  Membership,
+} from 'src/types';
 import {
   FOUNDER_ROOM_NAME,
   FOUNDER_ROOM_NAME_LEGACY,
@@ -42,16 +47,6 @@ export const isFounderRoom = (roomName: string | undefined): boolean => {
   return false;
 };
 
-export const getStateEvent = (
-  room: Room,
-  eventType: StateEvent,
-  stateKey = '',
-): MatrixEvent | undefined =>
-  room
-    .getLiveTimeline()
-    .getState(EventTimeline.FORWARDS)
-    ?.getStateEvents(eventType, stateKey) ?? undefined;
-
 export const getRoomAvatarUrl = (
   mx: MatrixClient,
   room: Room,
@@ -84,56 +79,71 @@ export const getRoomAvatarUrl = (
   return `${avatarUrl}&access_token=${mx.getAccessToken()}`;
 };
 
+const getStateEvent = (
+  room: Room,
+  eventType: StateEvent,
+  stateKey = '',
+): MatrixEvent | undefined =>
+  room
+    .getLiveTimeline()
+    .getState(EventTimeline.FORWARDS)
+    ?.getStateEvents(eventType, stateKey) ?? undefined;
+
 /**
  * Check if a room is a metabot system room
  */
-export const isMetabotRoom = (roomName: string | undefined): boolean => {
+const isMetabotRoom = (roomName: string | undefined): boolean => {
   return roomName?.startsWith('@metabot') ?? false;
 };
 
 /**
  * Check if a room is a Space (organizational container, not a chat room)
  */
-export const isSpace = (room: Room): boolean => {
+const isSpace = (room: Room): boolean => {
   const event = getStateEvent(room, StateEvent.RoomCreate);
   if (!event) return false; // Assume not a space if state not loaded
   return event.getContent().type === RoomType.Space;
 };
 
 export const isRoom = (room: Room | null): boolean => {
-  if (!room || isMetabotRoom(room.name) || isSpace(room)) return false;
-  return true;
+  return !!room && !isMetabotRoom(room.name) && !isSpace(room);
+};
+
+const BOT_USER_PATTERNS: RegExp[] = [
+  /bot$/i, // ends with 'bot'
+  /^@.*bot:/i, // starts with @...bot:
+  /bridge/i, // contains 'bridge'
+  /service/i, // contains 'service'
+  /admin/i, // contains 'admin'
+  /system/i, // contains 'system'
+  /notification/i, // contains 'notification'
+];
+
+const isUserNotHuman = (userId: string): boolean =>
+  BOT_USER_PATTERNS.some(pattern => pattern.test(userId));
+
+const hasInviteMembership = (room: Room): boolean =>
+  room && room.getMyMembership() === Membership.Invite;
+
+const hasRoomCreateEvent = (room: Room): boolean => {
+  const event = getStateEvent(room, StateEvent.RoomCreate);
+  return !!event && event.getType() === StateEvent.RoomCreate;
+};
+
+const isInviterNotHuman = (room: Room): boolean => {
+  const inviter = room.getDMInviter();
+  return !!inviter && isUserNotHuman(inviter);
 };
 
 export const isInvite = (room: Room | null): boolean => {
-  if (!room) return false;
-  const event = getStateEvent(room, StateEvent.RoomCreate);
-  if (!event) return false;
-  const membership = room.getMyMembership();
-  if (membership !== 'invite') return false;
-  if (isSpace(room)) return false;
-  if (event.getType() !== StateEvent.RoomCreate) return false;
-  const inviter = room.getDMInviter();
-  if (inviter) {
-    // Common bot patterns
-    const botPatterns = [
-      /bot$/i, // ends with 'bot'
-      /^@.*bot:/i, // starts with @...bot:
-      /bridge/i, // contains 'bridge'
-      /service/i, // contains 'service'
-      /admin/i, // contains 'admin'
-      /system/i, // contains 'system'
-      /notification/i, // contains 'notification'
-    ];
-
-    const isBot = botPatterns.some(pattern => pattern.test(inviter));
-
-    if (isBot) return false;
-  }
-
-  if (isMetabotRoom(room.name)) return false;
-
-  return true;
+  return (
+    !!room &&
+    hasRoomCreateEvent(room) &&
+    hasInviteMembership(room) &&
+    !isSpace(room) &&
+    !isInviterNotHuman(room) &&
+    !isMetabotRoom(room.name)
+  );
 };
 
 export const IsBotPrivateChat = (roomName: string | undefined) => {
