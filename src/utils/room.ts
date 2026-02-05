@@ -76,6 +76,11 @@ export const getRoomAvatarUrl = (
     return FOUNDER_AVATAR_URL;
   }
 
+  // Return undefined if no avatar URL exists
+  if (!avatarUrl) {
+    return undefined;
+  }
+
   return `${avatarUrl}&access_token=${mx.getAccessToken()}`;
 };
 
