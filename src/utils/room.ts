@@ -18,7 +18,7 @@ import {
   FOUNDER_ROOM_NAME_LEGACY,
   FOUNDER_AVATAR_URL,
 } from 'src/config/founder';
-import { formatRelativeTime } from 'src/utils/timeFormatter';
+import { parseRelativeTime } from 'src/utils/parsers/timeParser';
 import { shouldHideMessage } from 'src/utils/message';
 
 /**
@@ -223,7 +223,7 @@ export function transformRoom(room: Room, client: MatrixClient): RoomListItem {
     name: room.name || 'Unnamed Room',
     avatar,
     lastMessage,
-    timestamp: formatRelativeTime(room.getLastActiveTimestamp()),
+    timestamp: parseRelativeTime(room.getLastActiveTimestamp()),
     unread: room.getUnreadNotificationCount() > 0,
   };
 }

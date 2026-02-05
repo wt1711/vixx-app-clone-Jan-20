@@ -15,7 +15,7 @@ import {
   gradeMessage,
 } from 'src/services/aiService';
 import { isMessageFromMe, getLastReceivedMessageBatch } from 'src/utils/message';
-import { parseAIResponse, ParsedAIResponse } from 'src/utils/aiResponseParser';
+import { parseAIResponse, ParsedAIResponse } from 'src/utils/parsers/aiResponseParser';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
