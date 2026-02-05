@@ -23,10 +23,11 @@ import {
 } from 'src/components/room/message/variants';
 import { styles } from 'src/components/room/message/MessageItem.styles';
 import {
+  getMessageVariant,
+  MessageVariant,
   getInstagramUrl,
   getInstagramStoryReplyData,
-} from 'src/utils/urlParser';
-import { getMessageVariant, MessageVariant } from 'src/utils/message';
+} from 'src/utils/message';
 import { isMessageItemEqual } from 'src/components/room/message/MessageItem.utils';
 
 export type MessageItemProps = {

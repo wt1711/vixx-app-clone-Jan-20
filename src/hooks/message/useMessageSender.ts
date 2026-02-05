@@ -1,5 +1,5 @@
 import { useMatrixClient } from 'src/hooks/useMatrixClient';
-import { parseMessageContent } from 'src/utils/slashCommands';
+import { parseMessageContent } from 'src/utils/message';
 import { MessageEvent } from 'src/types';
 
 export const useMessageSender = (roomId: string | null) => {
