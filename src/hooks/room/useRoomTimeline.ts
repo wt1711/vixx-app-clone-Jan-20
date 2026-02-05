@@ -8,12 +8,8 @@ import {
 } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import { MsgType, MessageEvent, ContentKey } from 'src/types';
-import {
-  getMemberAvatarMxc,
-  getRoomAvatarUrl,
-  messageEventOnly,
-  isMessageFromMe,
-} from 'src/utils/room';
+import { getMemberAvatarMxc, getRoomAvatarUrl } from 'src/utils/room';
+import { messageEventOnly, isMessageFromMe } from 'src/utils/message';
 import { MessageItem, ReplyToData } from 'src/components/room/types';
 import { getReactionsForEvent } from 'src/components/room/utils';
 
