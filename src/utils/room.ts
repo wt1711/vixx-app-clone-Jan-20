@@ -8,12 +8,15 @@ import {
 } from 'matrix-js-sdk';
 import {
   StateEvent,
+  MessageEvent,
 } from 'src/types';
 import {
   FOUNDER_ROOM_NAME,
   FOUNDER_ROOM_NAME_LEGACY,
   FOUNDER_AVATAR_URL,
 } from 'src/config/founder';
+import { formatRelativeTime } from 'src/utils/timeFormatter';
+import { shouldHideMessage } from 'src/utils/message';
 
 /**
  * Check if a room is the founder/team chat room (supports both old and new names)
@@ -149,3 +152,62 @@ export const getImpersonatedUserId = (
   }
   return userId || '';
 };
+
+/**
+ * UI-ready room item for FlatList consumption
+ */
+export interface RoomListItem {
+  /** Unique room identifier (Matrix room ID) */
+  id: string;
+
+  /** Display name for the room/conversation */
+  name: string;
+
+  /** Avatar URL (mxc:// URL converted to HTTP, or empty string) */
+  avatar: string;
+
+  /** Preview of the last message in the room */
+  lastMessage: string;
+
+  /** Human-readable timestamp (e.g., "2m ago", "Yesterday") */
+  timestamp: string;
+
+  /** Whether the room has unread messages */
+  unread: boolean;
+}
+
+/**
+ * Transforms a Matrix Room into a UI-ready RoomListItem
+ */
+export function transformRoom(room: Room, client: MatrixClient): RoomListItem {
+  // Find the last actual message (MessageEvent.RoomMessage), not state events
+  let lastMessage = 'No messages';
+  const timeline = room.getLiveTimeline().getEvents();
+
+  for (let i = timeline.length - 1; i >= 0; i--) {
+    const event = timeline[i];
+    if (event.getType() === MessageEvent.RoomMessage) {
+      const body = event.getContent()?.body || '';
+      // Skip hidden bot messages
+      if (body && !shouldHideMessage(body)) {
+        lastMessage = body;
+        break;
+      }
+    }
+  }
+
+  let avatar = '';
+  const avatarUrl = room.getAvatarUrl(client.baseUrl, 96, 96, 'crop');
+  if (avatarUrl) {
+    avatar = avatarUrl;
+  }
+
+  return {
+    id: room.roomId,
+    name: room.name || 'Unnamed Room',
+    avatar,
+    lastMessage,
+    timestamp: formatRelativeTime(room.getLastActiveTimestamp()),
+    unread: room.getUnreadNotificationCount() > 0,
+  };
+}

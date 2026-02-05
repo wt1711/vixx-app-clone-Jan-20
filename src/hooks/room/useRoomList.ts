@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { RoomEvent, ClientEvent, Room, Direction } from 'matrix-js-sdk';
 import { useMatrixClient } from 'src/hooks/useMatrixClient';
-import { transformRoom, RoomListItem } from 'src/utils/roomTransformer';
+import { transformRoom, RoomListItem } from 'src/utils/room';
 import { MessageEvent } from 'src/types';
 
 const MIN_MESSAGES_PER_ROOM = 1;
