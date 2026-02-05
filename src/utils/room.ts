@@ -8,11 +8,7 @@ import {
   RoomType,
   ClientEvent,
 } from 'matrix-js-sdk';
-import {
-  StateEvent,
-  MessageEvent,
-  AccountDataType,
-} from 'src/types';
+import { StateEvent, MessageEvent, AccountDataType } from 'src/types';
 import {
   FOUNDER_ROOM_NAME,
   FOUNDER_ROOM_NAME_LEGACY,
@@ -64,7 +60,7 @@ export const getRoomAvatarUrl = (
 ): string | undefined => {
   const mxcUrl = room.getMxcAvatarUrl();
   const avatarUrl = mxcUrl
-    ? (mx.mxcUrlToHttp(
+    ? mx.mxcUrlToHttp(
         mxcUrl,
         size,
         size,
@@ -72,7 +68,7 @@ export const getRoomAvatarUrl = (
         undefined,
         false,
         useAuthentication,
-      ) ?? undefined)
+      ) ?? undefined
     : undefined;
 
   // Fallback to founder avatar if this is the founder room
@@ -133,6 +129,18 @@ export const IsBotPrivateChat = (roomName: string | undefined) => {
   return false;
 };
 
+const isUserIdMatrix = (userId: string) => !userId.includes('meta');
+
+const getImpersonatedUserId = (
+  userId: string,
+  members: RoomMember[],
+): string => {
+  if (members && isUserIdMatrix(userId)) {
+    return members.find(member => member.userId === userId)?.userId || userId;
+  }
+  return userId || '';
+};
+
 export const getMemberAvatarMxc = (
   mx: MatrixClient,
   room: Room,
@@ -155,18 +163,6 @@ export const getMemberAvatarMxc = (
   );
   if (!avatarUrl) return undefined;
   return `${avatarUrl}&access_token=${mx.getAccessToken()}`;
-};
-
-const isUserIdMatrix = (userId: string) => !userId.includes('meta');
-
-export const getImpersonatedUserId = (
-  userId: string,
-  members: RoomMember[],
-): string => {
-  if (members && isUserIdMatrix(userId)) {
-    return members.find(member => member.userId === userId)?.userId || userId;
-  }
-  return userId || '';
 };
 
 /**
