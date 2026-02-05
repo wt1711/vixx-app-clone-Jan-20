@@ -1,6 +1,7 @@
 import { Room, MatrixClient } from 'matrix-js-sdk';
 import { MessageEvent } from 'src/types';
 import { formatRelativeTime } from 'src/utils/timeFormatter';
+import { shouldHideMessage } from 'src/utils/message';
 
 /**
  * UI-ready room item for FlatList consumption
@@ -23,19 +24,6 @@ export interface RoomListItem {
 
   /** Whether the room has unread messages */
   unread: boolean;
-}
-
-/**
- * Patterns for messages that should be hidden from room list preview
- */
-const HIDDEN_MESSAGE_PATTERNS: RegExp[] = [
-  /Failed to load message/i,
-  /Your message was not bridged/i,
-  /⚠️.*not bridged/i,
-];
-
-function shouldHideMessage(text: string): boolean {
-  return HIDDEN_MESSAGE_PATTERNS.some(pattern => pattern.test(text));
 }
 
 /**

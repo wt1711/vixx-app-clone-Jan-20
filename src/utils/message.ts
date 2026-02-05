@@ -19,6 +19,19 @@ import {
 } from 'src/config/founder';
 import { isFounderRoom } from 'src/utils/room';
 
+/**
+ * Patterns for messages that should be hidden from room list preview
+ */
+const HIDDEN_MESSAGE_PATTERNS: RegExp[] = [
+  /Failed to load message/i,
+  /Your message was not bridged/i,
+  /⚠️.*not bridged/i,
+];
+
+export function shouldHideMessage(text: string): boolean {
+  return HIDDEN_MESSAGE_PATTERNS.some(pattern => pattern.test(text));
+}
+
 export const messageEventOnly = (mEvent: MatrixEvent) => {
   const type = mEvent.getType();
   const content = mEvent.getContent();
