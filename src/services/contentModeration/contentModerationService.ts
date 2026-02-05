@@ -78,7 +78,7 @@ function checkKeywordPatterns(text: string): KeywordPattern | null {
  * Used for fail-closed behavior when AI is unavailable
  */
 function containsHighRiskKeyword(text: string): boolean {
-  return HIGH_RISK_PATTERNS.some((pattern) => pattern.pattern.test(text));
+  return HIGH_RISK_PATTERNS.some(pattern => pattern.pattern.test(text));
 }
 
 /**
@@ -90,9 +90,7 @@ function containsHighRiskKeyword(text: string): boolean {
  * @param _text - Text to classify
  * @returns ModerationResult or null if AI is unavailable/timeout
  */
-async function classifyWithAI(
-  _text: string,
-): Promise<ModerationResult | null> {
+async function classifyWithAI(_text: string): Promise<ModerationResult | null> {
   // v1: AI classification is a future enhancement
   // For now, return null to indicate AI is not used
   //

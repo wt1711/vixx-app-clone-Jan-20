@@ -17,8 +17,7 @@ import {
 } from './types';
 
 // Helper to create word-boundary regex (case-insensitive)
-const wordPattern = (word: string): RegExp =>
-  new RegExp(`\\b${word}\\b`, 'i');
+const wordPattern = (word: string): RegExp => new RegExp(`\\b${word}\\b`, 'i');
 
 // Helper to create phrase pattern
 const phrasePattern = (phrase: string): RegExp =>

@@ -5,16 +5,13 @@ import {
   Room,
   Direction,
 } from 'matrix-js-sdk';
-import {
-  MessageEvent,
-  RelationType,
-  ContentKey,
-} from 'src/types';
-import {
-  FOUNDER_MATRIX_ID,
-} from 'src/config/founder';
+import { MessageEvent, RelationType, ContentKey } from 'src/types';
+import { FOUNDER_MATRIX_ID } from 'src/config/founder';
 import { isFounderRoom } from 'src/utils/room';
-import { parseMessagePreview, parseReactionPreview } from 'src/utils/parsers/messageParser';
+import {
+  parseMessagePreview,
+  parseReactionPreview,
+} from 'src/utils/parsers/messageParser';
 
 /**
  * Patterns for messages that should be hidden from room list preview
@@ -73,7 +70,6 @@ export type LastMessageInfo = {
   senderId?: string;
   senderName?: string;
 };
-
 
 /**
  * Checks if an event has been redacted (deleted)

@@ -58,7 +58,11 @@ export function RoomViewHeader({
           style={styles.profilePill}
           contentStyle={styles.profilePillContent}
           borderRadius={PILL_HEIGHT / 2}
-          onPress={onOptionsPress && !isFounderRoom(roomName) ? onOptionsPress : undefined}
+          onPress={
+            onOptionsPress && !isFounderRoom(roomName)
+              ? onOptionsPress
+              : undefined
+          }
         >
           <View style={styles.profileSection}>
             {avatarUrl ? (

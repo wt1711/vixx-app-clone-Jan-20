@@ -7,9 +7,7 @@ export type FormattedTime = {
  * Parses a timestamp into a human-readable relative time string
  * Returns both the formatted text and whether the time is recent (within 24 hours)
  */
-export function parseRelativeTimeWithRecent(
-  timestamp?: number,
-): FormattedTime {
+export function parseRelativeTimeWithRecent(timestamp?: number): FormattedTime {
   if (!timestamp) return { text: '', isRecent: false };
 
   const date = new Date(timestamp);

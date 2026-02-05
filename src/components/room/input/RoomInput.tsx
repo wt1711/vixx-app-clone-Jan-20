@@ -138,7 +138,17 @@ export function RoomInput({ room }: RoomInputProps) {
     } finally {
       setSending(false);
     }
-  }, [inputValue, mx, room, sending, setInputValue, replyingTo, clearReply, checkContent, showModerationWarning]);
+  }, [
+    inputValue,
+    mx,
+    room,
+    sending,
+    setInputValue,
+    replyingTo,
+    clearReply,
+    checkContent,
+    showModerationWarning,
+  ]);
 
   return (
     <View style={styles.container} onLayout={handleLayout}>

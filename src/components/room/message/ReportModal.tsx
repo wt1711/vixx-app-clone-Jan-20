@@ -11,12 +11,7 @@ import { ChevronRight, ChevronLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from 'src/config';
 
-export type ReportReason =
-  | 'nudity'
-  | 'hate_speech'
-  | 'scam'
-  | 'spam'
-  | 'other';
+export type ReportReason = 'nudity' | 'hate_speech' | 'scam' | 'spam' | 'other';
 
 type ReportOptionDetail = {
   id: ReportReason;
@@ -169,7 +164,9 @@ export function ReportModal({
                 <Text style={styles.detailDescription}>
                   {selectedOption.description}
                 </Text>
-                <Text style={styles.actionText}>We take action if we find:</Text>
+                <Text style={styles.actionText}>
+                  We take action if we find:
+                </Text>
                 <View style={styles.bulletContainer}>
                   {selectedOption.bulletPoints.map((point, index) => (
                     <View key={index} style={styles.bulletItem}>
