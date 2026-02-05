@@ -4,10 +4,10 @@ export type FormattedTime = {
 };
 
 /**
- * Formats a timestamp into a human-readable relative time string
+ * Parses a timestamp into a human-readable relative time string
  * Returns both the formatted text and whether the time is recent (within 24 hours)
  */
-export function formatRelativeTimeWithRecent(
+export function parseRelativeTimeWithRecent(
   timestamp?: number,
 ): FormattedTime {
   if (!timestamp) return { text: '', isRecent: false };
@@ -46,9 +46,9 @@ export function formatRelativeTimeWithRecent(
 }
 
 /**
- * Formats a timestamp into a human-readable relative time string
+ * Parses a timestamp into a human-readable relative time string
  */
-export function formatRelativeTime(ts: number): string {
+export function parseRelativeTime(ts: number): string {
   if (!ts) return '';
 
   const now = Date.now();
@@ -74,13 +74,13 @@ export function formatRelativeTime(ts: number): string {
 }
 
 /**
- * Format timestamp with contextual date/time display
+ * Parse timestamp with contextual date/time display
  * - Today: "14:30"
  * - Within 7 days: "MON 14:30"
  * - Same year: "Dec 25 AT 14:30"
  * - Different year: "Dec 25, 2023 AT 14:30"
  */
-export function formatTimeWithDay(timestamp: number): string {
+export function parseTimeWithDay(timestamp: number): string {
   const date = new Date(timestamp);
   const now = new Date();
 

@@ -11,13 +11,23 @@ import {
   ContentKey,
 } from 'src/types';
 import {
-  getInstagramUrl,
-  getInstagramStoryReplyData,
-} from 'src/utils/urlParser';
-import {
   FOUNDER_MATRIX_ID,
 } from 'src/config/founder';
 import { isFounderRoom } from 'src/utils/room';
+import { parseMessagePreview, parseReactionPreview } from 'src/utils/parsers/messageParser';
+
+/**
+ * Patterns for messages that should be hidden from room list preview
+ */
+const HIDDEN_MESSAGE_PATTERNS: RegExp[] = [
+  /Failed to load message/i,
+  /Your message was not bridged/i,
+  /⚠️.*not bridged/i,
+];
+
+export function shouldHideMessage(text: string): boolean {
+  return HIDDEN_MESSAGE_PATTERNS.some(pattern => pattern.test(text));
+}
 
 export const messageEventOnly = (mEvent: MatrixEvent) => {
   const type = mEvent.getType();
@@ -64,37 +74,6 @@ export type LastMessageInfo = {
   senderName?: string;
 };
 
-/**
- * Formats a message event into a preview string
- */
-const formatMessagePreview = (content: Record<string, any>): string => {
-  if (content.msgtype === MsgType.Text) {
-    return content.body || '';
-  } else if (content.msgtype === MsgType.Image) {
-    if (content.info?.mimetype === 'image/gif') {
-      return 'Sent a GIF';
-    }
-    return 'Sent a photo';
-  } else if (content.msgtype === MsgType.Video) {
-    return 'Sent a video';
-  } else if (content.msgtype === MsgType.File) {
-    return 'Sent an attachment';
-  } else if (content.msgtype === MsgType.Audio) {
-    return 'Sent an audio';
-  }
-  return 'Sent a message';
-};
-
-/**
- * Formats a reaction event into a preview string
- */
-const formatReactionPreview = (content: Record<string, any>): string => {
-  const reactionKey = content[ContentKey.RelatesTo]?.key;
-  if (reactionKey) {
-    return `Reacted ${reactionKey} to a message`;
-  }
-  return 'Reacted to a message';
-};
 
 /**
  * Checks if an event has been redacted (deleted)
@@ -134,7 +113,7 @@ const findLastMessageInEvents = (
     // Find first (latest) reaction
     if (!lastReaction && eventType === MessageEvent.Reaction) {
       lastReaction = {
-        message: formatReactionPreview(content),
+        message: parseReactionPreview(content),
         timestamp: event.getTs(),
         isReaction: true,
         senderId: event.getSender() || undefined,
@@ -146,7 +125,7 @@ const findLastMessageInEvents = (
     if (!lastMessage && eventType === MessageEvent.RoomMessage) {
       if (content.msgtype !== MsgType.Notice) {
         lastMessage = {
-          message: formatMessagePreview(content),
+          message: parseMessagePreview(content),
           timestamp: event.getTs(),
           senderId: event.getSender() || undefined,
           senderName: event.sender?.name || undefined,
@@ -256,7 +235,7 @@ type RoomContextMessage = {
  * Useful when someone sends multiple messages in a row (a batch).
  * Returns the joined text or a fallback message.
  */
-export const getLastReceivedMessageBatch = (
+export const getLastReceivedMessageBatchForAI = (
   roomContext: RoomContextMessage[],
   fallback: { messageBatch: string; timestampStr: string } = {
     messageBatch: 'Hello',
@@ -290,40 +269,3 @@ export const getLastReceivedMessageBatch = (
       : new Date().toISOString();
   return { messageBatch, timestampStr };
 };
-
-// Message variant utilities
-export type MessageVariant =
-  | 'instagram-story-reply'
-  | 'instagram-image'
-  | 'instagram-video'
-  | 'gif'
-  | 'image'
-  | 'video'
-  | 'text';
-
-export type MessageVariantInput = {
-  content: string;
-  msgtype?: string;
-  imageUrl?: string;
-  videoUrl?: string;
-  imageInfo?: {
-    mimetype?: string;
-  };
-};
-
-export function getMessageVariant(item: MessageVariantInput): MessageVariant {
-  const instagramUrl = getInstagramUrl(item.content);
-  const isImageMessage = item.msgtype === MsgType.Image && item.imageUrl;
-  const isVideoMessage = item.msgtype === MsgType.Video && item.videoUrl;
-
-  if (isImageMessage && instagramUrl) {
-    const storyData = getInstagramStoryReplyData(item.content);
-    return storyData ? 'instagram-story-reply' : 'instagram-image';
-  }
-
-  if (isVideoMessage && instagramUrl) return 'instagram-video';
-  if (isImageMessage && item.imageInfo?.mimetype === 'image/gif') return 'gif';
-  if (isImageMessage) return 'image';
-  if (isVideoMessage) return 'video';
-  return 'text';
-}

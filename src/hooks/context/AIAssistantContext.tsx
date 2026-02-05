@@ -14,8 +14,8 @@ import {
   generateResponseWithIdea,
   gradeMessage,
 } from 'src/services/aiService';
-import { isMessageFromMe, getLastReceivedMessageBatch } from 'src/utils/message';
-import { parseAIResponse, ParsedAIResponse } from 'src/utils/aiResponseParser';
+import { isMessageFromMe, getLastReceivedMessageBatchForAI } from 'src/utils/message';
+import { parseAIResponse, ParsedAIResponse } from 'src/utils/parsers/aiResponseParser';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -161,7 +161,7 @@ export function AIAssistantProvider({
           });
 
         const { messageBatch, timestampStr } =
-          getLastReceivedMessageBatch(roomContext);
+          getLastReceivedMessageBatchForAI(roomContext);
 
         // Use different endpoint based on whether idea is provided
         const hasIdea =

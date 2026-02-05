@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from 'src/components/room/types';
-import { formatTimeWithDay } from 'src/utils/timeFormatter';
+import { parseTimeWithDay } from 'src/utils/parsers/timeParser';
 import { ReactionsList } from 'src/components/room/message/Reactions';
 import {
   GifMessage,
@@ -23,10 +23,11 @@ import {
 } from 'src/components/room/message/variants';
 import { styles } from 'src/components/room/message/MessageItem.styles';
 import {
+  getMessageVariant,
+  MessageVariant,
   getInstagramUrl,
   getInstagramStoryReplyData,
-} from 'src/utils/urlParser';
-import { getMessageVariant, MessageVariant } from 'src/utils/message';
+} from 'src/utils/parsers/messageParser';
 import { isMessageItemEqual } from 'src/components/room/message/MessageItem.utils';
 
 export type MessageItemProps = {
@@ -179,7 +180,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     }, [showTimestamp, animatedOpacity, isFirstOfHour]);
 
     const variant = getMessageVariant(item);
-    const timeString = formatTimeWithDay(item.timestamp);
+    const timeString = parseTimeWithDay(item.timestamp);
 
     const containerStyle: StyleProp<ViewStyle> = [
       styles.messageContainer,

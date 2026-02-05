@@ -18,8 +18,7 @@ import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { colors, gradients } from 'src/config';
 import type { RoomItemData } from 'src/components/room';
-import { getRoomAvatarUrl } from 'src/utils/room';
-import { getInitials } from 'src/utils/stringUtils';
+import { getRoomAvatarUrl, getInitials } from 'src/utils/room';
 
 const PendingInvitationsModal = ({
   invitedRooms,
