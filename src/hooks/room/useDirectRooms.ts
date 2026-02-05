@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Room, RoomEvent, ClientEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
-import { IsBotPrivateChat, isInvite, isRoom, useMDirects } from 'src/utils/room';
+import {
+  IsBotPrivateChat,
+  isInvite,
+  isRoom,
+  useMDirects,
+  isGroupChatRoom,
+} from 'src/utils/room';
 
 /**
  * Hook to get all direct message rooms
@@ -27,7 +33,8 @@ export const useDirectRooms = () => {
       room =>
         isRoom(room) &&
         !mDirects.has(room.roomId) &&
-        !IsBotPrivateChat(room?.name),
+        !IsBotPrivateChat(room?.name) &&
+        !isGroupChatRoom(room),
     );
 
     // Split into direct rooms and invited rooms

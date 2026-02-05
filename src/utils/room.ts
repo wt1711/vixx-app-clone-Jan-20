@@ -109,6 +109,11 @@ export const isRoom = (room: Room | null): boolean => {
   return !!room && !isMetabotRoom(room.name) && !isSpace(room);
 };
 
+export const isGroupChatRoom = (room: Room | null): boolean => {
+  // Each room has 4 member: metabot, instagram_, self, and other dm
+  return !!room && room.getJoinedMemberCount() > 4;
+};
+
 const BOT_USER_PATTERNS: RegExp[] = [
   /bot$/i, // ends with 'bot'
   /^@.*bot:/i, // starts with @...bot:
