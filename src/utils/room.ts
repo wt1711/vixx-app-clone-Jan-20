@@ -19,6 +19,19 @@ import { formatRelativeTime } from 'src/utils/timeFormatter';
 import { shouldHideMessage } from 'src/utils/message';
 
 /**
+ * Extracts initials from a name string
+ * Takes first letter of each word, up to 2 characters
+ */
+export function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+/**
  * Check if a room is the founder/team chat room (supports both old and new names)
  */
 export const isFounderRoom = (roomName: string | undefined): boolean => {
