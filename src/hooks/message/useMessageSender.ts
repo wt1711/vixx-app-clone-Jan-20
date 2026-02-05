@@ -1,5 +1,5 @@
 import { useMatrixClient } from 'src/hooks/useMatrixClient';
-import { parseMessageContent } from 'src/utils/message';
+import { parseSlashCommand } from 'src/utils/parsers/messageParser';
 import { MessageEvent } from 'src/types';
 
 export const useMessageSender = (roomId: string | null) => {
@@ -10,7 +10,7 @@ export const useMessageSender = (roomId: string | null) => {
       throw new Error('Cannot send message: client or roomId not available');
     }
 
-    const content = parseMessageContent(text);
+    const content = parseSlashCommand(text);
     await client.sendEvent(roomId, MessageEvent.RoomMessage as any, content);
   };
 
