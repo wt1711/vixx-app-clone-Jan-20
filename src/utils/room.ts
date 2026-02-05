@@ -84,12 +84,25 @@ export const getRoomAvatarUrl = (
   return `${avatarUrl}&access_token=${mx.getAccessToken()}`;
 };
 
-export const isRoom = (room: Room | null): boolean => {
-  if (!room) return false;
+/**
+ * Check if a room is a metabot system room
+ */
+export const isMetabotRoom = (roomName: string | undefined): boolean => {
+  return roomName?.startsWith('@metabot') ?? false;
+};
+
+/**
+ * Check if a room is a Space (organizational container, not a chat room)
+ */
+export const isSpace = (room: Room): boolean => {
   const event = getStateEvent(room, StateEvent.RoomCreate);
-  if (!event) return true;
-  if (room?.name && room.name.startsWith('@metabot')) return false;
-  return event.getContent().type !== RoomType.Space;
+  if (!event) return false; // Assume not a space if state not loaded
+  return event.getContent().type === RoomType.Space;
+};
+
+export const isRoom = (room: Room | null): boolean => {
+  if (!room || isMetabotRoom(room.name) || isSpace(room)) return false;
+  return true;
 };
 
 export const isInvite = (room: Room | null): boolean => {
@@ -98,7 +111,7 @@ export const isInvite = (room: Room | null): boolean => {
   if (!event) return false;
   const membership = room.getMyMembership();
   if (membership !== 'invite') return false;
-  if (event.getContent().type === RoomType.Space) return false;
+  if (isSpace(room)) return false;
   if (event.getType() !== StateEvent.RoomCreate) return false;
   const inviter = room.getDMInviter();
   if (inviter) {
@@ -118,7 +131,7 @@ export const isInvite = (room: Room | null): boolean => {
     if (isBot) return false;
   }
 
-  if (room?.name && room.name.startsWith('@metabot')) return false;
+  if (isMetabotRoom(room.name)) return false;
 
   return true;
 };
