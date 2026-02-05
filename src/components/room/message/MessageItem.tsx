@@ -26,7 +26,7 @@ import {
   getInstagramUrl,
   getInstagramStoryReplyData,
 } from 'src/utils/urlParser';
-import { getMessageVariant, MessageVariant } from 'src/utils/room';
+import { getMessageVariant, MessageVariant } from 'src/utils/message';
 import { isMessageItemEqual } from 'src/components/room/message/MessageItem.utils';
 
 export type MessageItemProps = {

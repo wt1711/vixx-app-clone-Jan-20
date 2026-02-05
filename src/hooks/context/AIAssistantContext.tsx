@@ -14,7 +14,7 @@ import {
   generateResponseWithIdea,
   gradeMessage,
 } from 'src/services/aiService';
-import { isMessageFromMe, getLastReceivedMessageBatch } from 'src/utils/room';
+import { isMessageFromMe, getLastReceivedMessageBatch } from 'src/utils/message';
 import { parseAIResponse, ParsedAIResponse } from 'src/utils/aiResponseParser';
 
 type ChatMessage = {

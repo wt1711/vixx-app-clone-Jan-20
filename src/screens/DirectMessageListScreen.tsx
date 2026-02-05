@@ -16,11 +16,11 @@ import { Settings, Plus } from 'lucide-react-native';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { useDirectRooms } from 'src/hooks/room';
 import { getMatrixClient } from 'src/services/matrixClient';
+import { getRoomAvatarUrl } from 'src/utils/room';
 import {
-  getRoomAvatarUrl,
   getLastRoomMessageAsync,
   isMessageFromMe,
-} from 'src/utils/room';
+} from 'src/utils/message';
 import { useAuth } from 'src/hooks/context/AuthContext';
 import { RoomListItem, RoomItemData } from 'src/components/room';
 import { LoadingScreen } from 'src/components/common/LoadingScreen';

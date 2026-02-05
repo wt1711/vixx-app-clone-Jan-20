@@ -9,11 +9,8 @@ import {
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
 import { getMatrixClient } from 'src/services/matrixClient';
-import {
-  getEventReactions,
-  getReactionContent,
-  isFounderRoom,
-} from 'src/utils/room';
+import { isFounderRoom } from 'src/utils/room';
+import { getEventReactions, getReactionContent } from 'src/utils/message';
 import { MessageEvent } from 'src/types';
 import { MessageItem, RoomTimelineProps } from '../types';
 import {
