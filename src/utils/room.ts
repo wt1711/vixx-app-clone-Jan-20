@@ -138,11 +138,10 @@ const isInviterNotHuman = (room: Room): boolean => {
 export const isInvite = (room: Room | null): boolean => {
   return (
     !!room &&
+    isRoom(room) &&
     hasRoomCreateEvent(room) &&
     hasInviteMembership(room) &&
-    !isSpace(room) &&
-    !isInviterNotHuman(room) &&
-    !isMetabotRoom(room.name)
+    !isInviterNotHuman(room)
   );
 };
 

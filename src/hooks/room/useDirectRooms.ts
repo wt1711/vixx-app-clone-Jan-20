@@ -22,22 +22,24 @@ export const useDirectRooms = () => {
 
     const allRooms = mx.getVisibleRooms();
 
-    // Filter for direct message rooms using m.direct account data
-    // This matches the NextJS implementation exactly
-    const directs = allRooms.filter(
+    // Filter for valid rooms first (shared conditions)
+    const validRooms = allRooms.filter(
       room =>
         isRoom(room) &&
-        !isInvite(room) &&
         !mDirects.has(room.roomId) &&
         !IsBotPrivateChat(room?.name),
     );
-    const invited = allRooms.filter(
-      room =>
-        isRoom(room) &&
-        isInvite(room) &&
-        !mDirects.has(room.roomId) &&
-        !IsBotPrivateChat(room?.name),
-    );
+
+    // Split into direct rooms and invited rooms
+    const directs: Room[] = [];
+    const invited: Room[] = [];
+    for (const room of validRooms) {
+      if (isInvite(room)) {
+        invited.push(room);
+      } else {
+        directs.push(room);
+      }
+    }
 
     // Sort by last active timestamp (most recent first)
     const sorted = directs.sort((a, b) => {
