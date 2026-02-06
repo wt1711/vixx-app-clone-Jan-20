@@ -1,5 +1,5 @@
-import { MatrixClient, Room } from 'matrix-js-sdk';
-import { useCallback, useState, useEffect } from 'react';
+import { Room } from 'matrix-js-sdk';
+import { useCallback, useState, useMemo } from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -18,37 +18,65 @@ import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { colors, gradients } from 'src/config';
 import type { RoomItemData } from 'src/components/room';
-import { getRoomAvatarUrl, getInitials } from 'src/utils/room';
+import { getRoomAvatarUrl, getInitials, getRoomDisplayName } from 'src/utils/room';
+import { usePendingMetabotRoomsContext } from 'src/hooks/context/PendingMetabotRoomsContext';
+import { useDirectRooms } from 'src/hooks/room/useDirectRooms';
+import { getMatrixClient } from 'src/services/matrixClient';
 
+/**
+ * PendingInvitationsModal - "The UI"
+ * Shows pending metabot rooms that have been auto-joined but not yet accepted
+ * Uses the pending rooms context to get the list of rooms
+ */
 const PendingInvitationsModal = ({
-  invitedRooms,
-  mx,
   onClose,
 }: {
-  invitedRooms: Room[];
-  mx: MatrixClient | null;
   onClose: () => void;
 }) => {
-  const [roomItems, setRoomItems] = useState<RoomItemData[]>([]);
+  const mx = getMatrixClient();
+  const { pendingRooms, removePendingRoom } = usePendingMetabotRoomsContext();
+  const { invitedRooms } = useDirectRooms();
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [processingRoomId, setProcessingRoomId] = useState<{
-    roomId: string;
-    action: 'accept' | 'reject';
-  } | null>(null);
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
 
-  // Load room data with async message fetching
-  const loadRoomItems = useCallback(async () => {
-    if (!mx) return;
+  // Convert pending rooms AND invited rooms to room items for display
+  const roomItems = useMemo(() => {
+    if (!mx) return [];
 
     const items: RoomItemData[] = [];
+    const addedRoomIds = new Set<string>();
 
-    // First pass: create items with basic data (fast)
-    for (const room of invitedRooms) {
-      const name = room.name || 'Unknown';
-      const unreadCount = room.getUnreadNotificationCount() || 0;
+    // Add pending metabot rooms first
+    pendingRooms.forEach((data, roomId) => {
+      const room = mx.getRoom(roomId);
+      if (!room) return;
+
+      const name = getRoomDisplayName(room, mx);
       const avatarUrl = getRoomAvatarUrl(mx, room, 96, true);
+      const unreadCount = room.getUnreadNotificationCount() || 0;
+
+      items.push({
+        roomId,
+        room,
+        name,
+        lastMessage: '',
+        lastEventTime: data.timestamp || room.getLastActiveTimestamp() || 0,
+        unreadCount,
+        avatarUrl,
+      });
+      addedRoomIds.add(roomId);
+    });
+
+    // Add regular invited rooms (that aren't already in pending)
+    for (const room of invitedRooms) {
+      if (addedRoomIds.has(room.roomId)) continue;
+
+      const name = getRoomDisplayName(room, mx);
+      const avatarUrl = getRoomAvatarUrl(mx, room, 96, true);
+      const unreadCount = room.getUnreadNotificationCount() || 0;
 
       items.push({
         roomId: room.roomId,
@@ -61,77 +89,76 @@ const PendingInvitationsModal = ({
       });
     }
 
-    // Sort by last active timestamp initially
-    items.sort((a, b) => (b.lastEventTime || 0) - (a.lastEventTime || 0));
-    setRoomItems(items);
-  }, [mx, invitedRooms]);
-
-  useEffect(() => {
-    loadRoomItems();
-  }, [loadRoomItems]);
+    // Sort by timestamp (most recent first)
+    return items.sort((a, b) => (b.lastEventTime || 0) - (a.lastEventTime || 0));
+  }, [mx, pendingRooms, invitedRooms]);
 
   // Filter rooms by search query
-  const filteredRooms = roomItems.filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredRooms = useMemo(() => {
+    if (!searchQuery) return roomItems;
+    return roomItems.filter(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [roomItems, searchQuery]);
 
-  const handleAccept = async (room: Room) => {
-    if (!mx || processingRoomId) return;
+  // Handle accept action - works for both pending metabot rooms and regular invites
+  const handleAccept = useCallback(async (room: Room) => {
+    if (!mx || processingIds.has(room.roomId)) return;
 
-    setProcessingRoomId({ roomId: room.roomId, action: 'accept' });
+    const isPending = pendingRooms.has(room.roomId);
+    const roomName = getRoomDisplayName(room, mx);
+
+    // Step 1: Add to processing (show spinner)
+    setProcessingIds(prev => new Set(prev).add(room.roomId));
+
     try {
-      await mx.joinRoom(room.roomId);
-      // Remove from list after successful join
-      setRoomItems(prev => prev.filter(item => item.roomId !== room.roomId));
+      if (isPending) {
+        // Pending metabot room - already joined, just remove from pending
+        removePendingRoom(room.roomId);
+      } else {
+        // Regular invite - need to join the room
+        await mx.joinRoom(room.roomId);
+      }
+
+      // Allow state to propagate
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+
       // Show success banner
-      setSuccessBanner(room.name || 'Chat');
+      setSuccessBanner(roomName);
       setTimeout(() => setSuccessBanner(null), 5000);
     } catch (error: any) {
-      console.error('Failed to accept invitation:', error);
+      console.error('Failed to accept room:', error);
       Alert.alert('Error', error.message || 'Failed to add');
     } finally {
-      setProcessingRoomId(null);
+      // Remove from processing
+      setProcessingIds(prev => {
+        const next = new Set(prev);
+        next.delete(room.roomId);
+        return next;
+      });
     }
-  };
+  }, [mx, processingIds, pendingRooms, removePendingRoom]);
 
-  const confirmAccept = (room: Room) => {
+  const confirmAccept = useCallback((room: Room) => {
     ReactNativeHapticFeedback.trigger('impactLight', {
       enableVibrateFallback: true,
       ignoreAndroidSystemSettings: false,
     });
-    Alert.alert('', `Add ${room.name || 'this conversation'} to your list?`, [
+    const name = getRoomDisplayName(room, mx);
+    Alert.alert('', `Add ${name || 'this conversation'} to your list?`, [
       { text: 'Yes', onPress: () => handleAccept(room) },
       { text: 'No', style: 'cancel' },
     ]);
-  };
+  }, [handleAccept, mx]);
 
-  // const handleReject = async (room: Room) => {
-  //   if (!mx || processingRoomId) return;
-
-  //   setProcessingRoomId({ roomId: room.roomId, action: 'reject' });
-  //   try {
-  //     await mx.leave(room.roomId);
-  //     Alert.alert('Success', 'Invitation rejected');
-  //     // Remove from list after successful leave
-  //     setRoomItems(prev => prev.filter(item => item.roomId !== room.roomId));
-  //   } catch (error: any) {
-  //     console.error('Failed to reject invitation:', error);
-  //     Alert.alert('Error', error.message || 'Failed to reject invitation');
-  //   } finally {
-  //     setProcessingRoomId(null);
-  //   }
-  // };
-
-  const renderItem = ({
+  const renderItem = useCallback(({
     item,
     index,
   }: {
     item: RoomItemData;
     index: number;
   }) => {
-    const isProcessing =
-      processingRoomId?.roomId === item.roomId &&
-      processingRoomId.action === 'accept';
+    const isProcessing = processingIds.has(item.roomId);
     const isLast = index === filteredRooms.length - 1;
 
     return (
@@ -174,7 +201,7 @@ const PendingInvitationsModal = ({
         </TouchableOpacity>
       </TouchableOpacity>
     );
-  };
+  }, [processingIds, filteredRooms.length, confirmAccept]);
 
   const keyExtractor = useCallback((item: RoomItemData) => item.roomId, []);
 
@@ -244,6 +271,7 @@ const PendingInvitationsModal = ({
               keyExtractor={keyExtractor}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
+              extraData={processingIds}
             />
           </View>
         ) : (
