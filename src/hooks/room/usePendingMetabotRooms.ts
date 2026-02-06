@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { RoomEvent } from 'matrix-js-sdk';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getMatrixClient } from 'src/services/matrixClient';
+import { isMetabotNameRoom, getRoomDisplayName } from 'src/utils/room';
 
 const STORAGE_KEY = 'pending_metabot_rooms';
 
@@ -78,10 +79,11 @@ export const usePendingMetabotRooms = () => {
 
   /**
    * Auto-join a metabot room and add it to pending state
-   * This follows the exact flow from the implementation plan:
-   * 1. await mx.joinRoom(roomId)
-   * 2. Wait for RoomEvent.MyMembership to confirm join
-   * 3. Only then add to pending (ensures room name is synced)
+   * Flow:
+   * 1. Join the room
+   * 2. Wait for membership confirmation
+   * 3. Wait for room name to sync (no longer @metabot)
+   * 4. Add to pending
    */
   const autoJoinMetabotRoom = useCallback(
     async (roomId: string): Promise<void> => {
@@ -99,7 +101,7 @@ export const usePendingMetabotRooms = () => {
           const timeout = setTimeout(() => {
             mx.off(RoomEvent.MyMembership, membershipHandler);
             reject(new Error('Timeout waiting for room membership'));
-          }, 30000); // 30 second timeout
+          }, 30000);
 
           const membershipHandler = (room: any) => {
             if (room.roomId === roomId && room.getMyMembership() === 'join') {
@@ -109,7 +111,6 @@ export const usePendingMetabotRooms = () => {
             }
           };
 
-          // Check if already joined (in case event fired before we subscribed)
           const existingRoom = mx.getRoom(roomId);
           if (existingRoom && existingRoom.getMyMembership() === 'join') {
             clearTimeout(timeout);
@@ -120,8 +121,45 @@ export const usePendingMetabotRooms = () => {
           mx.on(RoomEvent.MyMembership, membershipHandler);
         });
 
-        // Step 3: After confirmed join, add to pending
-        addPendingRoom(roomId);
+        // Step 3: Wait for room name to sync (poll until name changes or timeout)
+        const nameSynced = await new Promise<boolean>(resolve => {
+          const maxWaitTime = 10000; // 10 seconds max
+          const pollInterval = 200; // Check every 200ms
+          let elapsed = 0;
+
+          const checkName = () => {
+            const room = mx.getRoom(roomId);
+            if (!room) {
+              resolve(false);
+              return;
+            }
+
+            const hasGoodName = !isMetabotNameRoom(room.name);
+            const displayName = getRoomDisplayName(room, mx);
+            const hasGoodDisplayName = !displayName.startsWith('@metabot');
+
+            if (hasGoodName || hasGoodDisplayName) {
+              resolve(true);
+              return;
+            }
+
+            if (elapsed >= maxWaitTime) {
+              resolve(false);
+              return;
+            }
+
+            elapsed += pollInterval;
+            setTimeout(checkName, pollInterval);
+          };
+
+          checkName();
+        });
+
+        // Step 4: Only add to pending if name synced
+        if (nameSynced) {
+          addPendingRoom(roomId);
+        }
+        // If name didn't sync, room stays in HIDDEN_JOINING state and will retry on next cycle
       } catch (error) {
         console.error('[usePendingMetabotRooms] Failed to auto-join room:', roomId, error);
         throw error;
