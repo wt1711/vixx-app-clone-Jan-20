@@ -1,26 +1,148 @@
-import React from 'react';
 import {
   EventTimeline,
   MatrixClient,
   MatrixEvent,
   Room,
-  RoomMember,
   RoomType,
-  ClientEvent,
 } from 'matrix-js-sdk';
-import {
-  StateEvent,
-  MessageEvent,
-  AccountDataType,
-  Membership,
-} from 'src/types';
+import { StateEvent, Membership } from 'src/types';
 import {
   FOUNDER_ROOM_NAME,
   FOUNDER_ROOM_NAME_LEGACY,
   FOUNDER_AVATAR_URL,
 } from 'src/config/founder';
-import { parseRelativeTime } from 'src/utils/parsers/timeParser';
-import { shouldHideMessage } from 'src/utils/message';
+import { isBotUser } from 'src/utils/user';
+
+const getStateEvent = (
+  room: Room,
+  eventType: StateEvent,
+  stateKey = '',
+): MatrixEvent | undefined =>
+  room
+    .getLiveTimeline()
+    .getState(EventTimeline.FORWARDS)
+    ?.getStateEvents(eventType, stateKey) ?? undefined;
+
+const BOT_ROOM_PATTERNS: RegExp[] = [/Meta bot Room/i, /Instagram Bot Room/i];
+
+export const isBotRoom = (room: Room | null): boolean =>
+  !!room?.name && BOT_ROOM_PATTERNS.some(pattern => pattern.test(room.name));
+
+/**
+ * Check if a room is a metabot system room
+ */
+const isMetabotRoom = (room: Room | null): boolean => {
+  return (!!room && room.name.startsWith('@metabot')) ?? false;
+};
+
+export const isFounderRoom = (room: Room | null): boolean =>
+  !!room?.name &&
+  [FOUNDER_ROOM_NAME, FOUNDER_ROOM_NAME_LEGACY].includes(room.name);
+
+/**
+ * Check if a room is a Space (organizational container, not a chat room)
+ */
+const isSpaceRoom = (room: Room): boolean => {
+  const event = getStateEvent(room, StateEvent.RoomCreate);
+  if (!event) return false; // Assume not a space if state not loaded
+  return event.getContent().type === RoomType.Space;
+};
+
+export const isGroupChatRoom = (room: Room | null): boolean => {
+  // Each room has 4 member: metabot, instagram_, self, and other dm
+  return !!room && room.getJoinedMemberCount() > 4;
+};
+
+export const isValidRoom = (room: Room | null): boolean => {
+  return !!room && !isMetabotRoom(room) && !isSpaceRoom(room);
+};
+
+const hasInviteMembership = (room: Room): boolean =>
+  room && room.getMyMembership() === Membership.Invite;
+
+const hasRoomCreateEvent = (room: Room): boolean => {
+  const event = getStateEvent(room, StateEvent.RoomCreate);
+  return !!event && event.getType() === StateEvent.RoomCreate;
+};
+
+const isBotInviter = (room: Room): boolean => {
+  const inviter = room.getDMInviter();
+  return !!inviter && isBotUser(inviter);
+};
+
+export const isValidInvitedRoom = (room: Room | null): boolean => {
+  return (
+    !!room &&
+    isValidRoom(room) &&
+    hasRoomCreateEvent(room) &&
+    hasInviteMembership(room) &&
+    !isBotInviter(room)
+  );
+};
+
+/**
+ * Gets the display name for a room, falling back to other members or metadata
+ * Handles cases where room.name returns a Matrix user ID (e.g., @metabot:server.com)
+ * Works for both invite and joined rooms
+ */
+export const getRoomDisplayName = (
+  room: Room,
+  mx?: MatrixClient | null,
+): string => {
+  const roomName = room.name;
+
+  // If we have a proper room name (not a user ID), use it
+  if (roomName && !roomName.startsWith('@')) {
+    return roomName;
+  }
+
+  // For any room (invite or joined), try to find other members (non-bot, non-me)
+  if (mx) {
+    const myUserId = mx.getUserId();
+    const allMembers = room.getMembers();
+
+    // Look for a member that isn't me and isn't a bot
+    const otherMember = allMembers.find(member => {
+      if (!member.userId || member.userId === myUserId) return false;
+      // Skip metabot users
+      if (member.userId.includes('metabot')) return false;
+      // Skip other common bot patterns
+      if (member.userId.match(/@.*bot:/i)) return false;
+      return true;
+    });
+
+    if (otherMember) {
+      return (
+        otherMember.rawDisplayName || otherMember.name || roomName || 'Unknown'
+      );
+    }
+
+    // If no other members, check room topic
+    const topicEvent = getStateEvent(room, StateEvent.RoomTopic);
+    if (topicEvent) {
+      const topic = topicEvent.getContent()?.topic;
+      if (topic && topic.trim()) {
+        return topic;
+      }
+    }
+  }
+
+  // Try getDMInviter for DM rooms (fallback)
+  const dmInviterId = room.getDMInviter();
+  if (dmInviterId && !dmInviterId.includes('metabot')) {
+    const member = room.getMember(dmInviterId);
+    if (member) {
+      return member.rawDisplayName || member.name || roomName || 'Unknown';
+    }
+  }
+
+  // Final fallback - clean up the user ID display
+  if (roomName && roomName.startsWith('@metabot')) {
+    return 'Metabot Chat';
+  }
+
+  return roomName || 'Unknown';
+};
 
 /**
  * Extracts initials from a name string
@@ -34,18 +156,6 @@ export function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2);
 }
-
-/**
- * Check if a room is the founder/team chat room (supports both old and new names)
- */
-export const isFounderRoom = (roomName: string | undefined): boolean => {
-  if (
-    roomName &&
-    [FOUNDER_ROOM_NAME, FOUNDER_ROOM_NAME_LEGACY].includes(roomName)
-  )
-    return true;
-  return false;
-};
 
 export const getRoomAvatarUrl = (
   mx: MatrixClient,
@@ -67,7 +177,7 @@ export const getRoomAvatarUrl = (
     : undefined;
 
   // Fallback to founder avatar if this is the founder room
-  if (!avatarUrl && isFounderRoom(room.name)) {
+  if (!avatarUrl && isFounderRoom(room)) {
     return FOUNDER_AVATAR_URL;
   }
 
@@ -76,124 +186,6 @@ export const getRoomAvatarUrl = (
     return undefined;
   }
 
-  return `${avatarUrl}&access_token=${mx.getAccessToken()}`;
-};
-
-const getStateEvent = (
-  room: Room,
-  eventType: StateEvent,
-  stateKey = '',
-): MatrixEvent | undefined =>
-  room
-    .getLiveTimeline()
-    .getState(EventTimeline.FORWARDS)
-    ?.getStateEvents(eventType, stateKey) ?? undefined;
-
-/**
- * Check if a room is a metabot system room
- */
-const isMetabotRoom = (roomName: string | undefined): boolean => {
-  return roomName?.startsWith('@metabot') ?? false;
-};
-
-/**
- * Check if a room is a Space (organizational container, not a chat room)
- */
-const isSpace = (room: Room): boolean => {
-  const event = getStateEvent(room, StateEvent.RoomCreate);
-  if (!event) return false; // Assume not a space if state not loaded
-  return event.getContent().type === RoomType.Space;
-};
-
-export const isRoom = (room: Room | null): boolean => {
-  return !!room && !isMetabotRoom(room.name) && !isSpace(room);
-};
-
-export const isGroupChatRoom = (room: Room | null): boolean => {
-  // Each room has 4 member: metabot, instagram_, self, and other dm
-  return !!room && room.getJoinedMemberCount() > 4;
-};
-
-const BOT_USER_PATTERNS: RegExp[] = [
-  /bot$/i, // ends with 'bot'
-  /^@.*bot:/i, // starts with @...bot:
-  /bridge/i, // contains 'bridge'
-  /service/i, // contains 'service'
-  /admin/i, // contains 'admin'
-  /system/i, // contains 'system'
-  /notification/i, // contains 'notification'
-];
-
-const isUserNotHuman = (userId: string): boolean =>
-  BOT_USER_PATTERNS.some(pattern => pattern.test(userId));
-
-const hasInviteMembership = (room: Room): boolean =>
-  room && room.getMyMembership() === Membership.Invite;
-
-const hasRoomCreateEvent = (room: Room): boolean => {
-  const event = getStateEvent(room, StateEvent.RoomCreate);
-  return !!event && event.getType() === StateEvent.RoomCreate;
-};
-
-const isInviterNotHuman = (room: Room): boolean => {
-  const inviter = room.getDMInviter();
-  return !!inviter && isUserNotHuman(inviter);
-};
-
-export const isInvite = (room: Room | null): boolean => {
-  return (
-    !!room &&
-    isRoom(room) &&
-    hasRoomCreateEvent(room) &&
-    hasInviteMembership(room) &&
-    !isInviterNotHuman(room)
-  );
-};
-
-export const IsBotPrivateChat = (roomName: string | undefined) => {
-  if (roomName) {
-    // Common bot patterns
-    const botPatterns = [/Meta bot Room/i, /Instagram Bot Room/i];
-
-    const isBot = botPatterns.some(pattern => pattern.test(roomName));
-    if (isBot) return true;
-  }
-  return false;
-};
-
-const isUserIdMatrix = (userId: string) => !userId.includes('meta');
-
-const getImpersonatedUserId = (
-  userId: string,
-  members: RoomMember[],
-): string => {
-  if (members && isUserIdMatrix(userId)) {
-    return members.find(member => member.userId === userId)?.userId || userId;
-  }
-  return userId || '';
-};
-
-export const getMemberAvatarMxc = (
-  mx: MatrixClient,
-  room: Room,
-  userId: string,
-): string | undefined => {
-  // const member = room.getMember(userId); // Revert back to this if needed
-  const member = room.getMember(
-    getImpersonatedUserId(userId, room.getMembers()),
-  );
-  const avatarMxc = member?.getMxcAvatarUrl();
-  if (!avatarMxc) return undefined;
-  const avatarUrl = mx.mxcUrlToHttp(
-    avatarMxc,
-    96,
-    96,
-    'crop',
-    undefined,
-    false,
-    true,
-  );
-  if (!avatarUrl) return undefined;
   return `${avatarUrl}&access_token=${mx.getAccessToken()}`;
 };
 
@@ -219,99 +211,3 @@ export interface RoomListItem {
   /** Whether the room has unread messages */
   unread: boolean;
 }
-
-/**
- * Transforms a Matrix Room into a UI-ready RoomListItem
- */
-export function transformRoom(room: Room, client: MatrixClient): RoomListItem {
-  // Find the last actual message (MessageEvent.RoomMessage), not state events
-  let lastMessage = 'No messages';
-  const timeline = room.getLiveTimeline().getEvents();
-
-  for (let i = timeline.length - 1; i >= 0; i--) {
-    const event = timeline[i];
-    if (event.getType() === MessageEvent.RoomMessage) {
-      const body = event.getContent()?.body || '';
-      // Skip hidden bot messages
-      if (body && !shouldHideMessage(body)) {
-        lastMessage = body;
-        break;
-      }
-    }
-  }
-
-  let avatar = '';
-  const avatarUrl = room.getAvatarUrl(client.baseUrl, 96, 96, 'crop');
-  if (avatarUrl) {
-    avatar = avatarUrl;
-  }
-
-  return {
-    id: room.roomId,
-    name: room.name || 'Unnamed Room',
-    avatar,
-    lastMessage,
-    timestamp: parseRelativeTime(room.getLastActiveTimestamp()),
-    unread: room.getUnreadNotificationCount() > 0,
-  };
-}
-
-/**
- * Get m.direct account data and extract direct room IDs
- * This matches the NextJS implementation
- */
-const getMDirects = (mDirectEvent: MatrixEvent | undefined): Set<string> => {
-  const roomIds = new Set<string>();
-  if (!mDirectEvent) return roomIds;
-
-  const userIdToDirects = mDirectEvent.getContent();
-
-  if (userIdToDirects === undefined) return roomIds;
-
-  Object.keys(userIdToDirects).forEach(userId => {
-    const directs = userIdToDirects[userId];
-    if (Array.isArray(directs)) {
-      directs.forEach(id => {
-        if (typeof id === 'string') roomIds.add(id);
-      });
-    }
-  });
-
-  return roomIds;
-};
-
-/**
- * Hook to get and track m.direct account data
- * Returns a Set of room IDs that are marked as direct messages
- */
-export const useMDirects = (mx: MatrixClient | null): Set<string> => {
-  const [mDirects, setMDirects] = React.useState<Set<string>>(new Set());
-
-  React.useEffect(() => {
-    if (!mx) {
-      setMDirects(new Set());
-      return;
-    }
-
-    // Get initial m.direct account data
-    const mDirectEvent = mx.getAccountData(AccountDataType.Direct as any);
-    if (mDirectEvent) {
-      setMDirects(getMDirects(mDirectEvent));
-    }
-
-    // Listen for account data updates
-    const handleAccountData = (event: MatrixEvent) => {
-      if (event.getType() === AccountDataType.Direct) {
-        setMDirects(getMDirects(event));
-      }
-    };
-
-    mx.on(ClientEvent.AccountData, handleAccountData);
-
-    return () => {
-      mx.off(ClientEvent.AccountData, handleAccountData);
-    };
-  }, [mx]);
-
-  return mDirects;
-};
