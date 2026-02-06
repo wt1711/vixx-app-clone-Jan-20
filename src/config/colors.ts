@@ -145,8 +145,8 @@ export const colors = {
   // Analysis mode overlay (negative film effect)
   analysis: {
     tintOverlay: 'rgba(20, 30, 50, 0.25)', // cool blue-gray tint
-    vignetteDark: 'rgba(0, 0, 0, 0.35)',   // edge darkening
-    vignetteLight: 'rgba(0, 0, 0, 0)',     // center (transparent)
+    vignetteDark: 'rgba(0, 0, 0, 0.35)', // edge darkening
+    vignetteLight: 'rgba(0, 0, 0, 0)', // center (transparent)
   },
 } as const;
 

@@ -11,7 +11,15 @@ import {
   Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronDown, ChevronUp, Send, X, Trash2, Check, RefreshCw } from 'lucide-react-native';
+import {
+  ChevronDown,
+  ChevronUp,
+  Send,
+  X,
+  Trash2,
+  Check,
+  RefreshCw,
+} from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { useAIAssistant } from 'src/hooks/context/AIAssistantContext';
 import { DashboardSection } from './DashboardSection';
@@ -112,7 +120,8 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
     chatHistory.length === 0 && !generatedResponse && !contextMessage;
 
   // When context is set but no chat yet, show a helpful prompt
-  const showContextPrompt = contextMessage && chatHistory.length === 0 && !generatedResponse;
+  const showContextPrompt =
+    contextMessage && chatHistory.length === 0 && !generatedResponse;
 
   const metrics = dashboardMetrics;
 
@@ -126,7 +135,11 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
       <View style={[styles.overlay, { paddingTop: topPadding }]}>
         <View style={styles.modulesContainer}>
           {/* Glass Island 1: Header + Dashboard (MERGED) */}
-          <GlassModule style={styles.headerDashboardCard} variant={glassVariant} interactive>
+          <GlassModule
+            style={styles.headerDashboardCard}
+            variant={glassVariant}
+            interactive
+          >
             {/* Header Row */}
             <View style={styles.headerContent}>
               <Text style={styles.title}>Insights</Text>
@@ -158,20 +171,30 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                 >
                   <View style={styles.metricsRow}>
                     <View style={styles.metricChip}>
-                      <Text style={styles.metricEmoji}>{metrics.interestEmoji}</Text>
-                      <Text style={styles.metricValue}>{metrics.interestScore}%</Text>
+                      <Text style={styles.metricEmoji}>
+                        {metrics.interestEmoji}
+                      </Text>
+                      <Text style={styles.metricValue}>
+                        {metrics.interestScore}%
+                      </Text>
                     </View>
                     <View style={styles.metricChip}>
-                      <Text style={styles.metricEmoji}>{metrics.moodEmoji}</Text>
+                      <Text style={styles.metricEmoji}>
+                        {metrics.moodEmoji}
+                      </Text>
                       <Text style={styles.metricValue}>{metrics.mood}</Text>
                     </View>
                     <View style={styles.metricChip}>
                       <Text style={styles.metricEmoji}>📈</Text>
-                      <Text style={styles.metricValue}>{metrics.engagementLevel}</Text>
+                      <Text style={styles.metricValue}>
+                        {metrics.engagementLevel}
+                      </Text>
                     </View>
                     <View style={styles.metricChip}>
                       <Text style={styles.metricEmoji}>💬</Text>
-                      <Text style={styles.metricValue}>{metrics.messageCountToday}</Text>
+                      <Text style={styles.metricValue}>
+                        {metrics.messageCountToday}
+                      </Text>
                     </View>
                   </View>
                   {isDashboardExpanded ? (
@@ -182,8 +205,13 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                 </TouchableOpacity>
 
                 {/* Expanded Dashboard (animated) */}
-                <Animated.View style={[styles.expandedDashboard, expandAnimatedStyle]}>
-                  <ScrollView style={styles.dashboardContent} showsVerticalScrollIndicator={false}>
+                <Animated.View
+                  style={[styles.expandedDashboard, expandAnimatedStyle]}
+                >
+                  <ScrollView
+                    style={styles.dashboardContent}
+                    showsVerticalScrollIndicator={false}
+                  >
                     <DashboardSection
                       title="Interest Level"
                       score={metrics.interestScore}
@@ -206,33 +234,39 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
           </GlassModule>
 
           {/* Glass Island 2: Chat Content */}
-          <GlassModule style={styles.chatCard} variant={glassVariant} contentStyle={styles.chatCardContent}>
+          <GlassModule
+            style={styles.chatCard}
+            variant={glassVariant}
+            contentStyle={styles.chatCardContent}
+          >
             <ScrollView
               style={styles.chatScrollView}
               contentContainerStyle={styles.chatScrollContent}
               showsVerticalScrollIndicator={false}
             >
               {/* Context message - shows what message user is asking about (only from long press, not from generated response) */}
-              {contextMessage && !contextMessage.startsWith('Suggested response:') && (
-                <View style={styles.contextSection}>
-                  <Text style={styles.contextLabel}>Context:</Text>
-                  <View style={styles.contextBubble}>
-                    <Text style={styles.contextText}>{contextMessage}</Text>
-                    <TouchableOpacity
-                      style={styles.contextDismiss}
-                      onPress={clearContext}
-                    >
-                      <X size={14} color={colors.modal.textSecondary} />
-                    </TouchableOpacity>
+              {contextMessage &&
+                !contextMessage.startsWith('Suggested response:') && (
+                  <View style={styles.contextSection}>
+                    <Text style={styles.contextLabel}>Context:</Text>
+                    <View style={styles.contextBubble}>
+                      <Text style={styles.contextText}>{contextMessage}</Text>
+                      <TouchableOpacity
+                        style={styles.contextDismiss}
+                        onPress={clearContext}
+                      >
+                        <X size={14} color={colors.modal.textSecondary} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              )}
+                )}
 
               {showEmptyState ? (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateTitle}>Chat with Vixx</Text>
                   <Text style={styles.emptyStateText}>
-                    Ask me anything about this conversation, get advice, or analyze messages.
+                    Ask me anything about this conversation, get advice, or
+                    analyze messages.
                   </Text>
                 </View>
               ) : showContextPrompt ? (
@@ -247,31 +281,51 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                     contentContainerStyle={styles.suggestionChipsContent}
                   >
                     <TouchableOpacity
-                      style={[styles.suggestionChip, isLoading && styles.suggestionChipDisabled]}
+                      style={[
+                        styles.suggestionChip,
+                        isLoading && styles.suggestionChipDisabled,
+                      ]}
                       onPress={() => sendQuickQuestion('What does this mean?')}
                       disabled={isLoading}
                     >
-                      <Text style={styles.suggestionChipText}>What does this mean?</Text>
+                      <Text style={styles.suggestionChipText}>
+                        What does this mean?
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[styles.suggestionChip, isLoading && styles.suggestionChipDisabled]}
+                      style={[
+                        styles.suggestionChip,
+                        isLoading && styles.suggestionChipDisabled,
+                      ]}
                       onPress={() => sendQuickQuestion('How should I respond?')}
                       disabled={isLoading}
                     >
-                      <Text style={styles.suggestionChipText}>How should I respond?</Text>
+                      <Text style={styles.suggestionChipText}>
+                        How should I respond?
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[styles.suggestionChip, isLoading && styles.suggestionChipDisabled]}
+                      style={[
+                        styles.suggestionChip,
+                        isLoading && styles.suggestionChipDisabled,
+                      ]}
                       onPress={() => sendQuickQuestion('Are they interested?')}
                       disabled={isLoading}
                     >
-                      <Text style={styles.suggestionChipText}>Are they interested?</Text>
+                      <Text style={styles.suggestionChipText}>
+                        Are they interested?
+                      </Text>
                     </TouchableOpacity>
                   </ScrollView>
                   {isLoading && (
                     <View style={styles.loadingIndicator}>
-                      <ActivityIndicator size="small" color={colors.accent.teal} />
-                      <Text style={styles.loadingText}>Vixx is thinking...</Text>
+                      <ActivityIndicator
+                        size="small"
+                        color={colors.accent.teal}
+                      />
+                      <Text style={styles.loadingText}>
+                        Vixx is thinking...
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -293,15 +347,26 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                       </Text>
                       <View style={styles.generatedResponseActions}>
                         <TouchableOpacity
-                          style={[styles.actionPillButton, isGeneratingResponse && styles.actionPillButtonDisabled]}
+                          style={[
+                            styles.actionPillButton,
+                            isGeneratingResponse &&
+                              styles.actionPillButtonDisabled,
+                          ]}
                           onPress={() => regenerateResponse()}
                           disabled={isGeneratingResponse}
                           activeOpacity={0.7}
                         >
                           {isGeneratingResponse ? (
-                            <ActivityIndicator size="small" color={colors.modal.textSecondary} />
+                            <ActivityIndicator
+                              size="small"
+                              color={colors.modal.textSecondary}
+                            />
                           ) : (
-                            <RefreshCw size={20} color={colors.modal.textPrimary} strokeWidth={2.5} />
+                            <RefreshCw
+                              size={20}
+                              color={colors.modal.textPrimary}
+                              strokeWidth={2.5}
+                            />
                           )}
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -309,7 +374,11 @@ export function AIAssistantModal({ visible, onClose }: AIAssistantModalProps) {
                           onPress={() => handleUseSuggestion(generatedResponse)}
                           activeOpacity={0.7}
                         >
-                          <Check size={20} color={colors.modal.textPrimary} strokeWidth={2.5} />
+                          <Check
+                            size={20}
+                            color={colors.modal.textPrimary}
+                            strokeWidth={2.5}
+                          />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -507,7 +576,7 @@ const styles = StyleSheet.create({
     minHeight: 150,
   },
   chatCardContent: {
-    flex: 1,  // Allow content wrapper to expand for ScrollView
+    flex: 1, // Allow content wrapper to expand for ScrollView
   },
   chatScrollView: {
     flex: 1,

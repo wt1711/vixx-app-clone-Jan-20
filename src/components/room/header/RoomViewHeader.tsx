@@ -14,19 +14,18 @@ import { colors, gradients } from 'src/config';
 type RoomViewHeaderProps = {
   room: Room;
   onBack: () => void;
+  onOptionsPress?: () => void;
 };
 
-export function RoomViewHeader({
-  room,
-  onBack,
-}: RoomViewHeaderProps) {
+export function RoomViewHeader({ room, onBack }: RoomViewHeaderProps) {
   const mx = getMatrixClient();
   const insets = useSafeAreaInsets();
-  const { toggleAIAssistant, isAnalysisModeActive, toggleAnalysisMode } = useAIAssistant();
+  const { toggleAIAssistant, isAnalysisModeActive, toggleAnalysisMode } =
+    useAIAssistant();
 
   const roomName = room.name || 'Unknown';
   const avatarUrl = mx ? getRoomAvatarUrl(mx, room, 96, true) : undefined;
-  const isFounderChat = isFounderRoom(roomName);
+  const isFounderChat = isFounderRoom(room);
 
   const handlePress = useCallback(() => {
     onBack();
@@ -96,7 +95,11 @@ export function RoomViewHeader({
             >
               <ScanSearch
                 size={22}
-                color={isAnalysisModeActive ? colors.accent.cyan : colors.text.primary}
+                color={
+                  isAnalysisModeActive
+                    ? colors.accent.cyan
+                    : colors.text.primary
+                }
               />
             </TouchableOpacity>
 

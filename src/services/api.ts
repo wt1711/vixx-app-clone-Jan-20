@@ -77,3 +77,26 @@ export async function apiConnectInstagram(
   }
   return res.json();
 }
+
+export type SubmitReportPayload = {
+  email: string;
+  reason: string;
+  description: string;
+};
+
+export async function apiSubmitReport(
+  payload: SubmitReportPayload,
+): Promise<{ success: boolean }> {
+  const res = await fetch(API_ENDPOINTS.REPORTS.SUBMIT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Report submission failed: ${res.status} ${text}`);
+  }
+  return res.json();
+}

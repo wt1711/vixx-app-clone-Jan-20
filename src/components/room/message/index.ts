@@ -10,5 +10,8 @@ export type {
 export { ReplyPreview } from 'src/components/room/message/variants';
 export type { ReplyPreviewProps } from 'src/components/room/message/variants';
 export { SmartMomentBadge } from 'src/components/room/message/SmartMomentBadge';
-export { InterestBadge, getInterestEmoji } from 'src/components/room/message/InterestBadge';
+export {
+  InterestBadge,
+  getInterestEmoji,
+} from 'src/components/room/message/InterestBadge';
 export type { InterestLevel } from 'src/components/room/message/InterestBadge';

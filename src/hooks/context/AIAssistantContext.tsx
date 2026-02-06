@@ -16,11 +16,17 @@ import {
   analyzeMessageIntent,
   gradeOwnMessage,
 } from 'src/services/aiService';
-import { isMessageFromMe, getLastReceivedMessageBatch } from 'src/utils/room';
-import { parseAIResponse, ParsedAIResponse } from 'src/utils/aiResponseParser';
 import { parseIntentAnalysis } from 'src/utils/intentAnalysisParser';
 import type { ParsedIntentAnalysis } from 'src/types/intentAnalysis';
 import type { MessageItem } from 'src/components/room/types';
+import {
+  isMessageFromMe,
+  getLastReceivedMessageBatchForAI,
+} from 'src/utils/message';
+import {
+  parseAIResponse,
+  ParsedAIResponse,
+} from 'src/utils/parsers/aiResponseParser';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -159,9 +165,9 @@ export function AIAssistantProvider({
   const [isAnalysisModeActive, setIsAnalysisModeActive] = useState(false);
 
   // Passive Burst Analysis state (for interest badges on all bursts)
-  const [burstAnalyses, setBurstAnalyses] = useState<Map<string, BurstAnalysisResult>>(
-    () => new Map(),
-  );
+  const [burstAnalyses, setBurstAnalyses] = useState<
+    Map<string, BurstAnalysisResult>
+  >(() => new Map());
   const [analyzingBurstIds, setAnalyzingBurstIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -186,13 +192,14 @@ export function AIAssistantProvider({
     }
 
     const timeline = room.getLiveTimeline().getEvents();
-    const roomName = room.name || 'Unknown';
-    const now = Date.now();
     const todayStart = new Date().setHours(0, 0, 0, 0);
 
     // Filter to text messages only
     const messages = timeline
-      .filter(event => event.getType() === 'm.room.message' && event.getContent().body)
+      .filter(
+        event =>
+          event.getType() === 'm.room.message' && event.getContent().body,
+      )
       .map(event => ({
         sender: event.getSender() as string,
         text: event.getContent().body as string,
@@ -202,10 +209,11 @@ export function AIAssistantProvider({
 
     // Messages from the other person (not me)
     const theirMessages = messages.filter(m => !m.isFromMe);
-    const myMessages = messages.filter(m => m.isFromMe);
 
     // Count messages today
-    const messageCountToday = theirMessages.filter(m => m.timestamp >= todayStart).length;
+    const messageCountToday = theirMessages.filter(
+      m => m.timestamp >= todayStart,
+    ).length;
 
     // Calculate average response time (their responses to my messages)
     let totalResponseTime = 0;
@@ -222,7 +230,8 @@ export function AIAssistantProvider({
         }
       }
     }
-    const avgResponseMs = responseCount > 0 ? totalResponseTime / responseCount : 0;
+    const avgResponseMs =
+      responseCount > 0 ? totalResponseTime / responseCount : 0;
     const avgResponseTime = formatResponseTime(avgResponseMs);
 
     // Analyze interest indicators
@@ -239,7 +248,9 @@ export function AIAssistantProvider({
     }
 
     // Check for emoji usage
-    const hasEmojis = recentTheirMessages.some(m => /[\u{1F300}-\u{1F9FF}]/u.test(m.text));
+    const hasEmojis = recentTheirMessages.some(m =>
+      /[\u{1F300}-\u{1F9FF}]/u.test(m.text),
+    );
     if (hasEmojis) indicators.push('Uses emojis');
 
     // Check if they initiate conversations
@@ -281,7 +292,9 @@ export function AIAssistantProvider({
     }
 
     // Analyze mood from recent messages
-    const recentText = recentTheirMessages.map(m => m.text.toLowerCase()).join(' ');
+    const recentText = recentTheirMessages
+      .map(m => m.text.toLowerCase())
+      .join(' ');
     let mood = 'Neutral';
     let moodEmoji = '😊';
 
@@ -301,7 +314,10 @@ export function AIAssistantProvider({
 
     // Determine engagement level
     let engagementLevel: 'Active' | 'Moderate' | 'Low';
-    if (messageCountToday >= 5 || (avgResponseMs > 0 && avgResponseMs < 10 * 60 * 1000)) {
+    if (
+      messageCountToday >= 5 ||
+      (avgResponseMs > 0 && avgResponseMs < 10 * 60 * 1000)
+    ) {
       engagementLevel = 'Active';
     } else if (messageCountToday >= 2 || theirMessages.length > 10) {
       engagementLevel = 'Moderate';
@@ -376,7 +392,7 @@ export function AIAssistantProvider({
     setParsedResponse(null);
     // Only clear context if it's a suggested response context
     setContextMessage(prev =>
-      prev?.startsWith('Suggested response:') ? null : prev
+      prev?.startsWith('Suggested response:') ? null : prev,
     );
   }, []);
 
@@ -404,14 +420,11 @@ export function AIAssistantProvider({
     [isMobile],
   );
 
-  const generateInitialResponse = useCallback(
-    async (idea?: string) => {
-      // Generate response without opening the modal
-      const spec = idea ? { idea } : {};
-      await regenerateResponse(spec);
-    },
-    [],
-  ); // eslint-disable-line react-hooks/exhaustive-deps
+  const generateInitialResponse = useCallback(async (idea?: string) => {
+    // Generate response without opening the modal
+    const spec = idea ? { idea } : {};
+    await regenerateResponse(spec);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const regenerateResponse = useCallback(
     async (spec = {}) => {
@@ -422,7 +435,6 @@ export function AIAssistantProvider({
 
         // Get the actual room conversation from timeline
         const timeline = room.getLiveTimeline().getEvents();
-        const roomName = room.name || 'Unknown';
         const roomContext = timeline
           .filter(event => event.getSender() && event.getContent().body)
           .map(event => {
@@ -436,17 +448,12 @@ export function AIAssistantProvider({
               sender,
               text: event.getContent().body as string,
               timestamp: new Date(event.getTs()).toISOString(),
-              is_from_me: isMessageFromMe(
-                sender,
-                myUserId,
-                roomName,
-                senderName,
-              ),
+              is_from_me: isMessageFromMe(sender, myUserId, room, senderName),
             };
           });
 
         const { messageBatch, timestampStr } =
-          getLastReceivedMessageBatch(roomContext);
+          getLastReceivedMessageBatchForAI(roomContext);
 
         // Use different endpoint based on whether idea is provided
         const hasIdea =
@@ -474,6 +481,8 @@ export function AIAssistantProvider({
 
         // Don't auto-insert - let user explicitly press "Use" button
         // The modal stays open so user can review and choose to use or regenerate
+
+        handleUseSuggestion(parsed.message);
       } catch (error) {
         console.error('Error in regenerateResponse:', error);
         setGeneratedResponse('Xin lỗi, đã có lỗi');
@@ -481,7 +490,7 @@ export function AIAssistantProvider({
         setIsGeneratingResponse(false);
       }
     },
-    [room, mx, myUserId],
+    [room, mx, myUserId, handleUseSuggestion],
   );
 
   const handleSend = useCallback(async () => {
@@ -500,7 +509,6 @@ export function AIAssistantProvider({
     try {
       // Get the actual room conversation from timeline
       const timeline = room.getLiveTimeline().getEvents();
-      const roomName = room.name || 'Unknown';
       const roomContext = timeline
         .filter(event => event.getSender() && event.getContent().body)
         .map(event => {
@@ -514,7 +522,7 @@ export function AIAssistantProvider({
             sender,
             text: event.getContent().body as string,
             timestamp: new Date(event.getTs()).toISOString(),
-            is_from_me: isMessageFromMe(sender, myUserId, roomName, senderName),
+            is_from_me: isMessageFromMe(sender, myUserId, room, senderName),
           };
         });
 
@@ -575,7 +583,6 @@ export function AIAssistantProvider({
       try {
         // Get the actual room conversation from timeline
         const timeline = room.getLiveTimeline().getEvents();
-        const roomName = room.name || 'Unknown';
         const roomContext = timeline
           .filter(event => event.getSender() && event.getContent().body)
           .map(event => {
@@ -589,7 +596,7 @@ export function AIAssistantProvider({
               sender,
               text: event.getContent().body as string,
               timestamp: new Date(event.getTs()).toISOString(),
-              is_from_me: isMessageFromMe(sender, myUserId, roomName, senderName),
+              is_from_me: isMessageFromMe(sender, myUserId, room, senderName),
             };
           });
 
@@ -669,7 +676,6 @@ export function AIAssistantProvider({
 
       try {
         const timeline = room.getLiveTimeline().getEvents();
-        const roomName = room.name || 'Unknown';
         const roomContext = timeline
           .filter(event => event.getSender() && event.getContent().body)
           .map(event => {
@@ -683,12 +689,7 @@ export function AIAssistantProvider({
               sender,
               text: event.getContent().body as string,
               timestamp: new Date(event.getTs()).toISOString(),
-              is_from_me: isMessageFromMe(
-                sender,
-                myUserId,
-                roomName,
-                senderName,
-              ),
+              is_from_me: isMessageFromMe(sender, myUserId, room, senderName),
             };
           });
 
@@ -697,7 +698,9 @@ export function AIAssistantProvider({
         const firstMessage = messages[0];
 
         // Use different analysis based on whether it's own message or counterparty's
-        const analysisFunction = isOwnMessage ? gradeOwnMessage : analyzeMessageIntent;
+        const analysisFunction = isOwnMessage
+          ? gradeOwnMessage
+          : analyzeMessageIntent;
 
         const result = await analysisFunction({
           message: {
@@ -732,7 +735,10 @@ export function AIAssistantProvider({
       const firstEventId = eventIds[0];
 
       // Don't re-analyze if already analyzed or currently analyzing
-      if (burstAnalyses.has(firstEventId) || analyzingBurstIds.has(firstEventId)) {
+      if (
+        burstAnalyses.has(firstEventId) ||
+        analyzingBurstIds.has(firstEventId)
+      ) {
         return;
       }
 
@@ -741,7 +747,6 @@ export function AIAssistantProvider({
 
       try {
         const timeline = room.getLiveTimeline().getEvents();
-        const roomName = room.name || 'Unknown';
         const roomContext = timeline
           .filter(event => event.getSender() && event.getContent().body)
           .map(event => {
@@ -755,12 +760,7 @@ export function AIAssistantProvider({
               sender,
               text: event.getContent().body as string,
               timestamp: new Date(event.getTs()).toISOString(),
-              is_from_me: isMessageFromMe(
-                sender,
-                myUserId,
-                roomName,
-                senderName,
-              ),
+              is_from_me: isMessageFromMe(sender, myUserId, room, senderName),
             };
           });
 
@@ -768,7 +768,9 @@ export function AIAssistantProvider({
         const firstMessage = messages[0];
 
         // Use different analysis based on whether it's own or counterparty's messages
-        const analysisFunction = isOwnBurst ? gradeOwnMessage : analyzeMessageIntent;
+        const analysisFunction = isOwnBurst
+          ? gradeOwnMessage
+          : analyzeMessageIntent;
 
         const result = await analysisFunction({
           message: {
@@ -784,28 +786,57 @@ export function AIAssistantProvider({
 
         // Derive sentiment from emotional tone
         const toneLower = parsed.emotionalTone?.primary?.toLowerCase() || '';
-        let sentiment: 'positive' | 'neutral' | 'tense' | 'negative' | undefined;
-        if (['warm', 'playful', 'flirty', 'excited', 'enthusiastic', 'happy'].some(t => toneLower.includes(t))) {
+        let sentiment:
+          | 'positive'
+          | 'neutral'
+          | 'tense'
+          | 'negative'
+          | undefined;
+        if (
+          [
+            'warm',
+            'playful',
+            'flirty',
+            'excited',
+            'enthusiastic',
+            'happy',
+          ].some(t => toneLower.includes(t))
+        ) {
           sentiment = 'positive';
-        } else if (['tense', 'defensive', 'confrontational', 'challenging'].some(t => toneLower.includes(t))) {
+        } else if (
+          ['tense', 'defensive', 'confrontational', 'challenging'].some(t =>
+            toneLower.includes(t),
+          )
+        ) {
           sentiment = 'tense';
-        } else if (['cold', 'dismissive', 'annoyed', 'frustrated', 'angry'].some(t => toneLower.includes(t))) {
+        } else if (
+          ['cold', 'dismissive', 'annoyed', 'frustrated', 'angry'].some(t =>
+            toneLower.includes(t),
+          )
+        ) {
           sentiment = 'negative';
         } else {
           sentiment = 'neutral';
         }
 
         // Check for hidden meanings / subtext
-        const hasSubtext = (parsed.hiddenMeanings && parsed.hiddenMeanings.length > 0) || false;
+        const hasSubtext =
+          (parsed.hiddenMeanings && parsed.hiddenMeanings.length > 0) || false;
 
         // Calculate message length trend from burst messages
-        let messageLengthTrend: 'increasing' | 'same' | 'decreasing' | undefined;
+        let messageLengthTrend:
+          | 'increasing'
+          | 'same'
+          | 'decreasing'
+          | undefined;
         if (messages.length >= 2) {
           const lengths = messages.map(m => m.content?.length || 0);
           const firstHalf = lengths.slice(0, Math.floor(lengths.length / 2));
           const secondHalf = lengths.slice(Math.floor(lengths.length / 2));
-          const avgFirst = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-          const avgSecond = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+          const avgFirst =
+            firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+          const avgSecond =
+            secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
 
           if (avgSecond > avgFirst * 1.2) {
             messageLengthTrend = 'increasing';
@@ -864,7 +895,6 @@ export function AIAssistantProvider({
     async (text: string) => {
       if (text.trim().length > 0 && mx && myUserId) {
         const timeline = room.getLiveTimeline().getEvents();
-        const roomName = room.name || 'Unknown';
         const roomContext = timeline
           .filter(event => event.getSender() && event.getContent().body)
           .map(event => {
@@ -878,12 +908,7 @@ export function AIAssistantProvider({
               sender,
               text: event.getContent().body as string,
               timestamp: new Date(event.getTs()).toISOString(),
-              is_from_me: isMessageFromMe(
-                sender,
-                myUserId,
-                roomName,
-                senderName,
-              ),
+              is_from_me: isMessageFromMe(sender, myUserId, room, senderName),
             };
           });
 
@@ -999,6 +1024,7 @@ export function AIAssistantProvider({
       clearAllBurstAnalyses,
       isAnalysisModeActive,
       toggleAnalysisMode,
+      clearContext,
     ],
   );
 

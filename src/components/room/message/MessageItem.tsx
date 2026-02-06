@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { MessageItem } from 'src/components/room/types';
-import { formatTimeWithDay } from 'src/utils/timeFormatter';
 import { ReactionsList } from 'src/components/room/message/Reactions';
 import { SmartMomentBadge } from 'src/components/room/message/SmartMomentBadge';
 import type { SmartMoment } from 'src/utils/smartMoments';
+import { parseTimeWithDay } from 'src/utils/parsers/timeParser';
 import {
   GifMessage,
   ImageMessage,
@@ -23,12 +23,16 @@ import {
   MessageTextWithLinks,
   VideoMessage,
 } from 'src/components/room/message/variants';
-import { styles, analysisGlowStyle } from 'src/components/room/message/MessageItem.styles';
 import {
+  styles,
+  analysisGlowStyle,
+} from 'src/components/room/message/MessageItem.styles';
+import {
+  getMessageVariant,
+  MessageVariant,
   getInstagramUrl,
   getInstagramStoryReplyData,
-} from 'src/utils/urlParser';
-import { getMessageVariant, MessageVariant } from 'src/utils/room';
+} from 'src/utils/parsers/messageParser';
 import { isMessageItemEqual } from 'src/components/room/message/MessageItem.utils';
 
 export type MessageItemProps = {
@@ -186,7 +190,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
       new Animated.Value(shouldShowTimestamp ? 1 : 0),
     ).current;
 
-    React.useEffect(() => {
+    useEffect(() => {
       if (isFirstOfHour) return;
 
       Animated.timing(animatedOpacity, {
@@ -197,7 +201,7 @@ export const MessageItemComponent = React.memo<MessageItemProps>(
     }, [showTimestamp, animatedOpacity, isFirstOfHour]);
 
     const variant = getMessageVariant(item);
-    const timeString = formatTimeWithDay(item.timestamp);
+    const timeString = parseTimeWithDay(item.timestamp);
 
     const containerStyle: StyleProp<ViewStyle> = [
       styles.messageContainer,

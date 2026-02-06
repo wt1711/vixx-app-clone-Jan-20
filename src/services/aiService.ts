@@ -27,61 +27,119 @@ function generateMockConsultation(
   const questionLower = question.toLowerCase();
 
   // Check if context is a suggested response (from modal)
-  const isSuggestedResponseContext = contextMessage?.startsWith('Suggested response:') ?? false;
-  const suggestedText = isSuggestedResponseContext && contextMessage
-    ? contextMessage.replace('Suggested response:', '').trim()
-    : null;
+  const isSuggestedResponseContext =
+    contextMessage?.startsWith('Suggested response:') ?? false;
+  const suggestedText =
+    isSuggestedResponseContext && contextMessage
+      ? contextMessage.replace('Suggested response:', '').trim()
+      : null;
 
   // If asking about a suggested response, provide context-aware feedback
   if (isSuggestedResponseContext && suggestedText) {
-    if (questionLower.includes('good') || questionLower.includes('ok') || questionLower.includes('tốt') || questionLower.includes('được')) {
-      return `Tin nhắn "${suggestedText.substring(0, 50)}..." là một câu trả lời tốt! Nó giữ giọng điệu nhẹ nhàng và thể hiện sự quan tâm. Bạn có thể dùng luôn hoặc điều chỉnh theo phong cách riêng.`;
+    if (
+      questionLower.includes('good') ||
+      questionLower.includes('ok') ||
+      questionLower.includes('tốt') ||
+      questionLower.includes('được')
+    ) {
+      return `Tin nhắn "${suggestedText.substring(
+        0,
+        50,
+      )}..." là một câu trả lời tốt! Nó giữ giọng điệu nhẹ nhàng và thể hiện sự quan tâm. Bạn có thể dùng luôn hoặc điều chỉnh theo phong cách riêng.`;
     }
 
-    if (questionLower.includes('change') || questionLower.includes('edit') || questionLower.includes('sửa') || questionLower.includes('đổi')) {
-      return `Nếu bạn muốn điều chỉnh "${suggestedText.substring(0, 30)}...", bạn có thể làm nó casual hơn hoặc thêm emoji. Hoặc nhấn regenerate để mình tạo câu mới cho bạn.`;
+    if (
+      questionLower.includes('change') ||
+      questionLower.includes('edit') ||
+      questionLower.includes('sửa') ||
+      questionLower.includes('đổi')
+    ) {
+      return `Nếu bạn muốn điều chỉnh "${suggestedText.substring(
+        0,
+        30,
+      )}...", bạn có thể làm nó casual hơn hoặc thêm emoji. Hoặc nhấn regenerate để mình tạo câu mới cho bạn.`;
     }
 
-    if (questionLower.includes('tone') || questionLower.includes('giọng') || questionLower.includes('vibe')) {
+    if (
+      questionLower.includes('tone') ||
+      questionLower.includes('giọng') ||
+      questionLower.includes('vibe')
+    ) {
       return `Giọng điệu của câu này khá ấm áp và thân thiện. Nó match với energy của cuộc trò chuyện. Nếu bạn muốn playful hơn hoặc serious hơn, mình có thể regenerate.`;
     }
 
     // Default response about the suggested message
-    return `Về câu trả lời đề xuất: "${suggestedText.substring(0, 40)}..." - đây là một cách tiếp cận tốt! Nó thể hiện sự quan tâm mà không quá eager. Bạn có câu hỏi cụ thể nào về nó không?`;
+    return `Về câu trả lời đề xuất: "${suggestedText.substring(
+      0,
+      40,
+    )}..." - đây là một cách tiếp cận tốt! Nó thể hiện sự quan tâm mà không quá eager. Bạn có câu hỏi cụ thể nào về nó không?`;
   }
 
   // Context-aware responses based on question keywords (English + Vietnamese)
-  if (questionLower.includes('interest') || questionLower.includes('like') || questionLower.includes('thích') || questionLower.includes('quan tâm')) {
+  if (
+    questionLower.includes('interest') ||
+    questionLower.includes('like') ||
+    questionLower.includes('thích') ||
+    questionLower.includes('quan tâm')
+  ) {
     return 'Dựa trên cuộc trò chuyện, họ có vẻ thật sự quan tâm đến bạn! Họ phản hồi nhanh và đặt câu hỏi - cả hai đều là dấu hiệu tốt. Giữ năng lượng tích cực và match vibe của họ nha.';
   }
 
-  if (questionLower.includes('mean') || questionLower.includes('what') || questionLower.includes('nghĩa') || questionLower.includes('gì')) {
+  if (
+    questionLower.includes('mean') ||
+    questionLower.includes('what') ||
+    questionLower.includes('nghĩa') ||
+    questionLower.includes('gì')
+  ) {
     const contextPart = contextMessage
       ? `Nhìn vào "${contextMessage.substring(0, 50)}" - `
       : '';
     return `${contextPart}Họ đang thân thiện và giữ cuộc trò chuyện tiếp tục. Đây là dấu hiệu tốt cho thấy họ đang tương tác với bạn. Mình gợi ý là bạn nên phản hồi ấm áp và có thể hỏi họ điều gì đó.`;
   }
 
-  if (questionLower.includes('respond') || questionLower.includes('reply') || questionLower.includes('say') || questionLower.includes('trả lời') || questionLower.includes('nói')) {
+  if (
+    questionLower.includes('respond') ||
+    questionLower.includes('reply') ||
+    questionLower.includes('say') ||
+    questionLower.includes('trả lời') ||
+    questionLower.includes('nói')
+  ) {
     return 'Mình gợi ý giữ nhẹ nhàng và match năng lượng của họ. Một câu trả lời casual nhưng ấm áp sẽ hợp ở đây. Bạn có thể acknowledge những gì họ nói và hỏi thêm câu hỏi để giữ dòng chảy.';
   }
 
-  if (questionLower.includes('mood') || questionLower.includes('feel') || questionLower.includes('tone') || questionLower.includes('tâm trạng') || questionLower.includes('cảm')) {
+  if (
+    questionLower.includes('mood') ||
+    questionLower.includes('feel') ||
+    questionLower.includes('tone') ||
+    questionLower.includes('tâm trạng') ||
+    questionLower.includes('cảm')
+  ) {
     return 'Giọng điệu có vẻ tích cực và thân thiện! Họ đang cởi mở và tương tác, đây là dấu hiệu tuyệt vời. Mình khuyên bạn giữ mọi thứ ấm áp và vui vẻ.';
   }
 
-  if (questionLower.includes('strategy') || questionLower.includes('approach') || questionLower.includes('advice') || questionLower.includes('chiến') || questionLower.includes('tư vấn')) {
+  if (
+    questionLower.includes('strategy') ||
+    questionLower.includes('approach') ||
+    questionLower.includes('advice') ||
+    questionLower.includes('chiến') ||
+    questionLower.includes('tư vấn')
+  ) {
     return 'Lời khuyên của mình: Hãy tự nhiên và match phong cách giao tiếp của họ. Họ có vẻ thoải mái với bạn, nên cứ là chính mình. Đặt câu hỏi để thể hiện sự quan tâm, và chia sẻ một chút về bản thân nữa.';
   }
 
   // Check if this is a follow-up question (has chat history)
   if (chatHistory.length > 0) {
-    return `Tiếp tục từ điều mình đã nói - ${question.includes('?') ? 'đúng rồi, ' : ''}mình nghĩ bạn đang đi đúng hướng. Cứ tự nhiên và giữ cuộc trò chuyện cân bằng. Thể hiện sự quan tâm nhưng đừng overthink quá!`;
+    return `Tiếp tục từ điều mình đã nói - ${
+      question.includes('?') ? 'đúng rồi, ' : ''
+    }mình nghĩ bạn đang đi đúng hướng. Cứ tự nhiên và giữ cuộc trò chuyện cân bằng. Thể hiện sự quan tâm nhưng đừng overthink quá!`;
   }
 
   // Default response - check if there's context
   if (contextMessage) {
-    return `Về "${contextMessage.substring(0, 50)}..." - mình thấy đây là một điểm thú vị trong cuộc trò chuyện. Bạn muốn mình phân tích gì cụ thể về nó?`;
+    return `Về "${contextMessage.substring(
+      0,
+      50,
+    )}..." - mình thấy đây là một điểm thú vị trong cuộc trò chuyện. Bạn muốn mình phân tích gì cụ thể về nó?`;
   }
 
   return 'Câu hỏi hay đó! Dựa trên ngữ cảnh cuộc trò chuyện, mọi thứ có vẻ đang tốt. Giữ năng lượng tích cực và là chính mình - đó là cách tiếp cận tốt nhất. Có điều gì cụ thể bạn muốn mình phân tích không?';
@@ -108,8 +166,14 @@ export async function getOpenAIConsultation({
   if (!isEndpointConfigured) {
     console.info('Using mock consultation (API not configured)');
     // Simulate network delay for realistic UX
-    await new Promise<void>(resolve => setTimeout(resolve, 800 + Math.random() * 600));
-    return generateMockConsultation(question || '', contextMessage, chatHistory);
+    await new Promise<void>(resolve =>
+      setTimeout(resolve, 800 + Math.random() * 600),
+    );
+    return generateMockConsultation(
+      question || '',
+      contextMessage,
+      chatHistory,
+    );
   }
 
   try {
@@ -139,7 +203,11 @@ export async function getOpenAIConsultation({
   } catch (error) {
     console.warn('API call failed, falling back to mock consultation:', error);
     await new Promise<void>(resolve => setTimeout(resolve, 300));
-    return generateMockConsultation(question || '', contextMessage, chatHistory);
+    return generateMockConsultation(
+      question || '',
+      contextMessage,
+      chatHistory,
+    );
   }
 }
 
@@ -435,20 +503,58 @@ export async function getCreditsRemaining(
 
 // Direction templates for different response approaches
 const DIRECTION_TEMPLATES: ResponseDirection[] = [
-  { label: 'Confirm enthusiastically', tone: 'excited', emoji: '🎉', description: 'Show excitement about the plans' },
-  { label: 'Ask for details', tone: 'curious', emoji: '🤔', description: 'Get more specifics about timing/place' },
-  { label: 'Playful tease', tone: 'playful', emoji: '😜', description: 'Light teasing to build chemistry' },
-  { label: 'Warm acceptance', tone: 'warm', emoji: '🥰', description: 'Accept warmly and show appreciation' },
-  { label: 'Suggest alternative', tone: 'helpful', emoji: '💡', description: 'Propose a different time or place' },
-  { label: 'Match their energy', tone: 'mirroring', emoji: '🪞', description: 'Reflect their vibe back' },
-  { label: 'Show interest', tone: 'interested', emoji: '😊', description: 'Express genuine interest in them' },
-  { label: 'Keep it casual', tone: 'casual', emoji: '😎', description: 'Low-key response, no pressure' },
+  {
+    label: 'Confirm enthusiastically',
+    tone: 'excited',
+    emoji: '🎉',
+    description: 'Show excitement about the plans',
+  },
+  {
+    label: 'Ask for details',
+    tone: 'curious',
+    emoji: '🤔',
+    description: 'Get more specifics about timing/place',
+  },
+  {
+    label: 'Playful tease',
+    tone: 'playful',
+    emoji: '😜',
+    description: 'Light teasing to build chemistry',
+  },
+  {
+    label: 'Warm acceptance',
+    tone: 'warm',
+    emoji: '🥰',
+    description: 'Accept warmly and show appreciation',
+  },
+  {
+    label: 'Suggest alternative',
+    tone: 'helpful',
+    emoji: '💡',
+    description: 'Propose a different time or place',
+  },
+  {
+    label: 'Match their energy',
+    tone: 'mirroring',
+    emoji: '🪞',
+    description: 'Reflect their vibe back',
+  },
+  {
+    label: 'Show interest',
+    tone: 'interested',
+    emoji: '😊',
+    description: 'Express genuine interest in them',
+  },
+  {
+    label: 'Keep it casual',
+    tone: 'casual',
+    emoji: '😎',
+    description: 'Low-key response, no pressure',
+  },
 ];
 
 // Mock response generator for development/testing
-function generateMockIntentAnalysis(
-  messageText: string,
-): IntentAnalysisResult {
+function generateMockIntentAnalysis(messageText: string): IntentAnalysisResult {
   // Simple heuristics for mock data
   const hasQuestion = messageText.includes('?') || messageText.includes('k');
   const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(messageText);
@@ -478,7 +584,8 @@ function generateMockIntentAnalysis(
   if (hasEmoji) indicators.push('Using expressive language');
   if (wordCount > 3) indicators.push('Investing in their response');
   if (messageLength > 30) indicators.push('Engaging with detailed messages');
-  if (indicators.length === 0) indicators.push('Keeping the conversation going');
+  if (indicators.length === 0)
+    indicators.push('Keeping the conversation going');
 
   const tones = [
     { primary: 'Playful', secondary: 'Friendly' },
@@ -491,9 +598,17 @@ function generateMockIntentAnalysis(
 
   // Generate contextual stateRead based on message content
   const stateReadOptions = [
-    `They seem ${selectedTone.primary.toLowerCase()} and wanting to connect. ${hasQuestion ? 'The question shows they want you involved.' : 'Keep the momentum going!'}`,
+    `They seem ${selectedTone.primary.toLowerCase()} and wanting to connect. ${
+      hasQuestion
+        ? 'The question shows they want you involved.'
+        : 'Keep the momentum going!'
+    }`,
     `Showing clear interest in meeting up. The tone is ${selectedTone.primary.toLowerCase()} and engaging.`,
-    `They're being proactive and keeping the conversation alive. ${interestScore >= 60 ? 'Good sign of genuine interest!' : 'Respond to keep the flow going.'}`,
+    `They're being proactive and keeping the conversation alive. ${
+      interestScore >= 60
+        ? 'Good sign of genuine interest!'
+        : 'Respond to keep the flow going.'
+    }`,
   ];
 
   // Select directions based on context
@@ -527,7 +642,8 @@ function generateMockIntentAnalysis(
     },
 
     // Directions-based actionable fields
-    stateRead: stateReadOptions[Math.floor(Math.random() * stateReadOptions.length)],
+    stateRead:
+      stateReadOptions[Math.floor(Math.random() * stateReadOptions.length)],
     recommendedDirection,
     alternativeDirections,
 
@@ -547,7 +663,10 @@ function generateMockDirectionResponse(
   _messageText: string,
 ): DirectionGenerationResult {
   // Map direction tones to responses with reasoning
-  const responseMap: Record<string, { messages: string[]; reasonings: string[]; emotion: string }> = {
+  const responseMap: Record<
+    string,
+    { messages: string[]; reasonings: string[]; emotion: string }
+  > = {
     excited: {
       messages: [
         'Oke luôn, hẹn gặp nha! 🎉',
@@ -614,15 +733,11 @@ function generateMockDirectionResponse(
       emotion: 'Thoughtful',
     },
     mirroring: {
-      messages: [
-        'Oke e 👍',
-        'Được nha, gặp lúc đó!',
-        'Chắc rồi, hẹn gặp!',
-      ],
+      messages: ['Oke e 👍', 'Được nha, gặp lúc đó!', 'Chắc rồi, hẹn gặp!'],
       reasonings: [
         'Matching their communication style creates rapport',
         'Mirroring energy makes them feel understood',
-        'Simple agreement when appropriate shows you\'re on the same page',
+        "Simple agreement when appropriate shows you're on the same page",
       ],
       emotion: 'Relaxed',
     },
@@ -640,11 +755,7 @@ function generateMockDirectionResponse(
       emotion: 'Interested',
     },
     casual: {
-      messages: [
-        'Oke',
-        'Được, gặp lúc đó nha',
-        'Sure, hẹn gặp 👍',
-      ],
+      messages: ['Oke', 'Được, gặp lúc đó nha', 'Sure, hẹn gặp 👍'],
       reasonings: [
         'Casual response avoids coming on too strong',
         'Low-key energy can be attractive - not desperate',
@@ -684,7 +795,9 @@ export async function generateFromDirection({
   if (!isEndpointConfigured) {
     console.info('Using mock direction generation (API not configured)');
     // Simulate network delay
-    await new Promise<void>(resolve => setTimeout(resolve, 800 + Math.random() * 400));
+    await new Promise<void>(resolve =>
+      setTimeout(resolve, 800 + Math.random() * 400),
+    );
     return generateMockDirectionResponse(direction, messageText);
   }
 
@@ -719,7 +832,7 @@ export async function generateFromDirection({
 // Mock generator for grading user's own messages
 function generateMockMessageGrade(
   messageText: string,
-  context: Message[],
+  // context: Message[],
 ): IntentAnalysisResult {
   const hasQuestion = messageText.includes('?');
   const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(messageText);
@@ -754,7 +867,7 @@ function generateMockMessageGrade(
 
   if (gradeScore >= 80) {
     feedbackOptions.push(
-      'Great response! Clear, warm, and engaging. You\'re keeping the conversation flowing naturally.',
+      "Great response! Clear, warm, and engaging. You're keeping the conversation flowing naturally.",
       'Solid message! Shows interest while staying relaxed. Good balance.',
       'Nice one! Your message is friendly and inviting without being over the top.',
     );
@@ -790,7 +903,8 @@ function generateMockMessageGrade(
       secondary: gradeScore >= 60 ? 'Friendly' : 'Reserved',
       confidence: 75,
     },
-    stateRead: feedbackOptions[Math.floor(Math.random() * feedbackOptions.length)],
+    stateRead:
+      feedbackOptions[Math.floor(Math.random() * feedbackOptions.length)],
     recommendedDirection: DIRECTION_TEMPLATES[0],
     alternativeDirections: [],
     hiddenMeanings: [],
@@ -814,8 +928,10 @@ export async function gradeOwnMessage({
 
   if (!isEndpointConfigured) {
     console.info('Using mock message grading (API not configured)');
-    await new Promise<void>(resolve => setTimeout(resolve, 800 + Math.random() * 400));
-    return generateMockMessageGrade(message.text, context);
+    await new Promise<void>(resolve =>
+      setTimeout(resolve, 800 + Math.random() * 400),
+    );
+    return generateMockMessageGrade(message.text);
   }
 
   try {
@@ -841,7 +957,7 @@ export async function gradeOwnMessage({
   } catch (error) {
     console.warn('API call failed, falling back to mock grading:', error);
     await new Promise<void>(resolve => setTimeout(resolve, 300));
-    return generateMockMessageGrade(message.text, context);
+    return generateMockMessageGrade(message.text);
   }
 }
 
@@ -858,7 +974,9 @@ export async function analyzeMessageIntent({
   if (!isEndpointConfigured) {
     console.info('Using mock intent analysis (API not configured)');
     // Simulate network delay for realistic UX
-    await new Promise<void>(resolve => setTimeout(resolve, 1000 + Math.random() * 500));
+    await new Promise<void>(resolve =>
+      setTimeout(resolve, 1000 + Math.random() * 500),
+    );
     return generateMockIntentAnalysis(message.text);
   }
 

@@ -15,11 +15,16 @@ import {
 import { Room, MatrixEvent, RoomEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import { useKeyboardHeight } from 'src/hooks/useKeyboardHeight';
-import { RoomTimeline, RoomInput, RoomViewHeader } from 'src/components/room';
 import {
   AIAssistantProvider,
   useAIAssistant,
 } from 'src/hooks/context/AIAssistantContext';
+import {
+  RoomTimeline,
+  RoomInput,
+  RoomViewHeader,
+  RoomOptionsModal,
+} from 'src/components/room';
 import { ReplyProvider } from 'src/hooks/context/ReplyContext';
 import { InputHeightProvider } from 'src/hooks/context/InputHeightContext';
 import LinearGradient from 'react-native-linear-gradient';
@@ -52,6 +57,7 @@ export function DirectMessageDetailScreen({
 }: DirectMessageDetailScreenProps) {
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
   const mx = getMatrixClient();
 
   useEffect(() => {
@@ -115,6 +121,14 @@ export function DirectMessageDetailScreen({
     .runOnJS(true);
 
   const keyboardHeight = useKeyboardHeight({ defaultPadding: 32 });
+
+  const handleOptionsPress = () => {
+    setShowOptionsModal(true);
+  };
+
+  const handleCloseOptionsModal = () => {
+    setShowOptionsModal(false);
+  };
 
   if (loading) {
     return (
@@ -188,7 +202,11 @@ export function DirectMessageDetailScreen({
                 </View>
 
                 {/* Header - solid bar with glass pills */}
-                <RoomViewHeader room={room} onBack={onBack} />
+                <RoomViewHeader
+                  room={room}
+                  onBack={onBack}
+                  onOptionsPress={handleOptionsPress}
+                />
               </InputHeightProvider>
               <IntentAnalysisOverlay />
               <AIAssistantModalWrapper room={room} />
@@ -196,6 +214,13 @@ export function DirectMessageDetailScreen({
           </ReplyProvider>
         </View>
       </GestureDetector>
+
+      <RoomOptionsModal
+        visible={showOptionsModal}
+        room={room}
+        onClose={handleCloseOptionsModal}
+        onBlock={onBack}
+      />
     </GestureHandlerRootView>
   );
 }

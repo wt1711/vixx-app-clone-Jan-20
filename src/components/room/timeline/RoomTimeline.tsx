@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+} from 'react';
 import {
   StyleSheet,
   View,
@@ -6,17 +12,15 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
-  Animated,
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
 import { getMatrixClient } from 'src/services/matrixClient';
 import {
-  getEventReactions,
-  getReactionContent,
   isFounderRoom,
   getMessageBurstContaining,
   getAllBursts,
 } from 'src/utils/room';
+import { getEventReactions, getReactionContent } from 'src/utils/message';
 import { MessageEvent } from 'src/types';
 import { MessageItem, RoomTimelineProps } from '../types';
 import {
@@ -196,7 +200,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
       analyzedBurstsRef.current.add(firstEventId);
       analyzeBurst(burst, isOwnBurst);
     }
-  }, [allBursts, loading, analyzeBurst, isAnalysisModeActive]);
+  }, [allBursts, loading, analyzeBurst, isAnalysisModeActive, messages]);
 
   // ─── Dynamic content container style - paddingTop is visual bottom in inverted list
   const listContentStyle = useMemo(
@@ -351,7 +355,7 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   }, [messages]);
 
   // ─── Founder Room Check ─────────────────────────────────────────────────────
-  const isFounderRoomChat = isFounderRoom(room.name);
+  const isFounderRoomChat = isFounderRoom(room);
 
   // ─── Render Helpers ─────────────────────────────────────────────────────────
   const renderHeader = useCallback(() => {
@@ -381,16 +385,25 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
   );
 
   const renderMessage = useCallback(
-    ({ item, index }: { item: MessageItem; index: number }) => {
+    ({ item }: { item: MessageItem; index: number }) => {
       // Check if this message is the first of any burst (should show interest badge)
       const isFirstOfBurst = burstFirstEventIds.has(item.eventId);
 
       // Get the burst analysis for this message's burst (only when analysis mode is active)
-      const burstAnalysis = isAnalysisModeActive && isFirstOfBurst ? burstAnalyses.get(item.eventId) : undefined;
-      const isAnalyzing = isAnalysisModeActive && isFirstOfBurst && analyzingBurstIds.has(item.eventId);
+      const burstAnalysis =
+        isAnalysisModeActive && isFirstOfBurst
+          ? burstAnalyses.get(item.eventId)
+          : undefined;
+      const isAnalyzing =
+        isAnalysisModeActive &&
+        isFirstOfBurst &&
+        analyzingBurstIds.has(item.eventId);
 
       // Classify the moment - only show when analysis mode is active (sparse by design)
-      const smartMoment = isAnalysisModeActive && burstAnalysis ? classifyMoment(burstAnalysis) : null;
+      const smartMoment =
+        isAnalysisModeActive && burstAnalysis
+          ? classifyMoment(burstAnalysis)
+          : null;
 
       return (
         <MessageItemComponent
@@ -411,7 +424,11 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
           // Smart Moment badge props - only show for significant moments (sparse)
           smartMoment={smartMoment}
           isAnalyzingMoment={isAnalyzing}
-          onSmartMomentPress={smartMoment || isAnalyzing ? () => handleInterestBadgePress(item) : undefined}
+          onSmartMomentPress={
+            smartMoment || isAnalyzing
+              ? () => handleInterestBadgePress(item)
+              : undefined
+          }
         />
       );
     },
@@ -500,7 +517,6 @@ export function RoomTimeline({ room, eventId }: RoomTimelineProps) {
         visible={viewingImageUrl !== null}
         onRequestClose={closeImageViewer}
       />
-
     </>
   );
 }

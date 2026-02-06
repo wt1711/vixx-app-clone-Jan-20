@@ -11,7 +11,7 @@ export { ScrollToBottomButton } from './timeline';
 export { FounderWelcomeCard } from './timeline';
 
 // Header components
-export { RoomViewHeader } from './header';
+export { RoomViewHeader, RoomOptionsModal } from './header';
 
 // List components
 export { RoomListItem } from './list';
