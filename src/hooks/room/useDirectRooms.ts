@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Room, RoomEvent, ClientEvent, MatrixEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import {
-  isBotPrivateChat,
+  isBotRoom,
   isInvite,
   isValidRoom,
   isGroupChatRoom,
@@ -81,7 +81,7 @@ export const useDirectRooms = () => {
       room =>
         isValidRoom(room) &&
         !mDirects.has(room.roomId) &&
-        !isBotPrivateChat(room?.name) &&
+        !isBotRoom(room) &&
         !isGroupChatRoom(room),
     );
 

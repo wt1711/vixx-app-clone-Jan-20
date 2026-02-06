@@ -199,7 +199,7 @@ export const getLastRoomMessageAsync = async (
 export const isMessageFromMe = (
   sender: string,
   myUserId: string | null | undefined,
-  roomName: string,
+  room: Room | null,
   senderName: string,
 ): boolean => {
   // Primary: check sender ID directly
@@ -207,12 +207,12 @@ export const isMessageFromMe = (
     return true;
   }
   // Messages from founder in founder room are not from me
-  if (isFounderRoom(roomName) && sender === FOUNDER_MATRIX_ID) {
+  if (isFounderRoom(room) && sender === FOUNDER_MATRIX_ID) {
     return false;
   }
   // Fallback for DMs: if sender name matches room name, it's from the other person
   // In DMs, room name = other person's name, so if sender name differs, it's from me
-
+  const roomName = room?.name;
   if (roomName && senderName) {
     return roomName !== senderName;
   }

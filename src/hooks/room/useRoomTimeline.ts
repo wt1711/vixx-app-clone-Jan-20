@@ -81,13 +81,7 @@ export function useRoomTimeline({
       const senderMember = room.getMember(sender);
       const senderName =
         senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
-      const roomName = room.name || 'Unknown';
-      const isOwn = isMessageFromMe(
-        sender,
-        mx.getUserId(),
-        roomName,
-        senderName,
-      );
+      const isOwn = isMessageFromMe(sender, mx.getUserId(), room, senderName);
       const avatarUrl = isOwn
         ? undefined
         : getMemberAvatarMxc(mx, room, sender) ||
@@ -245,7 +239,7 @@ export function useRoomTimeline({
           const replyIsOwn = isMessageFromMe(
             replySender,
             mx.getUserId(),
-            roomName,
+            room,
             replySenderName,
           );
 

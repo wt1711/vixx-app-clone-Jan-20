@@ -13,17 +13,10 @@ import {
 } from 'src/config/founder';
 import { isBotUser, getImpersonatedUserId } from 'src/utils/user';
 
-/**
- * Check if a room is the founder/team chat room (supports both old and new names)
- */
-export const isFounderRoom = (roomName: string | undefined): boolean => {
-  if (
-    roomName &&
-    [FOUNDER_ROOM_NAME, FOUNDER_ROOM_NAME_LEGACY].includes(roomName)
-  )
-    return true;
-  return false;
-};
+const BOT_ROOM_PATTERNS: RegExp[] = [/Meta bot Room/i, /Instagram Bot Room/i];
+
+export const isBotRoom = (room: Room | null): boolean =>
+  !!room?.name && BOT_ROOM_PATTERNS.some(pattern => pattern.test(room.name));
 
 /**
  * Check if a room is a metabot system room
@@ -31,6 +24,10 @@ export const isFounderRoom = (roomName: string | undefined): boolean => {
 const isMetabotRoom = (room: Room | null): boolean => {
   return (!!room && room.name.startsWith('@metabot')) ?? false;
 };
+
+export const isFounderRoom = (room: Room | null): boolean =>
+  !!room?.name &&
+  [FOUNDER_ROOM_NAME, FOUNDER_ROOM_NAME_LEGACY].includes(room.name);
 
 /**
  * Check if a room is a Space (organizational container, not a chat room)
@@ -49,8 +46,6 @@ export const isGroupChatRoom = (room: Room | null): boolean => {
 export const isValidRoom = (room: Room | null): boolean => {
   return !!room && !isMetabotRoom(room) && !isSpaceRoom(room);
 };
-
-const BOT_ROOM_PATTERNS: RegExp[] = [/Meta bot Room/i, /Instagram Bot Room/i];
 
 const hasInviteMembership = (room: Room): boolean =>
   room && room.getMyMembership() === Membership.Invite;
@@ -74,9 +69,6 @@ export const isInvite = (room: Room | null): boolean => {
     !isBotInviter(room)
   );
 };
-
-export const isBotPrivateChat = (roomName: string | undefined): boolean =>
-  !!roomName && BOT_ROOM_PATTERNS.some(pattern => pattern.test(roomName));
 
 /**
  * Extracts initials from a name string
@@ -111,7 +103,7 @@ export const getRoomAvatarUrl = (
     : undefined;
 
   // Fallback to founder avatar if this is the founder room
-  if (!avatarUrl && isFounderRoom(room.name)) {
+  if (!avatarUrl && isFounderRoom(room)) {
     return FOUNDER_AVATAR_URL;
   }
 
