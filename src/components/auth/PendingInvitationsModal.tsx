@@ -23,191 +23,236 @@ import { usePendingMetabotRoomsContext } from 'src/hooks/context/PendingMetabotR
 import { useDirectRooms } from 'src/hooks/room/useDirectRooms';
 import { getMatrixClient } from 'src/services/matrixClient';
 
-/**
- * PendingInvitationsModal - "The UI"
- * Shows pending metabot rooms that have been auto-joined but not yet accepted
- * Uses the pending rooms context to get the list of rooms
- */
-const PendingInvitationsModal = ({
-  onClose,
-}: {
+// ============================================================================
+// Types
+// ============================================================================
+
+interface PendingInvitationsModalProps {
   onClose: () => void;
-}) => {
+}
+
+interface RoomRowProps {
+  item: RoomItemData;
+  isLast: boolean;
+  isProcessing: boolean;
+  onPress: () => void;
+}
+
+// ============================================================================
+// Sub-components
+// ============================================================================
+
+const SuccessToast = ({ name }: { name: string }) => (
+  <View style={styles.toast}>
+    <Check color={colors.status.online} size={24} />
+    <View style={styles.toastContent}>
+      <Text style={styles.toastTitle}>{name} added</Text>
+    </View>
+  </View>
+);
+
+const SearchInput = ({
+  value,
+  onChangeText,
+}: {
+  value: string;
+  onChangeText: (text: string) => void;
+}) => (
+  <View style={styles.searchContainer}>
+    {value.length === 0 && (
+      <View style={styles.searchPlaceholder} pointerEvents="none">
+        <Search color={colors.text.secondary} size={18} />
+        <Text style={styles.searchPlaceholderText}>Search</Text>
+      </View>
+    )}
+    <TextInput
+      style={styles.searchInput}
+      value={value}
+      onChangeText={onChangeText}
+    />
+  </View>
+);
+
+const RoomRow = ({ item, isLast, isProcessing, onPress }: RoomRowProps) => (
+  <TouchableOpacity
+    style={[styles.roomItem, !isLast && styles.roomItemBorder]}
+    onPress={onPress}
+    disabled={isProcessing}
+    activeOpacity={0.6}
+  >
+    <View style={styles.avatarContainer}>
+      {item.avatarUrl ? (
+        <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
+      ) : (
+        <View style={[styles.avatar, styles.avatarPlaceholder]}>
+          <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
+        </View>
+      )}
+    </View>
+
+    <View style={styles.roomInfo}>
+      <Text style={styles.roomName} numberOfLines={1}>
+        {item.name}
+      </Text>
+    </View>
+
+    <TouchableOpacity
+      style={styles.addButton}
+      onPress={onPress}
+      disabled={isProcessing}
+      activeOpacity={0.7}
+    >
+      {isProcessing ? (
+        <ActivityIndicator size="small" color={colors.text.primary} />
+      ) : (
+        <Text style={styles.addButtonText}>Add</Text>
+      )}
+    </TouchableOpacity>
+  </TouchableOpacity>
+);
+
+const EmptyState = ({ hasSearch }: { hasSearch: boolean }) => (
+  <View style={styles.emptyContainer}>
+    <Text style={styles.emptyText}>
+      {hasSearch ? 'No rooms found' : 'No pending invitations'}
+    </Text>
+  </View>
+);
+
+// ============================================================================
+// Hooks
+// ============================================================================
+
+const useRoomItems = () => {
   const mx = getMatrixClient();
-  const { pendingRooms, removePendingRoom } = usePendingMetabotRoomsContext();
+  const { pendingRooms } = usePendingMetabotRoomsContext();
   const { invitedRooms } = useDirectRooms();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
-  const [successBanner, setSuccessBanner] = useState<string | null>(null);
-  const insets = useSafeAreaInsets();
-
-  // Convert pending rooms AND invited rooms to room items for display
-  const roomItems = useMemo(() => {
+  return useMemo(() => {
     if (!mx) return [];
 
     const items: RoomItemData[] = [];
     const addedRoomIds = new Set<string>();
 
-    // Add pending metabot rooms first
+    // Add pending metabot rooms
     pendingRooms.forEach((data, roomId) => {
       const room = mx.getRoom(roomId);
       if (!room) return;
 
-      const name = getRoomDisplayName(room, mx);
-      const avatarUrl = getRoomAvatarUrl(mx, room, 96, true);
-      const unreadCount = room.getUnreadNotificationCount() || 0;
-
       items.push({
         roomId,
         room,
-        name,
+        name: getRoomDisplayName(room, mx),
         lastMessage: '',
         lastEventTime: data.timestamp || room.getLastActiveTimestamp() || 0,
-        unreadCount,
-        avatarUrl,
+        unreadCount: room.getUnreadNotificationCount() || 0,
+        avatarUrl: getRoomAvatarUrl(mx, room, 96, true),
       });
       addedRoomIds.add(roomId);
     });
 
-    // Add regular invited rooms (that aren't already in pending)
+    // Add regular invited rooms
     for (const room of invitedRooms) {
       if (addedRoomIds.has(room.roomId)) continue;
-
-      const name = getRoomDisplayName(room, mx);
-      const avatarUrl = getRoomAvatarUrl(mx, room, 96, true);
-      const unreadCount = room.getUnreadNotificationCount() || 0;
 
       items.push({
         roomId: room.roomId,
         room,
-        name,
+        name: getRoomDisplayName(room, mx),
         lastMessage: '',
         lastEventTime: room.getLastActiveTimestamp() || 0,
-        unreadCount,
-        avatarUrl,
+        unreadCount: room.getUnreadNotificationCount() || 0,
+        avatarUrl: getRoomAvatarUrl(mx, room, 96, true),
       });
     }
 
-    // Sort by timestamp (most recent first)
     return items.sort((a, b) => (b.lastEventTime || 0) - (a.lastEventTime || 0));
   }, [mx, pendingRooms, invitedRooms]);
+};
 
-  // Filter rooms by search query
+// ============================================================================
+// Main Component
+// ============================================================================
+
+const PendingInvitationsModal = ({ onClose }: PendingInvitationsModalProps) => {
+  const mx = getMatrixClient();
+  const { pendingRooms, removePendingRoom } = usePendingMetabotRoomsContext();
+  const insets = useSafeAreaInsets();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  const roomItems = useRoomItems();
+
   const filteredRooms = useMemo(() => {
     if (!searchQuery) return roomItems;
-    return roomItems.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    const query = searchQuery.toLowerCase();
+    return roomItems.filter(item => item.name.toLowerCase().includes(query));
   }, [roomItems, searchQuery]);
 
-  // Handle accept action - works for both pending metabot rooms and regular invites
-  const handleAccept = useCallback(async (room: Room) => {
-    if (!mx || processingIds.has(room.roomId)) return;
+  const handleAccept = useCallback(
+    async (room: Room) => {
+      if (!mx || processingIds.has(room.roomId)) return;
 
-    const isPending = pendingRooms.has(room.roomId);
-    const roomName = getRoomDisplayName(room, mx);
+      const isPending = pendingRooms.has(room.roomId);
+      const roomName = getRoomDisplayName(room, mx);
 
-    // Step 1: Add to processing (show spinner)
-    setProcessingIds(prev => new Set(prev).add(room.roomId));
+      setProcessingIds(prev => new Set(prev).add(room.roomId));
 
-    try {
-      if (isPending) {
-        // Pending metabot room - already joined, just remove from pending
-        removePendingRoom(room.roomId);
-      } else {
-        // Regular invite - need to join the room
-        await mx.joinRoom(room.roomId);
+      try {
+        if (isPending) {
+          removePendingRoom(room.roomId);
+        } else {
+          await mx.joinRoom(room.roomId);
+        }
+
+        await new Promise<void>(resolve => setTimeout(resolve, 0));
+        setSuccessBanner(roomName);
+        setTimeout(() => setSuccessBanner(null), 5000);
+      } catch (error: any) {
+        console.error('Failed to accept room:', error);
+        Alert.alert('Error', error.message || 'Failed to add');
+      } finally {
+        setProcessingIds(prev => {
+          const next = new Set(prev);
+          next.delete(room.roomId);
+          return next;
+        });
       }
+    },
+    [mx, processingIds, pendingRooms, removePendingRoom],
+  );
 
-      // Allow state to propagate
-      await new Promise<void>(resolve => setTimeout(resolve, 0));
-
-      // Show success banner
-      setSuccessBanner(roomName);
-      setTimeout(() => setSuccessBanner(null), 5000);
-    } catch (error: any) {
-      console.error('Failed to accept room:', error);
-      Alert.alert('Error', error.message || 'Failed to add');
-    } finally {
-      // Remove from processing
-      setProcessingIds(prev => {
-        const next = new Set(prev);
-        next.delete(room.roomId);
-        return next;
+  const confirmAccept = useCallback(
+    (room: Room) => {
+      ReactNativeHapticFeedback.trigger('impactLight', {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
       });
-    }
-  }, [mx, processingIds, pendingRooms, removePendingRoom]);
+      const name = getRoomDisplayName(room, mx);
+      Alert.alert('', `Add ${name || 'this conversation'} to your list?`, [
+        { text: 'Yes', onPress: () => handleAccept(room) },
+        { text: 'No', style: 'cancel' },
+      ]);
+    },
+    [handleAccept, mx],
+  );
 
-  const confirmAccept = useCallback((room: Room) => {
-    ReactNativeHapticFeedback.trigger('impactLight', {
-      enableVibrateFallback: true,
-      ignoreAndroidSystemSettings: false,
-    });
-    const name = getRoomDisplayName(room, mx);
-    Alert.alert('', `Add ${name || 'this conversation'} to your list?`, [
-      { text: 'Yes', onPress: () => handleAccept(room) },
-      { text: 'No', style: 'cancel' },
-    ]);
-  }, [handleAccept, mx]);
-
-  const renderItem = useCallback(({
-    item,
-    index,
-  }: {
-    item: RoomItemData;
-    index: number;
-  }) => {
-    const isProcessing = processingIds.has(item.roomId);
-    const isLast = index === filteredRooms.length - 1;
-
-    return (
-      <TouchableOpacity
-        style={[styles.roomItem, !isLast && styles.roomItemBorder]}
+  const renderItem = useCallback(
+    ({ item, index }: { item: RoomItemData; index: number }) => (
+      <RoomRow
+        item={item}
+        isLast={index === filteredRooms.length - 1}
+        isProcessing={processingIds.has(item.roomId)}
         onPress={() => confirmAccept(item.room)}
-        disabled={isProcessing}
-        activeOpacity={0.6}
-      >
-        {/* Avatar */}
-        <View style={styles.avatarContainer}>
-          {item.avatarUrl ? (
-            <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Room Name */}
-        <View style={styles.roomInfo}>
-          <Text style={styles.roomName} numberOfLines={1}>
-            {item.name}
-          </Text>
-        </View>
-
-        {/* Add button - Spotify style */}
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => confirmAccept(item.room)}
-          disabled={isProcessing}
-          activeOpacity={0.7}
-        >
-          {isProcessing ? (
-            <ActivityIndicator size="small" color={colors.text.primary} />
-          ) : (
-            <Text style={styles.addButtonText}>Add</Text>
-          )}
-        </TouchableOpacity>
-      </TouchableOpacity>
-    );
-  }, [processingIds, filteredRooms.length, confirmAccept]);
-
-  const keyExtractor = useCallback((item: RoomItemData) => item.roomId, []);
+      />
+    ),
+    [filteredRooms.length, processingIds, confirmAccept],
+  );
 
   return (
     <View style={styles.container}>
-      {/* Subtle gradient for glass refraction effect */}
       <LinearGradient
         colors={[...gradients.screenDark]}
         locations={[0, 0.5, 1]}
@@ -216,9 +261,8 @@ const PendingInvitationsModal = ({
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Header - flat title like Chats header */}
+      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        {/* Back pill - liquid glass */}
         <LiquidGlassButton
           style={styles.backPill}
           contentStyle={styles.backPillContent}
@@ -227,64 +271,37 @@ const PendingInvitationsModal = ({
         >
           <ChevronLeft color={colors.text.primary} size={24} />
         </LiquidGlassButton>
-
-        {/* Flat title - like Chats header */}
         <Text style={styles.headerTitle}>Add Chat</Text>
-
-        {/* Spacer for balance */}
         <View style={styles.headerSpacer} />
       </View>
 
       {/* Content */}
       <View style={styles.content}>
-        {/* Success Toast */}
-        {successBanner ? (
-          <View style={styles.successfullyAddedToast}>
-            <Check color={colors.status.online} size={24} />
-            <View style={styles.toastContent}>
-              <Text style={styles.toastTitle}>{successBanner} added</Text>
-            </View>
-          </View>
-        ) : null}
+        {successBanner && <SuccessToast name={successBanner} />}
+        <SearchInput value={searchQuery} onChangeText={setSearchQuery} />
 
-        {/* Search Input - icon next to placeholder text */}
-        <View style={styles.searchContainer}>
-          {searchQuery.length === 0 && (
-            <View style={styles.searchPlaceholder} pointerEvents="none">
-              <Search color={colors.text.secondary} size={18} />
-              <Text style={styles.searchPlaceholderText}>Search</Text>
-            </View>
-          )}
-          <TextInput
-            style={styles.searchInput}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-
-        {/* List with inverted border for recessed effect */}
         {filteredRooms.length > 0 ? (
           <View style={styles.listSection}>
             <FlatList
               data={filteredRooms}
               renderItem={renderItem}
-              keyExtractor={keyExtractor}
+              keyExtractor={item => item.roomId}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               extraData={processingIds}
             />
           </View>
         ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              {searchQuery ? 'No rooms found' : 'No pending invitations'}
-            </Text>
-          </View>
+          <EmptyState hasSearch={!!searchQuery} />
         )}
       </View>
     </View>
   );
 };
+
+// ============================================================================
+// Styles
+// ============================================================================
 
 const styles = StyleSheet.create({
   container: {
@@ -321,7 +338,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  successfullyAddedToast: {
+  toast: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
@@ -374,7 +391,6 @@ const styles = StyleSheet.create({
   listSection: {
     flex: 1,
     borderRadius: 12,
-    // Inverted border lighting - darker on top/left (shadowed), lighter on bottom/right
     borderWidth: 1,
     borderTopColor: colors.transparent.black30,
     borderLeftColor: colors.transparent.black20,
