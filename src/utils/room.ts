@@ -6,14 +6,12 @@ import {
   RoomMember,
   RoomType,
 } from 'matrix-js-sdk';
-import { StateEvent, MessageEvent, Membership } from 'src/types';
+import { StateEvent, Membership } from 'src/types';
 import {
   FOUNDER_ROOM_NAME,
   FOUNDER_ROOM_NAME_LEGACY,
   FOUNDER_AVATAR_URL,
 } from 'src/config/founder';
-import { parseRelativeTime } from 'src/utils/parsers/timeParser';
-import { shouldHideMessage } from 'src/utils/message';
 
 /**
  * Extracts initials from a name string
@@ -211,40 +209,4 @@ export interface RoomListItem {
 
   /** Whether the room has unread messages */
   unread: boolean;
-}
-
-/**
- * Transforms a Matrix Room into a UI-ready RoomListItem
- */
-export function transformRoom(room: Room, client: MatrixClient): RoomListItem {
-  // Find the last actual message (MessageEvent.RoomMessage), not state events
-  let lastMessage = 'No messages';
-  const timeline = room.getLiveTimeline().getEvents();
-
-  for (let i = timeline.length - 1; i >= 0; i--) {
-    const event = timeline[i];
-    if (event.getType() === MessageEvent.RoomMessage) {
-      const body = event.getContent()?.body || '';
-      // Skip hidden bot messages
-      if (body && !shouldHideMessage(body)) {
-        lastMessage = body;
-        break;
-      }
-    }
-  }
-
-  let avatar = '';
-  const avatarUrl = room.getAvatarUrl(client.baseUrl, 96, 96, 'crop');
-  if (avatarUrl) {
-    avatar = avatarUrl;
-  }
-
-  return {
-    id: room.roomId,
-    name: room.name || 'Unnamed Room',
-    avatar,
-    lastMessage,
-    timestamp: parseRelativeTime(room.getLastActiveTimestamp()),
-    unread: room.getUnreadNotificationCount() > 0,
-  };
 }
