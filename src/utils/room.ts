@@ -11,7 +11,17 @@ import {
   FOUNDER_ROOM_NAME_LEGACY,
   FOUNDER_AVATAR_URL,
 } from 'src/config/founder';
-import { isBotUser, getImpersonatedUserId } from 'src/utils/user';
+import { isBotUser } from 'src/utils/user';
+
+const getStateEvent = (
+  room: Room,
+  eventType: StateEvent,
+  stateKey = '',
+): MatrixEvent | undefined =>
+  room
+    .getLiveTimeline()
+    .getState(EventTimeline.FORWARDS)
+    ?.getStateEvents(eventType, stateKey) ?? undefined;
 
 const BOT_ROOM_PATTERNS: RegExp[] = [/Meta bot Room/i, /Instagram Bot Room/i];
 
@@ -112,40 +122,6 @@ export const getRoomAvatarUrl = (
     return undefined;
   }
 
-  return `${avatarUrl}&access_token=${mx.getAccessToken()}`;
-};
-
-const getStateEvent = (
-  room: Room,
-  eventType: StateEvent,
-  stateKey = '',
-): MatrixEvent | undefined =>
-  room
-    .getLiveTimeline()
-    .getState(EventTimeline.FORWARDS)
-    ?.getStateEvents(eventType, stateKey) ?? undefined;
-
-export const getMemberAvatarMxc = (
-  mx: MatrixClient,
-  room: Room,
-  userId: string,
-): string | undefined => {
-  // const member = room.getMember(userId); // Revert back to this if needed
-  const member = room.getMember(
-    getImpersonatedUserId(userId, room.getMembers()),
-  );
-  const avatarMxc = member?.getMxcAvatarUrl();
-  if (!avatarMxc) return undefined;
-  const avatarUrl = mx.mxcUrlToHttp(
-    avatarMxc,
-    96,
-    96,
-    'crop',
-    undefined,
-    false,
-    true,
-  );
-  if (!avatarUrl) return undefined;
   return `${avatarUrl}&access_token=${mx.getAccessToken()}`;
 };
 

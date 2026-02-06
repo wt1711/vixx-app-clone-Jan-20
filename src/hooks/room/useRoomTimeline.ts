@@ -8,7 +8,8 @@ import {
 } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import { MsgType, MessageEvent, ContentKey } from 'src/types';
-import { getMemberAvatarMxc, getRoomAvatarUrl } from 'src/utils/room';
+import { getRoomAvatarUrl } from 'src/utils/room';
+import { getMemberAvatarUrl } from 'src/utils/user';
 import { messageEventOnly, isMessageFromMe } from 'src/utils/message';
 import { MessageItem, ReplyToData } from 'src/components/room/types';
 import { getReactionsForEvent } from 'src/components/room/utils';
@@ -84,7 +85,7 @@ export function useRoomTimeline({
       const isOwn = isMessageFromMe(sender, mx.getUserId(), room, senderName);
       const avatarUrl = isOwn
         ? undefined
-        : getMemberAvatarMxc(mx, room, sender) ||
+        : getMemberAvatarUrl(mx, room, sender) ||
           getRoomAvatarUrl(mx, room, 96, true);
 
       let contentText = '';
