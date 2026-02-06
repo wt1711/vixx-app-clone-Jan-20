@@ -136,7 +136,7 @@ export const usePendingMetabotRooms = () => {
 
             const hasGoodName = !isMetabotNameRoom(room.name);
             const displayName = getRoomDisplayName(room, mx);
-            const hasGoodDisplayName = !displayName.startsWith('@metabot');
+            const hasGoodDisplayName = !isMetabotNameRoom(displayName);
 
             if (hasGoodName || hasGoodDisplayName) {
               resolve(true);

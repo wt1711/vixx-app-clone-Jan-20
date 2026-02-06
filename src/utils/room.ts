@@ -142,7 +142,7 @@ export const getRoomDisplayName = (
   }
 
   // Final fallback - clean up the user ID display
-  if (roomName && roomName.startsWith('@metabot')) {
+  if (isMetabotNameRoom(roomName)) {
     return 'Metabot Chat';
   }
 
