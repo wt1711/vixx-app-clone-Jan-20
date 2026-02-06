@@ -145,16 +145,6 @@ const findLastMessageInEvents = (
 };
 
 /**
- * Gets the last user message from a room timeline, skipping state events and notices.
- * Synchonous version - only checks currently loaded events.
- */
-export const getLastRoomMessage = (room: Room): LastMessageInfo => {
-  const timeline = room.getLiveTimeline().getEvents();
-  const result = findLastMessageInEvents(timeline);
-  return result || { message: '', timestamp: 0 };
-};
-
-/**
  * Gets the last user message, paginating backwards if needed.
  * Use this when you need to ensure a message is found.
  */

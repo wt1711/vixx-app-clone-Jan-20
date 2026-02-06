@@ -13,14 +13,14 @@ const BOT_USER_PATTERNS: RegExp[] = [
 export const isBotUser = (userId: string): boolean =>
   BOT_USER_PATTERNS.some(pattern => pattern.test(userId));
 
-export const isMatrixUserId = (userId: string): boolean =>
-  !userId.includes('meta');
+const isMetaBridgedUser = (userId: string): boolean =>
+  !!userId.match(/^@meta_\d+:/);
 
-export const getImpersonatedUserId = (
+const getImpersonatedUserId = (
   userId: string,
   members: RoomMember[],
 ): string => {
-  if (members && isMatrixUserId(userId)) {
+  if (members && !isMetaBridgedUser(userId)) {
     return members.find(member => member.userId === userId)?.userId || userId;
   }
   return userId || '';

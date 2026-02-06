@@ -81,6 +81,70 @@ export const isValidInvitedRoom = (room: Room | null): boolean => {
 };
 
 /**
+ * Gets the display name for a room, falling back to other members or metadata
+ * Handles cases where room.name returns a Matrix user ID (e.g., @metabot:server.com)
+ * Works for both invite and joined rooms
+ */
+export const getRoomDisplayName = (
+  room: Room,
+  mx?: MatrixClient | null,
+): string => {
+  const roomName = room.name;
+
+  // If we have a proper room name (not a user ID), use it
+  if (roomName && !roomName.startsWith('@')) {
+    return roomName;
+  }
+
+  // For any room (invite or joined), try to find other members (non-bot, non-me)
+  if (mx) {
+    const myUserId = mx.getUserId();
+    const allMembers = room.getMembers();
+
+    // Look for a member that isn't me and isn't a bot
+    const otherMember = allMembers.find(member => {
+      if (!member.userId || member.userId === myUserId) return false;
+      // Skip metabot users
+      if (member.userId.includes('metabot')) return false;
+      // Skip other common bot patterns
+      if (member.userId.match(/@.*bot:/i)) return false;
+      return true;
+    });
+
+    if (otherMember) {
+      return (
+        otherMember.rawDisplayName || otherMember.name || roomName || 'Unknown'
+      );
+    }
+
+    // If no other members, check room topic
+    const topicEvent = getStateEvent(room, StateEvent.RoomTopic);
+    if (topicEvent) {
+      const topic = topicEvent.getContent()?.topic;
+      if (topic && topic.trim()) {
+        return topic;
+      }
+    }
+  }
+
+  // Try getDMInviter for DM rooms (fallback)
+  const dmInviterId = room.getDMInviter();
+  if (dmInviterId && !dmInviterId.includes('metabot')) {
+    const member = room.getMember(dmInviterId);
+    if (member) {
+      return member.rawDisplayName || member.name || roomName || 'Unknown';
+    }
+  }
+
+  // Final fallback - clean up the user ID display
+  if (roomName && roomName.startsWith('@metabot')) {
+    return 'Metabot Chat';
+  }
+
+  return roomName || 'Unknown';
+};
+
+/**
  * Extracts initials from a name string
  * Takes first letter of each word, up to 2 characters
  */
