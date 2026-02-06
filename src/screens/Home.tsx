@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuth } from 'src/hooks/context/AuthContext';
+import { PendingMetabotRoomsProvider } from 'src/hooks/context/PendingMetabotRoomsContext';
 import Login from 'src/screens/Login';
 import { AppNavigator } from 'src/screens/AppNavigator';
 import { LoadingScreen } from 'src/components/common/LoadingScreen';
@@ -18,7 +19,9 @@ export default function Home() {
         ) : !matrixToken ? (
           <Login />
         ) : (
-          <AppNavigator />
+          <PendingMetabotRoomsProvider>
+            <AppNavigator />
+          </PendingMetabotRoomsProvider>
         )}
       </SafeAreaProvider>
     </View>

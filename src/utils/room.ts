@@ -29,10 +29,11 @@ export const isBotRoom = (room: Room | null): boolean =>
   !!room?.name && BOT_ROOM_PATTERNS.some(pattern => pattern.test(room.name));
 
 /**
- * Check if a room is a metabot system room
+ * Check if a room name indicates a metabot system room
+ * @param roomName - The room name string to check
  */
-const isMetabotRoom = (room: Room | null): boolean => {
-  return (!!room && room.name.startsWith('@metabot')) ?? false;
+export const isMetabotNameRoom = (roomName: string | null | undefined): boolean => {
+  return !!roomName && roomName.startsWith('@metabot');
 };
 
 export const isFounderRoom = (room: Room | null): boolean =>
@@ -54,7 +55,11 @@ export const isGroupChatRoom = (room: Room | null): boolean => {
 };
 
 export const isValidRoom = (room: Room | null): boolean => {
-  return !!room && !isMetabotRoom(room) && !isSpaceRoom(room);
+  return (
+    !!room &&
+    // && !isMetabotNameRoom(room.name)
+    !isSpaceRoom(room)
+  );
 };
 
 const hasInviteMembership = (room: Room): boolean =>
