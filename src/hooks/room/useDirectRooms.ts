@@ -1,13 +1,36 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Room, RoomEvent, ClientEvent } from 'matrix-js-sdk';
+import { Room, RoomEvent, ClientEvent, MatrixEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import {
   IsBotPrivateChat,
   isInvite,
   isRoom,
-  useMDirects,
   isGroupChatRoom,
 } from 'src/utils/room';
+import { AccountDataType } from 'src/types';
+
+/**
+ * Get m.direct account data and extract direct room IDs
+ */
+const getMDirects = (mDirectEvent: MatrixEvent | undefined): Set<string> => {
+  const roomIds = new Set<string>();
+  if (!mDirectEvent) return roomIds;
+
+  const userIdToDirects = mDirectEvent.getContent();
+
+  if (userIdToDirects === undefined) return roomIds;
+
+  Object.keys(userIdToDirects).forEach(userId => {
+    const directs = userIdToDirects[userId];
+    if (Array.isArray(directs)) {
+      directs.forEach(id => {
+        if (typeof id === 'string') roomIds.add(id);
+      });
+    }
+  });
+
+  return roomIds;
+};
 
 /**
  * Hook to get all direct message rooms
@@ -16,9 +39,34 @@ import {
 export const useDirectRooms = () => {
   const [directRooms, setDirectRooms] = useState<Room[]>([]);
   const [invitedRooms, setInvitedRooms] = useState<Room[]>([]);
+  const [mDirects, setMDirects] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const mx = getMatrixClient();
-  const mDirects = useMDirects(mx);
+
+  // Track m.direct account data
+  useEffect(() => {
+    if (!mx) {
+      setMDirects(new Set());
+      return;
+    }
+
+    const mDirectEvent = mx.getAccountData(AccountDataType.Direct as any);
+    if (mDirectEvent) {
+      setMDirects(getMDirects(mDirectEvent));
+    }
+
+    const handleAccountData = (event: MatrixEvent) => {
+      if (event.getType() === AccountDataType.Direct) {
+        setMDirects(getMDirects(event));
+      }
+    };
+
+    mx.on(ClientEvent.AccountData, handleAccountData);
+
+    return () => {
+      mx.off(ClientEvent.AccountData, handleAccountData);
+    };
+  }, [mx]);
 
   const updateDirectRooms = useCallback(() => {
     if (!mx) {
