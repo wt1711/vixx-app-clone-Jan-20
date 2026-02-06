@@ -60,7 +60,7 @@ const isBotInviter = (room: Room): boolean => {
   return !!inviter && isBotUser(inviter);
 };
 
-export const isInvite = (room: Room | null): boolean => {
+export const isValidInvitedRoom = (room: Room | null): boolean => {
   return (
     !!room &&
     isValidRoom(room) &&

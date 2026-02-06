@@ -3,7 +3,7 @@ import { Room, RoomEvent, ClientEvent, MatrixEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import {
   isBotRoom,
-  isInvite,
+  isValidInvitedRoom,
   isValidRoom,
   isGroupChatRoom,
 } from 'src/utils/room';
@@ -89,7 +89,7 @@ export const useDirectRooms = () => {
     const directs: Room[] = [];
     const invited: Room[] = [];
     for (const room of validRooms) {
-      if (isInvite(room)) {
+      if (isValidInvitedRoom(room)) {
         invited.push(room);
       } else {
         directs.push(room);
