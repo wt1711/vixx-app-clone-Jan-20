@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Room, RoomEvent, ClientEvent, MatrixEvent } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import {
-  IsBotPrivateChat,
+  isBotPrivateChat,
   isInvite,
-  isRoom,
+  isValidRoom,
   isGroupChatRoom,
 } from 'src/utils/room';
 import { AccountDataType } from 'src/types';
@@ -79,9 +79,9 @@ export const useDirectRooms = () => {
     // Filter for valid rooms first (shared conditions)
     const validRooms = allRooms.filter(
       room =>
-        isRoom(room) &&
+        isValidRoom(room) &&
         !mDirects.has(room.roomId) &&
-        !IsBotPrivateChat(room?.name) &&
+        !isBotPrivateChat(room?.name) &&
         !isGroupChatRoom(room),
     );
 
