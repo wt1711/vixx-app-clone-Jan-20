@@ -11,6 +11,7 @@ import { getMatrixClient } from 'src/services/matrixClient';
 import { useImageSender } from 'src/hooks/message/useImageSender';
 import { useSparkleAnimation } from 'src/hooks/animation/useSparkleAnimation';
 import { useAnimatedHeight } from 'src/hooks/animation/useAnimatedHeight';
+import { useContentModeration } from 'src/hooks/useContentModeration';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { ReasoningPill } from './ReasoningPill';
 import { ReplyBar } from './ReplyBar';
@@ -43,6 +44,7 @@ export function RoomInput({ room }: RoomInputProps) {
   } = useAIAssistant();
   const { replyingTo, clearReply } = useReply();
   const { setInputHeight } = useInputHeight();
+  const { checkContent, showModerationWarning } = useContentModeration();
   const isFounderRoom = checkIsFounderRoom(room.name);
 
   // Animation hooks
@@ -92,6 +94,19 @@ export function RoomInput({ room }: RoomInputProps) {
     if (!inputValue.trim() || !mx || sending) return;
 
     const text = inputValue.trim();
+
+    // Content moderation check before sending
+    const userId = mx.getUserId() || 'unknown';
+    const { allowed, showWarning } = checkContent(text, userId);
+
+    if (!allowed) {
+      if (showWarning) {
+        showModerationWarning();
+      }
+      // Don't clear input - let user edit and retry
+      return;
+    }
+
     setInputValue('');
     setSending(true);
 
@@ -123,7 +138,17 @@ export function RoomInput({ room }: RoomInputProps) {
     } finally {
       setSending(false);
     }
-  }, [inputValue, mx, room, sending, setInputValue, replyingTo, clearReply]);
+  }, [
+    inputValue,
+    mx,
+    room,
+    sending,
+    setInputValue,
+    replyingTo,
+    clearReply,
+    checkContent,
+    showModerationWarning,
+  ]);
 
   return (
     <View style={styles.container} onLayout={handleLayout}>

@@ -16,11 +16,8 @@ import { Settings, Plus } from 'lucide-react-native';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
 import { useDirectRooms } from 'src/hooks/room';
 import { getMatrixClient } from 'src/services/matrixClient';
-import {
-  getRoomAvatarUrl,
-  getLastRoomMessageAsync,
-  isMessageFromMe,
-} from 'src/utils/room';
+import { getRoomAvatarUrl } from 'src/utils/room';
+import { getLastRoomMessageAsync, isMessageFromMe } from 'src/utils/message';
 import { useAuth } from 'src/hooks/context/AuthContext';
 import { RoomListItem, RoomItemData } from 'src/components/room';
 import { LoadingScreen } from 'src/components/common/LoadingScreen';
@@ -133,7 +130,7 @@ export function DirectMessageListScreen({
         const { message, timestamp, senderId, senderName } =
           await getLastRoomMessageAsync(mx, item.room);
         const isFromMe = senderId
-          ? isMessageFromMe(senderId, myUserId, item.name, senderName || '')
+          ? isMessageFromMe(senderId, myUserId, item.room, senderName || '')
           : false;
         return {
           ...item,
@@ -164,11 +161,13 @@ export function DirectMessageListScreen({
   const handleCheckConnectedAccount = async () => {
     try {
       setSyncing(true);
-      const synced =
-        await socialAccountService.syncSocialAccounts(onForceLogout);
+      const synced = await socialAccountService.syncSocialAccounts(
+        onForceLogout,
+      );
       if (synced) {
-        const result =
-          await socialAccountService.getSocialAccounts(onForceLogout);
+        const result = await socialAccountService.getSocialAccounts(
+          onForceLogout,
+        );
         const isInstagramAccountConnected =
           socialAccountService.instagramAccountConnected(result);
         if (!isInstagramAccountConnected) {

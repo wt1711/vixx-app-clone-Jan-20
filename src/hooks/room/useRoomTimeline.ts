@@ -8,12 +8,9 @@ import {
 } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import { MsgType, MessageEvent, ContentKey } from 'src/types';
-import {
-  getMemberAvatarMxc,
-  getRoomAvatarUrl,
-  messageEventOnly,
-  isMessageFromMe,
-} from 'src/utils/room';
+import { getRoomAvatarUrl } from 'src/utils/room';
+import { getMemberAvatarUrl } from 'src/utils/user';
+import { messageEventOnly, isMessageFromMe } from 'src/utils/message';
 import { MessageItem, ReplyToData } from 'src/components/room/types';
 import { getReactionsForEvent } from 'src/components/room/utils';
 
@@ -85,16 +82,10 @@ export function useRoomTimeline({
       const senderMember = room.getMember(sender);
       const senderName =
         senderMember?.name || sender.split('@')[0]?.split(':')[0] || 'Unknown';
-      const roomName = room.name || 'Unknown';
-      const isOwn = isMessageFromMe(
-        sender,
-        mx.getUserId(),
-        roomName,
-        senderName,
-      );
+      const isOwn = isMessageFromMe(sender, mx.getUserId(), room, senderName);
       const avatarUrl = isOwn
         ? undefined
-        : getMemberAvatarMxc(mx, room, sender) ||
+        : getMemberAvatarUrl(mx, room, sender) ||
           getRoomAvatarUrl(mx, room, 96, true);
 
       let contentText = '';
@@ -249,7 +240,7 @@ export function useRoomTimeline({
           const replyIsOwn = isMessageFromMe(
             replySender,
             mx.getUserId(),
-            roomName,
+            room,
             replySenderName,
           );
 

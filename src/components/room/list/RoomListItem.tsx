@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { Room } from 'matrix-js-sdk';
-import { formatRelativeTimeWithRecent } from 'src/utils/timeFormatter';
-import { getInitials } from 'src/utils/stringUtils';
+import { parseRelativeTimeWithRecent } from 'src/utils/parsers/timeParser';
+import { getInitials } from 'src/utils/room';
 import { colors } from 'src/config';
 
 export type RoomItemData = {
@@ -47,7 +47,7 @@ function TimeStamp({
 }) {
   if (!timestamp) return null;
 
-  const { text } = formatRelativeTimeWithRecent(timestamp);
+  const { text } = parseRelativeTimeWithRecent(timestamp);
 
   return (
     <Text style={[styles.roomTime, hasUnread && styles.roomTimeUnread]}>

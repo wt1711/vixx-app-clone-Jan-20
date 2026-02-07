@@ -1,21 +1,18 @@
 {
   "files.exclude": {
-    "**/.DS_Store": true,
-    ".watchmanconfig": true,
     ".eslintrc.js": true,
     ".prettierrc.js": true,
+    ".watchmanconfig": true,
+    "**/.DS_Store": true,
+    "app.json": true,
     "babel.config.js": true,
-    "jest.config.js": true,
-    "metro.config.js": true,
-    "metro-transformer.js": true,
-    "tsconfig.json": true,
     "Gemfile": true,
     "Gemfile.lock": true,
-    "app.json": true,
-    ".bmad-core": true,
-    ".claude": true,
+    "jest.config.js": true,
+    "metro-transformer.js": true,
+    "metro.config.js": true,
     "node_modules": true,
-    "vendor": true,
-    ".bundle": true
+    "tsconfig.json": true,
+    "vendor": true
   }
 }
