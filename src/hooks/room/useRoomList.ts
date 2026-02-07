@@ -1,8 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { RoomEvent, ClientEvent, Room, Direction } from 'matrix-js-sdk';
+import {
+  RoomEvent,
+  ClientEvent,
+  Room,
+  Direction,
+  MatrixClient,
+} from 'matrix-js-sdk';
 import { useMatrixClient } from 'src/hooks/useMatrixClient';
-import { transformRoom, RoomListItem } from 'src/utils/roomTransformer';
+import { RoomListItem } from 'src/utils/room';
 import { MessageEvent } from 'src/types';
+import { parseRelativeTime } from 'src/utils/parsers/timeParser';
+import { shouldHideMessage } from 'src/utils/message';
 
 const MIN_MESSAGES_PER_ROOM = 1;
 
@@ -19,6 +27,40 @@ function shouldHideRoom(room: Room): boolean {
   }
 
   return false;
+}
+
+/**
+ * Transforms a Matrix Room into a UI-ready RoomListItem
+ */
+function transformRoom(room: Room, client: MatrixClient): RoomListItem {
+  let lastMessage = 'No messages';
+  const timeline = room.getLiveTimeline().getEvents();
+
+  for (let i = timeline.length - 1; i >= 0; i--) {
+    const event = timeline[i];
+    if (event.getType() === MessageEvent.RoomMessage) {
+      const body = event.getContent()?.body || '';
+      if (body && !shouldHideMessage(body)) {
+        lastMessage = body;
+        break;
+      }
+    }
+  }
+
+  let avatar = '';
+  const avatarUrl = room.getAvatarUrl(client.baseUrl, 96, 96, 'crop');
+  if (avatarUrl) {
+    avatar = avatarUrl;
+  }
+
+  return {
+    id: room.roomId,
+    name: room.name || 'Unnamed Room',
+    avatar,
+    lastMessage,
+    timestamp: parseRelativeTime(room.getLastActiveTimestamp()),
+    unread: room.getUnreadNotificationCount() > 0,
+  };
 }
 
 export const useRoomList = () => {

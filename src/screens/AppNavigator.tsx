@@ -5,8 +5,6 @@ import { DirectMessageListScreen } from 'src/screens/DirectMessageListScreen';
 import { DirectMessageDetailScreen } from 'src/screens/DirectMessageDetailScreen';
 import { SettingsScreen } from 'src/screens/SettingsScreen';
 import { PendingInvitationsModal } from 'src/components/auth';
-import { useDirectRooms } from 'src/hooks/room';
-import { getMatrixClient } from 'src/services/matrixClient';
 
 export type RootStackParamList = {
   MessageList: undefined;
@@ -107,14 +105,6 @@ function SettingsWrapper() {
 
 function PendingInvitationsWrapper() {
   const navigation = useNavigation<NavigationProp>();
-  const { invitedRooms } = useDirectRooms();
-  const mx = getMatrixClient();
 
-  return (
-    <PendingInvitationsModal
-      invitedRooms={invitedRooms}
-      mx={mx}
-      onClose={() => navigation.goBack()}
-    />
-  );
+  return <PendingInvitationsModal onClose={() => navigation.goBack()} />;
 }

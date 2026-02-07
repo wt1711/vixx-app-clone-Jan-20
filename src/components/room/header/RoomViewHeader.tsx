@@ -3,7 +3,12 @@ import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { LiquidGlassButton } from 'src/components/ui/LiquidGlassButton';
-import { ChevronLeft, User, ScanSearch } from 'lucide-react-native';
+import {
+  ChevronLeft,
+  User,
+  ScanSearch,
+  ChevronDown,
+} from 'lucide-react-native';
 import { Room } from 'matrix-js-sdk';
 import { getMatrixClient } from 'src/services/matrixClient';
 import { getRoomAvatarUrl, isFounderRoom } from 'src/utils/room';
@@ -14,19 +19,22 @@ import { colors, gradients } from 'src/config';
 type RoomViewHeaderProps = {
   room: Room;
   onBack: () => void;
+  onOptionsPress?: () => void;
 };
 
 export function RoomViewHeader({
   room,
   onBack,
+  onOptionsPress,
 }: RoomViewHeaderProps) {
   const mx = getMatrixClient();
   const insets = useSafeAreaInsets();
-  const { toggleAIAssistant, isAnalysisModeActive, toggleAnalysisMode } = useAIAssistant();
+  const { toggleAIAssistant, isAnalysisModeActive, toggleAnalysisMode } =
+    useAIAssistant();
 
   const roomName = room.name || 'Unknown';
   const avatarUrl = mx ? getRoomAvatarUrl(mx, room, 96, true) : undefined;
-  const isFounderChat = isFounderRoom(roomName);
+  const isFounderChat = isFounderRoom(room);
 
   const handlePress = useCallback(() => {
     onBack();
@@ -60,6 +68,9 @@ export function RoomViewHeader({
           style={styles.profilePill}
           contentStyle={styles.profilePillContent}
           borderRadius={PILL_HEIGHT / 2}
+          onPress={
+            onOptionsPress && !isFounderRoom(room) ? onOptionsPress : undefined
+          }
         >
           <TouchableOpacity style={styles.profileSection} activeOpacity={0.7}>
             {avatarUrl ? (
@@ -72,6 +83,9 @@ export function RoomViewHeader({
             <Text style={styles.roomName} numberOfLines={1}>
               {roomName}
             </Text>
+            {onOptionsPress && !isFounderRoom(room) && (
+              <ChevronDown color={colors.text.secondary} size={16} />
+            )}
           </TouchableOpacity>
         </LiquidGlassButton>
 
@@ -96,7 +110,11 @@ export function RoomViewHeader({
             >
               <ScanSearch
                 size={22}
-                color={isAnalysisModeActive ? colors.accent.cyan : colors.text.primary}
+                color={
+                  isAnalysisModeActive
+                    ? colors.accent.cyan
+                    : colors.text.primary
+                }
               />
             </TouchableOpacity>
 

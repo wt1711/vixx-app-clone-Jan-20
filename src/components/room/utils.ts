@@ -1,5 +1,5 @@
 import { Room } from 'matrix-js-sdk';
-import { getEventReactions } from 'src/utils/room';
+import { getEventReactions } from 'src/utils/message';
 import { ReactionData } from 'src/components/room/types';
 
 /**
